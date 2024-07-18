@@ -8,7 +8,7 @@ export class User {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ unique: true })
   username: string;
 
   @Column()
@@ -17,6 +17,6 @@ export class User {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ default: 'local' })
   method: string;
 }

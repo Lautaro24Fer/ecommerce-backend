@@ -17,7 +17,7 @@ export class Order {
   @Column()
   destinity: string;
 
-  @Column()
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date_created: Date;
 
   @Column()
@@ -27,7 +27,7 @@ export class Order {
   dev_date: Date;
 
   @ManyToOne(() => User, (user) => user.id, { cascade: true })
-  user_id: User;
+  user: User;
 
   @ManyToMany(() => Product, (product) => product.id, { cascade: true })
   @JoinTable()

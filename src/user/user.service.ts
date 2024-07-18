@@ -8,6 +8,10 @@ import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService {
+  constructor(
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+  ) {}
+
   async hashPassword(password: string): Promise<string> {
     const salt: string = await bcrypt.genSalt(10);
     const hash: string = await bcrypt.hash(password, salt);
@@ -17,10 +21,6 @@ export class UserService {
   async comparePasswords(password: string, hash: string): Promise<boolean> {
     return await bcrypt.compare(password, hash);
   }
-
-  constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
-  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     createUserDto.password = await this.hashPassword(createUserDto.password);

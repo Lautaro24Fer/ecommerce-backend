@@ -1,4 +1,10 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateSupplierDto } from './create-supplier.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsString, Length } from 'class-validator';
 
-export class UpdateSupplierDto extends PartialType(CreateSupplierDto) {}
+export class UpdateSupplierDto {
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  @Length(1, 50)
+  name: string;
+}

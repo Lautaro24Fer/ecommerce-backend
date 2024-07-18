@@ -26,7 +26,7 @@ import { User } from './user/entities/user.entity';
       password: '1234',
       database: 'nest',
       entities: [Brand, Order, Product, Supplier, User],
-      synchronize: process.env.NODE_ENV !== 'production',
+      synchronize: false,
     }),
     ProductModule,
     BrandModule,

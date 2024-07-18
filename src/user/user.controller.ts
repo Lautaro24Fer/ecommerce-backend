@@ -57,8 +57,8 @@ export class UserController {
   })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'bad request' })
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<User> {
-    return await this.userService.findOne(+id);
+  async findOne(@Param('id') id: number): Promise<User> {
+    return await this.userService.findOne(id);
   }
 
   @ApiOperation({ summary: 'update one user by id' })
@@ -74,10 +74,10 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'bad request' })
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
-    return await this.userService.update(+id, updateUserDto);
+    return await this.userService.update(id, updateUserDto);
   }
 
   @ApiOperation({ summary: 'delete a user by id' })
@@ -100,7 +100,7 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'bad request' })
   @UseGuards(AuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return await this.userService.remove(+id);
+  async remove(@Param('id') id: number) {
+    return await this.userService.remove(id);
   }
 }

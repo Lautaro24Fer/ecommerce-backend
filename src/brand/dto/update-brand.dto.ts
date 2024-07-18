@@ -1,4 +1,10 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateBrandDto } from './create-brand.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsString, Length } from 'class-validator';
 
-export class UpdateBrandDto extends PartialType(CreateBrandDto) {}
+export class UpdateBrandDto {
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  @Length(1, 100)
+  name: string;
+}

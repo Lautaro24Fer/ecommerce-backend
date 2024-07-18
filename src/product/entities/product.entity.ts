@@ -13,9 +13,12 @@ export class Product {
   @Column()
   price: number;
 
-  @ManyToOne(() => Brand, (brand) => brand.id)
-  brand_id: Brand;
+  @Column({ type: 'text' })
+  image: string;
 
-  @ManyToOne(() => Supplier, (supplier) => supplier.id)
-  supplier_id: Supplier;
+  @ManyToOne(() => Brand, (brand) => brand.id, { cascade: true })
+  brand: Brand;
+
+  @ManyToOne(() => Supplier, (supplier) => supplier.id, { cascade: true })
+  supplier: Supplier;
 }
