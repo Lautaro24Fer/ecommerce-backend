@@ -13,6 +13,7 @@ import { Order } from './order/entities/order.entity';
 import { Product } from './product/entities/product.entity';
 import { Supplier } from './supplier/entities/supplier.entity';
 import { User } from './user/entities/user.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { User } from './user/entities/user.entity';
     BrandModule,
     SupplierModule,
     OrderModule,
+    ConfigModule.forRoot({ envFilePath: ['./.env'], isGlobal: true }),
   ],
   controllers: [AppController],
   providers: [AppService],

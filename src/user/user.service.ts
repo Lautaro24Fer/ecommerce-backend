@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
+import { CreateUserStrategyDto } from './dto/create-user-strategy.dto';
 
 @Injectable()
 export class UserService {
@@ -63,6 +64,40 @@ export class UserService {
         `The user with username '${username}' was not founded`,
       );
     }
+    return user;
+  }
+
+  async findOneByEmail(email: string): Promise<User | undefined> {
+    const user: User = await this.userRepository.findOneBy({ email });
+    return user;
+  }
+
+  /* IMPORTANTE
+  
+    Decidí crear un nuevo DTO para la creacion de usuarios en el archivo create-user-strategy.dto.ts 
+    en donde creas un usuario con la estrategia (ya sea googleo alguna mas que se pueda añadir en el futuro como facebook
+    o discord). ¿Por qué hago esto? Porque como pensarás, al momento de realizar el inicio de sesión con OAuth no
+    le vamos a pedir al usuario que ingrese una contraseña. Por lo que decidí crear un nuevo dto para justamente 
+    saltear la contraseña. 
+    Una cosa importante, yo acá voy a esperar que ingreses también un username que haré único en la DB. Por lo que vas a tener 
+    crear una ventana en donde el usuario ingrese un username y luego validaremos en la db si es único
+  */
+
+  async validateUserWithStrategy(payload: CreateUserStrategyDto) {
+    console.log('__USER GIVEN IN SERVICE__');
+    console.log(payload);
+    console.log('_________________________');
+    const user: User = await this.userRepository.findOneBy({
+      email: payload.email,
+    });
+    if (!user) {
+      const userCreated: User = await this.userRepository.save(payload);
+      console.log('user created succesfully');
+      console.log(userCreated);
+      return userCreated;
+    }
+    console.log('user founded succesfully');
+    console.log(user);
     return user;
   }
 
