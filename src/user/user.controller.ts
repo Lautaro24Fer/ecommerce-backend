@@ -8,6 +8,9 @@ import {
   Delete,
   UseGuards,
   HttpStatus,
+  Req,
+  BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,6 +18,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
+import { userInfo } from 'os';
+import { AuthUserResponseDto } from './dto/auth-user-response.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -43,6 +49,30 @@ export class UserController {
   @Get()
   async findAll(): Promise<User[]> {
     return await this.userService.findAll();
+  }
+
+  @ApiOperation({ summary: 'get user authenticated by the cookie' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'all users loaded',
+    type: User,
+  })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'bad request' })
+  @UseGuards(AuthGuard)
+  @Get('cookie')
+  async findOneAuthenticated(@Req() req: Request) {
+    try {
+      const user: User = await this.userService.findOneByCookie(
+        req.cookies['user'],
+      );
+      const responseUser: AuthUserResponseDto = { user, isNewUser: false };
+      if (user.name.includes('null')) {
+        responseUser.isNewUser = true;
+      }
+      return responseUser;
+    } catch {
+      throw new BadRequestException('error getting user authenticated');
+    }
   }
 
   @ApiOperation({ summary: 'find one user by id' })

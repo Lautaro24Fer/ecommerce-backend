@@ -6,11 +6,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { CreateUserStrategyDto } from './dto/create-user-strategy.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async hashPassword(password: string): Promise<string> {
@@ -42,15 +44,22 @@ export class UserService {
   }
 
   async findOne(id: number): Promise<User | undefined> {
-    const user: User = await this.userRepository.findOne({
-      where: {
-        id: id,
-      },
-    });
+    const user: User = await this.userRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException(`The user with id '${id}' was not founded`);
     }
     return user;
+  }
+
+  async findOneByCookie(cookieOnRequest: string) {
+    const userDecoded: any = await this.jwtService.decode(cookieOnRequest);
+    const userOnDB: User = await this.userRepository.findOneBy({
+      id: userDecoded?.id ?? 1,
+    });
+    if (!userOnDB) {
+      throw new NotFoundException('user not founded');
+    }
+    return userOnDB;
   }
 
   async findOneByUserName(username: string): Promise<User | undefined> {
