@@ -138,11 +138,43 @@ Los usuarios es mas de lo mismo, se podra registrar, actualizar todos los campos
 Los inicios de sesión son mediante cookies, esto facilita que no tengas que poner el token en el header.
 Por defecto los tokens duran 30 minutos, por lo que cuando inicies sesion tendras permisos durante ese tiempo para hacer las peticiones.
 
-(A este punto de escribir la documentacion son las 04:48 de la mañana y un deseo inmenso de cortartme los huevos al darme cuenta que hay un inicio de sesion pero no hay register la re putisima madre)
-(Falsa alarma si está, estaba en users asi que piola)
 
 Para iniciar sesion tenes que ingresar el nombre de usuario y la contraseña
 
 ## Toma nota de todo
 
 A este punto la api tomo un tamaño importante que no puedo estar al tanto de todo, cualquier error que encuentres está perfecto que lo arregles en local si te sentis zarpado, pero es importante que me lo comentes asi lo arreglo lo antes posible ㊗
+
+## OAUTH
+
+Para el inicio de sesión lo unico que hay que hacer es crear un boton que tenga el siguiente codigo
+
+```typescript
+
+# La url cambiará cuando la api esté en produccion
+
+const buttonEl = document.querySelector("#googlebtn")
+    buttonEl.addEventListener('click', () => {
+        window.location.href = 'http://localhost:3000/auth/login/google'
+    })
+```
+
+Al momento de aceptar las credenciales se devolverá en forma de cookie la id del usuario ya que por fines de seguridad prefiero que hagas 2 fetch a la api para tener toda la informacion del usuario.
+
+Cuadndo el usuario se logeea por primera vez naturalmente no tendrá nombre de usuario, teniendo un nombre de usuario similar a este
+
+```bash
+# El numero es aleatorio conseguido con ${Date.now() + 1}
+
+username.null.14183741680
+```
+Es acá en donde debería manejarse desde el front el cambio de nombre de usuario.
+
+Las cookies no duran más de 2 minutos y buscarán tener sistemas de refresh los proximos días. 
+
+
+
+
+
+
+    
