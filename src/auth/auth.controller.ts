@@ -51,14 +51,12 @@ export class AuthController {
   async googleLoginCallback(@Req() req: Request, @Res() res: Response) {
     const user: any = { ...req.user };
 
-    console.log('_____ ESTE ES EL USUARIO EN EL CONTROLADOR _____');
-    console.log(user);
-    console.log('________________________________________________');
-
-    const tokenPayload: string = await this.jwtService.signAsync(user);
+    const tokenPayload: string = await this.jwtService.signAsync({
+      id: user.id,
+    });
 
     res.cookie('user', tokenPayload, {
-      maxAge: 1000 * 60 * 2,
+      maxAge: 1000 * 60 * 5, // Tiempo de vida de la cookie
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
     });
