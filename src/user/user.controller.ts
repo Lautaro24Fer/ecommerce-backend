@@ -56,6 +56,7 @@ export class UserController {
     description: 'the user was not founded',
   })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'bad request' })
+  @UseGuards(AuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<User> {
     return await this.userService.findOne(id);

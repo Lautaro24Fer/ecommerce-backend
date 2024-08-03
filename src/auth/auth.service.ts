@@ -34,7 +34,7 @@ export class AuthService {
     return userFounded;
   }
 
-  async getToken(
+  async getCookieByLocalAuth(
     login: InputLoginDto,
     res: Response,
   ): Promise<LoginResponseDto | undefined> {
@@ -42,26 +42,49 @@ export class AuthService {
       login.username,
       login.password,
     );
-
     try {
-      const payload = { id: userLogin?.id, username: userLogin?.username };
-
-      const token = await this.jwtService.signAsync(payload);
-
-      res.cookie('token', token, {
+      const token = await this.getJwtTokenOrBadRequest({
+        id: userLogin.id,
+        method: userLogin.method,
+      });
+      res.cookie('user', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 1000 * 60 * 30,
       });
 
-      const responseLogin = new LoginResponseDto(
-        true,
-        'login succesfully',
-        token,
-      );
+      const responseLogin = new LoginResponseDto(true, 'login succesfully');
 
       return responseLogin;
+    } catch {
+      throw new HttpException(
+        'error creating the token',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  async getCookieByPassportStrategy(
+    res: Response,
+    user: any,
+  ): Promise<void | undefined> {
+    const tokenPayload: string = await this.getJwtTokenOrBadRequest({
+      id: user?.id,
+      method: user?.method,
+    });
+
+    res.cookie('user', tokenPayload, {
+      maxAge: 1000 * 60 * 5, // Tiempo de vida de la cookie
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
+  }
+
+  async getJwtTokenOrBadRequest(payload: any): Promise<string | undefined> {
+    try {
+      const cookieCrypted = await this.jwtService.signAsync(payload);
+      return cookieCrypted;
     } catch {
       throw new HttpException(
         'error creating the token',
