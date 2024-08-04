@@ -60,15 +60,12 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'bad request' })
   @UseGuards(AuthGuard)
   @Get('cookie')
-  async findOneAuthenticated(@Req() req: Request) {
+  async findOneAuthenticated(
+    @Req() req: Request,
+  ): Promise<AuthUserResponseDto | undefined> {
     try {
-      const user: User = await this.userService.findOneByCookie(
-        req.cookies['user'],
-      );
-      const responseUser: AuthUserResponseDto = { user, isNewUser: false };
-      if (user.name.includes('null')) {
-        responseUser.isNewUser = true;
-      }
+      const responseUser: AuthUserResponseDto =
+        await this.userService.responseByAuthStrategy(req.cookies['user']);
       return responseUser;
     } catch {
       throw new BadRequestException('error getting user authenticated');

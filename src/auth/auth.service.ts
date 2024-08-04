@@ -23,7 +23,8 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<User | undefined> {
-    const userFounded = await this.userService.findOneByUserName(username);
+    const userFounded =
+      await this.userService.findOneByUsernameEntity(username);
     const isValidated: boolean = await this.userService.comparePasswords(
       password,
       userFounded.password,
