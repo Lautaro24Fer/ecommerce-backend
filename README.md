@@ -58,7 +58,7 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-# PadelPoint v1
+# PadelPoint v1.2
 
 ## Levantar servidor
 
@@ -138,25 +138,19 @@ Los usuarios es mas de lo mismo, se podra registrar, actualizar todos los campos
 Los inicios de sesión son mediante cookies, esto facilita que no tengas que poner el token en el header.
 Por defecto los tokens duran 30 minutos, por lo que cuando inicies sesion tendras permisos durante ese tiempo para hacer las peticiones.
 
-
 Para iniciar sesion tenes que ingresar el nombre de usuario y la contraseña
-
-## Toma nota de todo
-
-A este punto la api tomo un tamaño importante que no puedo estar al tanto de todo, cualquier error que encuentres está perfecto que lo arregles en local si te sentis zarpado, pero es importante que me lo comentes asi lo arreglo lo antes posible ㊗
 
 ## OAUTH
 
 Para el inicio de sesión lo unico que hay que hacer es crear un boton que tenga el siguiente codigo
 
 ```typescript
+// La url cambiará cuando la api esté en produccion
 
-# La url cambiará cuando la api esté en produccion
-
-const buttonEl = document.querySelector("#googlebtn")
-    buttonEl.addEventListener('click', () => {
-        window.location.href = 'http://localhost:3000/auth/login/google'
-    })
+const buttonEl = document.querySelector('#googlebtn');
+buttonEl.addEventListener('click', () => {
+  window.location.href = 'http://localhost:3000/auth/login/google';
+});
 ```
 
 Al momento de aceptar las credenciales se devolverá en forma de cookie la id del usuario ya que por fines de seguridad prefiero que hagas 2 fetch a la api para tener toda la informacion del usuario.
@@ -168,13 +162,49 @@ Cuadndo el usuario se logeea por primera vez naturalmente no tendrá nombre de u
 
 username.null.14183741680
 ```
+
 Es acá en donde debería manejarse desde el front el cambio de nombre de usuario.
 
-Las cookies no duran más de 2 minutos y buscarán tener sistemas de refresh los proximos días. 
+## QUERY PARAMS
 
+El controlador de productos proverá la funcionalidad de filtrar mediante parametros de consulta en la url para traer varios productos. Se va a poder filtrar en funcion de:
 
+. Precio mínimo (minPrice)
+. Precio máximo (maxPrice)
+. Precio exacto (price)
+. Nombre de producto (name)
+. Nombre de marca (brand)
 
+Naturalmente todo lo relacionado a precios será de tipo numérico positivo, los casos de los mínimos y los máximos serán limites inclusives (menor o igual, mayor o igual). El caso de los nombres al ser cadenas harán uso de expresiones regulares para encontrar las similitudes con bipolaridad
 
+```typescript
+// Busca similitudes en ambas direcciones, si empieza, en el medio o termina
 
+`%${cadena}%`;
+```
 
-    
+Un ejemplo de uso sería algo así
+
+```bash
+
+http://localhost:3000/product?minPrice=100&maxPrice=300&price=235
+
+```
+
+Devolviendo un array con la siguiente estructura
+
+```typescript
+[
+  {
+    id: 2,
+    name: 'BABOLAT AIR VERON 2022',
+    price: 235,
+    image:
+      'https://imgs.search.brave.com/CntldRuuGAWhuSmml4KJkCDa-AVZydzdHVBEBhBayQc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9kMjho/aTkzZ3I2OTdvbC5j/bG91ZGZyb250Lm5l/dC81YTFhNzBlMS02/MzIxLTY5NDQtZWQ5/My02N2E0ODU1MDM1/MDQvaW1nL1Byb2R1/Y3RvL2U2YmUyOTMz/LTVkMGUtZmVkMS1i/OThkLTVlYjgxNDhj/YzBjNy9BQS1WZXJ0/ZXgtMDMtMjAyMy02/NGFlZTBkMTU2MDRm/LmpwZw',
+    brand: {
+      id: 2,
+      name: 'BABOLAT',
+    },
+  },
+];
+```
