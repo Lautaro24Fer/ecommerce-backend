@@ -6,13 +6,14 @@ import {
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Repository } from 'typeorm';
+import { createQueryBuilder, DataSource, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
 import { BrandService } from 'src/brand/brand.service';
 import { SupplierService } from 'src/supplier/supplier.service';
 import { Brand } from 'src/brand/entities/brand.entity';
+import { QueryParamsDto } from './dto/query-params.dto';
 
 @Injectable()
 export class ProductService {
@@ -21,6 +22,7 @@ export class ProductService {
     private readonly productRepository: Repository<Product>,
     private readonly brandService: BrandService,
     private readonly supplierService: SupplierService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
@@ -49,13 +51,43 @@ export class ProductService {
     return productCreated;
   }
 
-  async findAll(): Promise<Product[]> {
-    const products: Product[] = await this.productRepository.find({
-      relations: ['brand', 'supplier'],
-    });
-    if (!products) {
-      throw new NotFoundException('Products not founded');
+  async findAll(queryParams: QueryParamsDto): Promise<Product[]> {
+    const queryBuilder = this.dataSource
+      .createQueryBuilder(Product, 'product')
+      .innerJoinAndSelect('product.brand', 'brand');
+
+    if (queryParams.brand) {
+      queryBuilder.andWhere('brand.name LIKE :brand', {
+        brand: `%${queryParams.brand}%`,
+      });
     }
+
+    if (queryParams.maxPrice) {
+      queryBuilder.andWhere('product.price <= :maxPrice', {
+        maxPrice: queryParams.maxPrice,
+      });
+    }
+
+    if (queryParams.minPrice) {
+      queryBuilder.andWhere('product.price >= :minPrice', {
+        minPrice: queryParams.minPrice,
+      });
+    }
+
+    if (queryParams.price) {
+      queryBuilder.andWhere('product.price = :price', {
+        price: queryParams.price,
+      });
+    }
+
+    if (queryParams.name) {
+      queryBuilder.andWhere('product.name LIKE :name', {
+        name: `%${queryParams.name}%`,
+      });
+    }
+
+    const products: Product[] = await queryBuilder.getMany();
+
     return products;
   }
 

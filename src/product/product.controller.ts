@@ -7,13 +7,15 @@ import {
   Param,
   Delete,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
+import { QueryParamsDto } from './dto/query-params.dto';
 
 @ApiTags('Products')
 @Controller('product')
@@ -43,9 +45,39 @@ export class ProductController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error loading the products',
   })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    type: String,
+    description: 'Name of the product',
+  })
+  @ApiQuery({
+    name: 'minPrice',
+    required: false,
+    type: Number,
+    description: 'Minimum price of the product',
+  })
+  @ApiQuery({
+    name: 'maxPrice',
+    required: false,
+    type: Number,
+    description: 'Maximum price of the product',
+  })
+  @ApiQuery({
+    name: 'price',
+    required: false,
+    type: Number,
+    description: 'Exact price of the product',
+  })
+  @ApiQuery({
+    name: 'brand',
+    required: false,
+    type: String,
+    description: 'Brand of the product',
+  })
   @Get()
-  findAll() {
-    return this.productService.findAll();
+  async findAll(@Query() queryParams: QueryParamsDto): Promise<Product[]> {
+    return await this.productService.findAll(queryParams);
   }
 
   @ApiOperation({ summary: 'Find one product by id' })

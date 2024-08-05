@@ -76,7 +76,7 @@ export class UserService {
       user: userDto,
       isNewUser: false,
     };
-    if (user.name.includes('null')) {
+    if (user.username.includes('null')) {
       responseUser.isNewUser = true;
     }
     return responseUser;
