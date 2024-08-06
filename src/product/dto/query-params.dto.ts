@@ -45,6 +45,17 @@ export class QueryParamsDto {
   price?: number | null | undefined;
 
   @ApiPropertyOptional({
+    description: 'Exact price of the product',
+    type: Number,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value ? Number(value) : null), {
+    toClassOnly: true,
+  })
+  @IsPositive()
+  limit?: number | null | undefined;
+
+  @ApiPropertyOptional({
     description: 'Brand of the product',
     type: String,
   })

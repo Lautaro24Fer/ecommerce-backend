@@ -174,6 +174,7 @@ El controlador de productos proverá la funcionalidad de filtrar mediante parame
 . Precio exacto (price)
 . Nombre de producto (name)
 . Nombre de marca (brand)
+. Limite de cantidad de productos retornados (limit)
 
 Naturalmente todo lo relacionado a precios será de tipo numérico positivo, los casos de los mínimos y los máximos serán limites inclusives (menor o igual, mayor o igual). El caso de los nombres al ser cadenas harán uso de expresiones regulares para encontrar las similitudes con bipolaridad
 

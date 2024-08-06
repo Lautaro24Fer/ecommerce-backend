@@ -86,6 +86,10 @@ export class ProductService {
       });
     }
 
+    if (queryParams.limit) {
+      queryBuilder.take(queryParams.limit);
+    }
+
     const products: Product[] = await queryBuilder.getMany();
 
     return products;
