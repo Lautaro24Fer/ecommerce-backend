@@ -5,7 +5,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from 'src/user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GoogleStrategy } from './strategies/auth-google.strategy';
-import { jwt_secret } from './constaints';
 import { SessionSerializer } from './serialezers/auth-google.serializer';
 
 @Module({
@@ -20,7 +19,7 @@ import { SessionSerializer } from './serialezers/auth-google.serializer';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '5m' }, // TIEMPO DE VIDA DEL JWT
+        signOptions: { expiresIn: '1m' }, // TIEMPO DE VIDA DEL JWT POR DEFECTO
         global: true,
       }),
     }),

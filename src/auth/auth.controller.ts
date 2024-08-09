@@ -3,9 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   Req,
   Res,
   UseGuards,
@@ -16,23 +13,15 @@ import { LoginResponseDto } from './dto/response-login.dto';
 import { Request, Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from './auth-google.guard';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('login/local')
-  async login(
-    @Body() login: InputLoginDto,
-    @Res() res: Response,
-  ): Promise<any> {
-    const loginResponse: LoginResponseDto =
-      await this.authService.getCookieByLocalAuth(login, res);
+  async login( @Body() login: InputLoginDto, @Res() res: Response ): Promise<any> {
+    const loginResponse: LoginResponseDto = await this.authService.getCookieByLocalAuth(login, res);
     return res.status(201).json(loginResponse);
   }
 
@@ -50,5 +39,10 @@ export class AuthController {
     await this.authService.getCookieByPassportStrategy(res, user);
 
     return res.redirect('http://localhost:8080'); // Esta es la pagina a donde va a redirigir una vez logeado
+  }
+
+  @Post('refresh')
+  async refreshToken(@Req() req: Request, @Res() res: Response) {
+
   }
 }
