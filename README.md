@@ -169,12 +169,12 @@ Es acá en donde debería manejarse desde el front el cambio de nombre de usuari
 
 El controlador de productos proverá la funcionalidad de filtrar mediante parametros de consulta en la url para traer varios productos. Se va a poder filtrar en funcion de:
 
-. Precio mínimo (minPrice)
-. Precio máximo (maxPrice)
-. Precio exacto (price)
-. Nombre de producto (name)
-. Nombre de marca (brand)
-. Limite de cantidad de productos retornados (limit)
+- Precio mínimo (minPrice)
+- Precio máximo (maxPrice)
+- Precio exacto (price)
+- Nombre de producto (name)
+- Nombre de marca (brand)
+- Limite de cantidad de productos retornados (limit)
 
 Naturalmente todo lo relacionado a precios será de tipo numérico positivo, los casos de los mínimos y los máximos serán limites inclusives (menor o igual, mayor o igual). El caso de los nombres al ser cadenas harán uso de expresiones regulares para encontrar las similitudes con bipolaridad
 
@@ -215,8 +215,8 @@ Devolviendo un array con la siguiente estructura
 La idea de los refresh tokens se basa en que de ahora en más se manejarán dos tipos de credenciales jwt, en primer lugar el access token normal que te permite hacer las consultas con credenciales y en segundo lugar el refresh token.
 La diferencia entre los dos es la de que uno durará una hora máximo y el otro duraría 1 semana (ambos en produccion), la idea de esto es permitir: 
 
-  . Seguridad al no tener una unica sesión iniciada constantemente
-  . Experiencia de usuario al no tener que obligarle al mismo iniciar sesion constantemente
+- Seguridad al no tener una unica sesión iniciada constantemente
+- Experiencia de usuario al no tener que obligarle al mismo iniciar sesion constantemente
 
 Entonces el funcionamiento sería el siguiente, el usuario de loggea en el sistema de manera normal y en la sección de cookies encontrará 2 credenciales con el nombre de user (access_token) y refresh (refresh_token). El usuario al momento de hacer peticiones que requieran autorización usará el access_token de la cookie de user, que tiene un tiempo máximo de una hora de vida util. 
 Se llegara a dar el caso de que el usuario haga una petición con un access_token expirado o nulo (ya que al momento de vencerse el jwt se elimina del navegador) buscaremos refrescar un nuevo access_token mediante el refresh, en donde lo primero que hacemos es fijarnos si este también se encuentra vencido. En caso de que no, crearemos un nuevo access_token con el payload del refresh y dejamos pasar la consulta al controlador. Esta logica se hace dentro del guard, permitiendo así refrescar las credenciales del usuario antes de que llegue al controlador, y denegando su uso en caso de que la petición no pueda ser ejecutada correctamente.
