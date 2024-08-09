@@ -209,3 +209,17 @@ Devolviendo un array con la siguiente estructura
   },
 ];
 ```
+
+## REFRESH TOKENS
+
+La idea de los refresh tokens se basa en que de ahora en más se manejarán dos tipos de credenciales jwt, en primer lugar el access token normal que te permite hacer las consultas con credenciales y en segundo lugar el refresh token.
+La diferencia entre los dos es la de que uno durará una hora máximo y el otro duraría 1 semana (ambos en produccion), la idea de esto es permitir: 
+
+  . Seguridad al no tener una unica sesión iniciada constantemente
+  . Experiencia de usuario al no tener que obligarle al mismo iniciar sesion constantemente
+
+Entonces el funcionamiento sería el siguiente, el usuario de loggea en el sistema de manera normal y en la sección de cookies encontrará 2 credenciales con el nombre de user (access_token) y refresh (refresh_token). El usuario al momento de hacer peticiones que requieran autorización usará el access_token de la cookie de user, que tiene un tiempo máximo de una hora de vida util. 
+Se llegara a dar el caso de que el usuario haga una petición con un access_token expirado o nulo (ya que al momento de vencerse el jwt se elimina del navegador) buscaremos refrescar un nuevo access_token mediante el refresh, en donde lo primero que hacemos es fijarnos si este también se encuentra vencido. En caso de que no, crearemos un nuevo access_token con el payload del refresh y dejamos pasar la consulta al controlador. Esta logica se hace dentro del guard, permitiendo así refrescar las credenciales del usuario antes de que llegue al controlador, y denegando su uso en caso de que la petición no pueda ser ejecutada correctamente.
+Se llegara a dar el caso de que el refresh_token también se encuentre vencido (o nulo, porque recordamos que está dentro de una cookie) retornamos un 401 al usuario diciendole que debe iniciar sesión nuevamente.
+
+(9/8/2024 - 01:19)A modo de prueba, en este punto de la api, el access_token dura un minuto mientras el refresh 5. Cambiá estos valores a tu favor
