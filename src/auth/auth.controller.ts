@@ -41,8 +41,10 @@ export class AuthController {
     return res.redirect('http://localhost:8080'); // Esta es la pagina a donde va a redirigir una vez logeado
   }
 
-  @Post('refresh')
-  async refreshToken(@Req() req: Request, @Res() res: Response) {
-
+  @Post('logout')
+  logout(@Req() req: Request, @Res() res: Response) {
+    res.cookie('user', '', { httpOnly: true, expires: new Date(0) });
+    res.cookie('refresh', '', { httpOnly: true, expires: new Date(0) });
+    res.status(200).json({ message: 'Logout successful' });
   }
 }
