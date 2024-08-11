@@ -6,6 +6,8 @@ import {
   Req,
   Res,
   UseGuards,
+  UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { InputLoginDto } from './dto/input-login.dto';
@@ -13,6 +15,7 @@ import { LoginResponseDto } from './dto/response-login.dto';
 import { Request, Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from './auth-google.guard';
+import { AuthGuard } from './auth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -39,6 +42,35 @@ export class AuthController {
     await this.authService.getCookieByPassportStrategy(res, user);
 
     return res.redirect('http://localhost:8080'); // Esta es la pagina a donde va a redirigir una vez logeado
+  }
+
+  @Get('status')
+  async isLogged(@Req() req: Request){
+    const refreshToken: any = req.cookies['refresh']
+    const accessToken: any = req.cookies['user']
+    const response: any = await this.authService.getSessionStatue(accessToken, refreshToken)
+    return response
+  }
+
+  
+  @Post('refresh')
+  async refreshToken(@Req() req: Request, @Res() res: Response){
+    const refreshToken: string = req.cookies['refresh']
+    if(!refreshToken){
+      throw new UnauthorizedException({ error: 'any refresh token, please login again' })
+    }
+    const response = this.authService.verifyJwtIsExpired(refreshToken)
+    if(!response){
+      throw new BadRequestException({ error: 'the refresh token was expired, please token again' })
+    }
+    const accessToken: string = await this.authService.getTokenRefreshed(refreshToken)
+    res.cookie('user', accessToken, {
+      maxAge: 1000 * 60 * 1, // Tiempo de vida de la cookie (1 minuto)
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+    })
+    return res.status(201).json({ message: 'token refreshed succesfully' })
   }
 
   @Post('logout')

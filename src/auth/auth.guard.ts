@@ -6,13 +6,12 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { Observable } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -20,28 +19,32 @@ export class AuthGuard implements CanActivate {
     const ctxHttp = context.switchToHttp();
     const request = ctxHttp.getRequest();
 
-    const { token, refreshToken } = this.extractTokensFromHeader(request);
+    const token: string = this.extractTokenFromCookie(request, 'user')
+    const refreshToken: string = this.extractTokenFromCookie(request, 'refresh')
+
     if (!token && !refreshToken) {
       throw new UnauthorizedException('any token in header request');
     }
 
     try {
-      let tokenPayload: any = await this.verifyTokenOrError(token)
       const refreshTokenPayload: any = await this.verifyTokenOrError(refreshToken)
 
-      if(tokenPayload.error){
-        if(refreshTokenPayload.error){
-          throw new UnauthorizedException({ error: 'session expired' })
-        }
-        tokenPayload = await this.jwtService.signAsync(refreshTokenPayload, { expiresIn: '1m' })
+      if(refreshTokenPayload.error){
+        throw new UnauthorizedException({ error: 'session expired' })
       }
 
-      request['user'] = tokenPayload;
+      let tokenPayload: any = await this.verifyTokenOrError(token)
+
+      if(tokenPayload.error){     
+        throw new UnauthorizedException({ error: 'token expired, refresh the token again' })
+      }
+
+      request['user'] = token;
       request['refresh'] = refreshToken;
       
     } 
     catch {
-      throw new UnauthorizedException('error in the verifiction of the cookie');
+      throw new UnauthorizedException({ error: 'error in the verifiction of the cookie' });
     }
 
     return true;
@@ -62,9 +65,8 @@ export class AuthGuard implements CanActivate {
     }
   }
 
-  extractTokensFromHeader(request: Request) {
-    const token: any = request.cookies['user'];
-    const refreshToken: any = request.cookies['refresh'];
-    return { token, refreshToken };
+  extractTokenFromCookie(request: Request, alias: string) {
+    const token: string = request.cookies[alias]
+    return token
   }
 }
