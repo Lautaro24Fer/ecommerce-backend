@@ -61,7 +61,7 @@ export class AuthController {
     }
     const response = this.authService.verifyJwtIsExpired(refreshToken)
     if(!response){
-      throw new BadRequestException({ error: 'the refresh token was expired, please token again' })
+      throw new BadRequestException({ error: 'the refresh token was expired, please login again' })
     }
     const accessToken: string = await this.authService.getTokenRefreshed(refreshToken)
     res.cookie('user', accessToken, {
@@ -78,5 +78,12 @@ export class AuthController {
     res.cookie('user', '', { httpOnly: true, expires: new Date(0) });
     res.cookie('refresh', '', { httpOnly: true, expires: new Date(0) });
     res.status(200).json({ message: 'Logout successful' });
+  }
+
+  //Endpoint de prueba para testear en swagger
+  @UseGuards(AuthGuard)
+  @Get('test')
+  test(){
+    return { message: 'this is a authenticated recurse' }
   }
 }

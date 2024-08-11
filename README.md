@@ -218,8 +218,104 @@ La diferencia entre los dos es la de que uno durará una hora máximo y el otro 
 - Seguridad al no tener una unica sesión iniciada constantemente
 - Experiencia de usuario al no tener que obligarle al mismo iniciar sesion constantemente
 
-Entonces el funcionamiento sería el siguiente, el usuario de loggea en el sistema de manera normal y en la sección de cookies encontrará 2 credenciales con el nombre de user (access_token) y refresh (refresh_token). El usuario al momento de hacer peticiones que requieran autorización usará el access_token de la cookie de user, que tiene un tiempo máximo de una hora de vida util. 
-Se llegara a dar el caso de que el usuario haga una petición con un access_token expirado o nulo (ya que al momento de vencerse el jwt se elimina del navegador) buscaremos refrescar un nuevo access_token mediante el refresh, en donde lo primero que hacemos es fijarnos si este también se encuentra vencido. En caso de que no, crearemos un nuevo access_token con el payload del refresh y dejamos pasar la consulta al controlador. Esta logica se hace dentro del guard, permitiendo así refrescar las credenciales del usuario antes de que llegue al controlador, y denegando su uso en caso de que la petición no pueda ser ejecutada correctamente.
-Se llegara a dar el caso de que el refresh_token también se encuentre vencido (o nulo, porque recordamos que está dentro de una cookie) retornamos un 401 al usuario diciendole que debe iniciar sesión nuevamente.
+Entonces el funcionamiento sería el siguiente, el usuario de loggea en el sistema de manera normal y en la sección de cookies encontrará 2 credenciales con el nombre de user (access_token) y refresh (refresh_token). El usuario al momento de hacer peticiones que requieran autorización usará el access_token de la cookie de user, que tiene un tiempo máximo de una hora de vida util (en producción).
 
-(9/8/2024 - 01:19)A modo de prueba, en este punto de la api, el access_token dura un minuto mientras el refresh 5. Cambiá estos valores a tu favor
+Para conocer el estado de la sesión actual tenemos el siguiente metodo
+
+```typescript
+
+// Hacemos la peticion al punto /auth/status de la API
+
+fetch('http://localhost:3000/auth/status', {
+            credentials: 'include', // Nos aseguramos que el navegador envíe las cookies en la request
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+
+```
+
+En donde podemos recibir una respuesta con el siguiente formato
+
+```typescript
+
+export class SessionStateDto{
+    isLogged: boolean; // Verifica si la sesion está apta para realizar peticiones autenticadas
+    refreshTokenExists: boolean; // Verifica la existencia de un token de refresco para crear más tokens de acceso
+    message: string; // Un mensaje describiendo la respuesta de la petición
+    payload?: any; // En caso de estar loggeado exitosamente retornará el payload del jwt, caso contrario será nulo
+}
+
+```
+
+Naturalmente las cookies tienen un tiempo de vida limitado y los jwt una vida útil por lo que hacemos es delimitar un tiempo de existencia para ambas credenciales. Los access_token tendrán un tiempo de uso relativamente corto por cuestiones de seguridad y de no tener un mismo jwt para realizar las peticiones, cuando este expira su tiempo de uso usaremos el refresh para hacer una petición a la API para poder tener otro token de acceso.
+
+Para poder refrescar un token hacemos una POST de la siguiente manera
+
+```typescript
+
+// lo haremos al punto /auth/refresh de la API
+
+fetch('http://localhost:3000/auth/refresh', {
+            credentials: 'include',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+
+```
+
+pudiendo tener una respuesta sencilla como la siguiente
+
+```typescript
+{
+    "message": "Logout successful"
+}
+
+```
+Acá se guardarán todas las cookies en el navegador, por lo que en cliente no habría que guardarlas manualmente como cabecera en las request. Este proceso lo podremos hacer todas las veces que nuestro refreshToken nos permita hacer mientras no expire, en el momento de que este ultimo se vence el mismo guard nos notificará con lo siguiente
+
+```typescript
+
+// Cabe destacar que el guard es una capa que se ejecuta al momento de llegar una request en la api que decide si la misma va a ser ejecutada por el controlador o no
+
+// Guard 
+
+{ error: 'session expired' }
+
+```
+
+Tambien podríamos tener una respuesta similar consultando por el estado de la sesión con el formato dado anteriormente. Pero tambien se nos notificará cuando el usuario consuma algun recurso que requiera autenticación con una sesión expirada. Si llegara a darse el caso que el que expiró fue el access token y hago una peticion que requiera de ese tipo de permisos el guard respondera de la siguiente manera
+
+```typescript
+
+//Guard
+
+{ error: 'token expired, refresh the token again' }
+
+```
+También podría darse el caso de que en un momento dado el usuario podría querer terminar la sesión en un momento dado. Para eso se debe controlar la peticion de la siguiente manera
+
+```typescript
+
+// Hace el post a /auth/logout
+
+fetch('http://localhost:3000/auth/logout', {
+            credentials: 'include',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+
+```
+
+En donde la API se encargará de limpiar todas los tokens del navegador del usuario, respondiendo de la siguiente manera
+
+```typescript
+
+{ message: 'Logout successful' }
+
+```
