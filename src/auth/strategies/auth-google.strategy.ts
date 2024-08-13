@@ -44,6 +44,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       method: 'google',
       email: profile.emails[0].value,
       password: '',
+      // Investigar más si se puede guardar la contraseña como cadena vacía par los logins OAUTH
     });
     return user || null;
   }

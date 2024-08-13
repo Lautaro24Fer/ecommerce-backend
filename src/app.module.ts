@@ -14,6 +14,8 @@ import { Product } from './product/entities/product.entity';
 import { Supplier } from './supplier/entities/supplier.entity';
 import { User } from './user/entities/user.entity';
 import { ConfigModule } from '@nestjs/config';
+import { ProductImage } from './product/entities/image.entity';
+import { ProductType } from './product/entities/type.entity';
 
 @Module({
   imports: [
@@ -26,7 +28,7 @@ import { ConfigModule } from '@nestjs/config';
       username: 'root',
       password: '1234',
       database: 'nest',
-      entities: [Brand, Order, Product, Supplier, User],
+      entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType],
       synchronize: false,
     }),
     ProductModule,
