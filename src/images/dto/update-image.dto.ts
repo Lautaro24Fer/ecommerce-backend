@@ -1,4 +1,17 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateImageDto } from './create-image.dto';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsOptional, IsNumber, IsPositive, IsString, Length, IsUrl } from "class-validator";
 
-export class UpdateImageDto extends PartialType(CreateImageDto) {}
+export class UpdateImageDto {
+    @ApiProperty()
+	@IsOptional()
+	@IsString()
+	@Length(1, 80)
+    @IsUrl()
+	url?: string;
+
+	@ApiProperty()
+	@IsOptional()
+	@IsNumber()
+	@IsPositive()
+	productId?: number;
+}

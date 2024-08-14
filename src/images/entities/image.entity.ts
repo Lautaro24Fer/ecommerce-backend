@@ -6,7 +6,7 @@ export class ProductImage{
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'text' })
+    @Column({ type: 'text', unique: true})
     url: string;
 
     @Column({ default: false })
