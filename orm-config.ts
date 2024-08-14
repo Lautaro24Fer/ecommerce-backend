@@ -4,8 +4,8 @@ import { Brand } from 'src/brand/entities/brand.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
-import { ProductType } from 'src/product/entities/type.entity';
-import { ProductImage } from 'src/product/entities/image.entity';
+import { ProductType } from 'src/type/entities/type.entity';
+import { ProductImage } from 'src/images/entities/image.entity';
 
 export const AppDataSource = new DataSource({
   type: 'mysql',

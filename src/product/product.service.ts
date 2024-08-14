@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { createQueryBuilder, DataSource, Repository } from 'typeorm';
+import {DataSource, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
@@ -122,9 +122,9 @@ export class ProductService {
       );
     }
 
-    if (updateProductDto.image) {
-      productFinded.image = updateProductDto.image;
-    }
+    // if (updateProductDto.image) {
+    //   productFinded.image = updateProductDto.image;
+    // }
 
     if (updateProductDto.name) {
       productFinded.name = updateProductDto.name;

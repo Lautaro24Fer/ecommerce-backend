@@ -13,7 +13,6 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { QueryParamsDto } from './dto/query-params.dto';
 

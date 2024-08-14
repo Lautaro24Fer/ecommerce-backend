@@ -14,8 +14,10 @@ import { Product } from './product/entities/product.entity';
 import { Supplier } from './supplier/entities/supplier.entity';
 import { User } from './user/entities/user.entity';
 import { ConfigModule } from '@nestjs/config';
-import { ProductImage } from './product/entities/image.entity';
-import { ProductType } from './product/entities/type.entity';
+import { ProductImage } from './images/entities/image.entity';
+import { ProductType } from './type/entities/type.entity';
+import { TypeModule } from './type/type.module';
+import { ImagesModule } from './images/images.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { ProductType } from './product/entities/type.entity';
     SupplierModule,
     OrderModule,
     ConfigModule.forRoot({ envFilePath: ['./.env'], isGlobal: true }),
+    TypeModule,
+    ImagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

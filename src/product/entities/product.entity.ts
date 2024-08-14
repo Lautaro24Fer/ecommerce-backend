@@ -1,7 +1,7 @@
 import { Brand } from 'src/brand/entities/brand.entity';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { ProductType } from './type.entity';
+import { ProductType } from '../../type/entities/type.entity';
 
 @Entity('product')
 export class Product {
