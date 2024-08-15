@@ -2,8 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@
 import { ImagesService } from './images.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Images of products')
 @Controller('images')
 export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
@@ -50,8 +51,8 @@ export class ImagesController {
     description: 'Error loading the image'
   })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.imagesService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.imagesService.findOne(id);
   }
 
   @ApiResponse({
@@ -68,8 +69,8 @@ export class ImagesController {
   })
   @ApiOperation({ summary: 'Update image data by id' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateImageDto: UpdateImageDto) {
-    return this.imagesService.update(+id, updateImageDto);
+  update(@Param('id') id: number, @Body() updateImageDto: UpdateImageDto) {
+    return this.imagesService.update(id, updateImageDto);
   }
 
   @ApiOperation({ summary: 'Delete one image by id' })
@@ -86,7 +87,7 @@ export class ImagesController {
     description: 'Error deleting the image'
   })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.imagesService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.imagesService.remove(id);
   }
 }

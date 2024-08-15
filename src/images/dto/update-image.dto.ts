@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsNumber, IsPositive, IsString, Length, IsUrl } from "class-validator";
+import { IsOptional, IsNumber, IsPositive, IsString, Length, IsUrl, IsBoolean } from "class-validator";
 
 export class UpdateImageDto {
     @ApiProperty()

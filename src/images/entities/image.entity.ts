@@ -6,11 +6,8 @@ export class ProductImage{
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'text', unique: true})
+    @Column({ type: 'text'})
     url: string;
-
-    @Column({ default: false })
-    isMain: boolean;
 
     @ManyToOne(() => Product, (product) => product.id, { cascade: true })
     product: Product;

@@ -51,8 +51,8 @@ export class TypeController {
     description: 'Error loading the product type'
   })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.typeService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.typeService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Update a product type by id' })
@@ -69,8 +69,8 @@ export class TypeController {
     description: 'Error updating the product type'
   })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTypeDto: UpdateTypeDto) {
-    return this.typeService.update(+id, updateTypeDto);
+  update(@Param('id') id: number, @Body() updateTypeDto: UpdateTypeDto) {
+    return this.typeService.update(id, updateTypeDto);
   }
 
   @ApiOperation({ summary: 'Delete a product type by id' })
@@ -87,7 +87,7 @@ export class TypeController {
     description: 'Error deleting the product type'
   })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.typeService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.typeService.remove(id);
   }
 }

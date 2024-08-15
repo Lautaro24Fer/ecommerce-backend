@@ -8,7 +8,7 @@ import { ProductType } from './entities/type.entity';
 @Injectable()
 export class TypeService {
 
-  constructor(@InjectRepository(ProductType) private readonly typeRepository: Repository<ProductType >){}
+  constructor(@InjectRepository(ProductType) private readonly typeRepository: Repository<ProductType>){}
 
   async create(createTypeDto: CreateTypeDto) {
     const nameExists: boolean = await this.typeRepository.existsBy({ name: createTypeDto.name});

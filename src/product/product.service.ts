@@ -28,25 +28,25 @@ export class ProductService {
   async create(createProductDto: CreateProductDto): Promise<Product> {
     // Verificar que el id de supplier y brand existen. Para eso primero haremos sus respectivos repositorios primero(01:04)
 
-    const brandExists: Brand = await this.brandService.findOne(
+    const brand: Brand = await this.brandService.findOne(
       createProductDto.brandId,
     );
 
-    const supplierExists: Supplier = await this.supplierService.findOne(
+    const supplier: Supplier = await this.supplierService.findOne(
       createProductDto.supplierId,
     );
 
     const newProduct = this.productRepository.create({
       ...createProductDto,
-      brand: brandExists,
-      supplier: supplierExists,
+      brand: brand,
+      supplier: supplier,
     });
 
     const { id }: Product = await this.productRepository.save(newProduct);
 
     const productCreated: Product = await this.productRepository.findOne({
-      where: { id: id },
-      relations: ['brand', 'supplier'],
+      where: { id },
+      relations: ['brand', 'supplier', 'product_image'],
     });
     return productCreated;
   }
@@ -97,8 +97,8 @@ export class ProductService {
 
   async findOne(id: number): Promise<Product> {
     const productFinded: Product = await this.productRepository.findOne({
-      where: { id: id },
-      relations: ['brand', 'supplier'],
+      where: { id },
+      relations: ['brand', 'supplier', 'secondariesImages'],
     });
     if (!productFinded) {
       throw new NotFoundException(
@@ -113,18 +113,14 @@ export class ProductService {
     updateProductDto: UpdateProductDto,
   ): Promise<Product> {
     const productFinded: Product = await this.productRepository.findOne({
-      where: { id: id },
-      relations: ['brand', 'supplier'],
+      where: { id },
+      relations: ['brand', 'supplier', 'product_image'],
     });
     if (!productFinded) {
       throw new NotFoundException(
         `The product with the id '${id}' was not founded`,
       );
     }
-
-    // if (updateProductDto.image) {
-    //   productFinded.image = updateProductDto.image;
-    // }
 
     if (updateProductDto.name) {
       productFinded.name = updateProductDto.name;
@@ -156,14 +152,9 @@ export class ProductService {
   }
 
   async remove(id: number): Promise<void> {
-    const product: Product = await this.productRepository.findOne({
-      where: { id: id },
-      relations: ['brand', 'supplier'],
-    });
+    const product: Product = await this.productRepository.findOneBy({ id });
     if (!product) {
-      throw new NotFoundException(
-        `The product with the id '${id}' was not founded`,
-      );
+      throw new NotFoundException(`The product with the id '${id}' was not founded`);
     }
     await this.productRepository.remove(product);
   }

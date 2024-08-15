@@ -4,17 +4,16 @@ import { UpdateImageDto } from './dto/update-image.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductImage } from './entities/image.entity';
 import { Repository } from 'typeorm';
+import { ProductService } from 'src/product/product.service';
+import { Product } from 'src/product/entities/product.entity';
 
 @Injectable()
 export class ImagesService {
 
-  constructor(@InjectRepository(ProductImage) private readonly imageRepository: Repository<ProductImage>) {}
+  constructor(@InjectRepository(ProductImage) private readonly imageRepository: Repository<ProductImage>,
+  private readonly productService: ProductService) {}
 
   async create(createImageDto: CreateImageDto) {
-    const urlExists: boolean = await this.imageRepository.existsBy({ url: createImageDto.url });
-    if(urlExists){
-      throw new BadRequestException({ error: `The url is currenly exists in the database` });
-    }
     const imageCreated: ProductImage = await this.imageRepository.save(createImageDto);
     return imageCreated;
   }

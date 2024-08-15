@@ -6,6 +6,6 @@ export class ProductType{
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'text', unique: true})
+    @Column({ type: 'varchar', length: 50, unique: true})
     name: string;
 }
