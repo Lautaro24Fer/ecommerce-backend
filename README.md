@@ -319,3 +319,88 @@ En donde la API se encargará de limpiar todas los tokens del navegador del usua
 { message: 'Logout successful' }
 
 ```
+
+## ACTUALIZACIÓN DE ENTIDAD DE PRODUCTOS
+
+Los productos de ahora en más se verán de la siguiente manera
+
+```typescript
+
+class Product{
+
+  id: number;
+
+  name: string;
+
+  price: number;
+
+  description: string; // descripcion basica del producto
+
+  image: string; // Imagen principal (la que iría de perfil)
+
+  secondariesImages: ProductImage[]; // Imagenes que acompañan al hacer click, ideal para carrosueles
+
+  type: ProductType; // Tipo de producto
+
+  brand: Brand;
+
+  supplier: Supplier;
+}
+
+```
+
+Algunas de las nuevas cosas que se van a poder hacer principalmente son
+
+- Operaciones basicas (getAll, getOne, update, delete) para tipos y las imagenes secundarias
+- Control dinamico de las imagenes secundarias directamente desde el producto (todavia se pulen detalles)
+
+Una cosa muy facil de hacer para que entiendas de lo que va esto, es crear tanto imagenes como productos en la misma query (!!!) masomenos siguiendo esta logica. Suponete que queres crear un producto con la siguiente query
+
+```typescript
+{
+  "name": "string",
+  "image": "string",
+  "description": "string",
+  "secondariesImages": [
+  ],
+  "price": 0,
+  "brandId": 0,
+  "supplierId": 0,
+  "typeId": 0
+}
+```
+Podrías no poner ninguna imagen adjunta y no habría ningun problema, pero tambien podrías poner tantas url como creas necesarias 
+
+```typescript
+{
+
+  "secondariesImages": [
+    "https://drive.google.com/file/d/1I5RSU6MD7uCmGwE4yHz3SzLmuDQXGvq6/preview",
+    "https://drive.google.com/file/d/1I5RSU6MD7uCmGwE4yHz3SzLmuDQXGvq6/preview",
+    "https://drive.google.com/file/d/1I5RSU6MD7uCmGwE4yHz3SzLmuDQXGvq6/preview",
+    //mas url's ...
+  ]
+}
+```
+
+Y es ahí donde entraría la magia, ya que mediante este tipo de sintaxis y gracias a las cascadas de typeORM, se crean tanto los registros de las imágenes dentro de la tabla ProductImages como la de Product.
+
+(importante: Para manejar la relacion 1N tuve que crear una tabla para guardar las imagenes secundarias, a esa tabla nos referimos como ProductImages)
+
+Esto es muy util, pero tambien no habría problemas al utilizar directamente los endpoint de ProductImages para crear nuevas imagenes de la siguiente manera
+
+```typescript
+
+// esto seria el endpoint /images
+
+{
+  "url": "string",
+  "productId": 0 // id del producto al que se hace referencia
+}
+
+```
+
+Ambas son validas, el tema es que cuando usamos directamente el array de products lo que hace es automaticamente sobrescribir el array ya existente mientras que en la segunda opción lo unico que hace es sumar la nueva url a las ya existentes.
+
+(nota: el detalle en el que estoy trabajando ahora es en justamente el sobrescrimiento del array ya que no funciona en todos los casos, opta por no estar usando esto hasta que lo parchee)
+
