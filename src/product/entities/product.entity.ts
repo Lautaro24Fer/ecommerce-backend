@@ -21,7 +21,7 @@ export class Product {
   @Column({ type: 'text' })
   image: string;
 
-  @OneToMany(() => ProductImage, (image) => image.product)
+  @OneToMany(() => ProductImage, (image) => image.product, { onDelete: 'CASCADE' })
   secondariesImages: ProductImage[];
 
   @ManyToOne(() => ProductType, (type) => type.id, { cascade: true })

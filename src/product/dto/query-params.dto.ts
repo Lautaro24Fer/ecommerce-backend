@@ -62,4 +62,12 @@ export class QueryParamsDto {
   @IsOptional()
   @IsString()
   brand?: string | null | undefined;
+
+  @ApiPropertyOptional({
+    description: 'Type of the product',
+    type: String
+  })
+  @IsOptional()
+  @IsString()
+  type?: string | null | undefined;
 }

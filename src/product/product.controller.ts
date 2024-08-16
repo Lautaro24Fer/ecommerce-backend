@@ -15,6 +15,8 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Product } from './entities/product.entity';
 import { QueryParamsDto } from './dto/query-params.dto';
+import { ProductResponseDto } from './dto/product-response.dto';
+import { ProductImageResponseDto } from 'src/images/dto/image-response.dto';
 
 @ApiTags('Products')
 @Controller('product')
@@ -74,6 +76,12 @@ export class ProductController {
     type: String,
     description: 'Brand of the product',
   })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    type: String,
+    description: 'type of the product',
+  })
   @Get()
   async findAll(@Query() queryParams: QueryParamsDto): Promise<Product[]> {
     return await this.productService.findAll(queryParams);
@@ -111,8 +119,16 @@ export class ProductController {
     description: 'Error updating the product',
   })
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(id, updateProductDto);
+  async update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
+    const responseService: Product = await this.productService.update(id, updateProductDto);
+    if(responseService?.secondariesImages[0]?.product?.id){
+      const imagesMapped:  ProductImageResponseDto[] = responseService.secondariesImages.map(image => {
+        return { id: image.id, url: image.url, productId: image.product.id };
+      });
+      const responseUpdate = { ...responseService, secondariesImages: [...imagesMapped] };
+      return responseUpdate;
+    }
+    return responseService;
   }
 
   @ApiOperation({ summary: 'Delete a product by id' })

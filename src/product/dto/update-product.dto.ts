@@ -1,18 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsPositive, IsString, Length } from 'class-validator';
+import { IsArray, IsOptional, IsPositive, IsString, IsUrl, Length } from 'class-validator';
 
 export class UpdateProductDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
   @Length(1, 200)
-  name?: string;
+  name?: string; 
 
   @ApiProperty()
   @IsOptional()
   @IsString()
+  @IsUrl()
   @Length(1, 200)
   image?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  @Length(1, 1024)
+  description?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @IsUrl({}, { each: true })
+  secondariesImages?: any[];
 
   @ApiProperty()
   @IsOptional()
@@ -28,4 +42,9 @@ export class UpdateProductDto {
   @IsOptional()
   @IsPositive()
   supplierId?: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsPositive()
+  typeId?: number;
 }

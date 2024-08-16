@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,16 +11,20 @@ import { Product } from 'src/product/entities/product.entity';
 export class ImagesService {
 
   constructor(@InjectRepository(ProductImage) private readonly imageRepository: Repository<ProductImage>,
-  private readonly productService: ProductService) {}
+  @Inject(forwardRef(() => ProductService)) private readonly productService: ProductService) {}
 
   async create(createImageDto: CreateImageDto) {
-    const imageCreated: ProductImage = await this.imageRepository.save(createImageDto);
-    return imageCreated;
+    const product: Product = await this.productService.findOne(createImageDto.productId);
+
+    const imageCreated: ProductImage = this.imageRepository.create({ ...createImageDto, product });
+
+    const imageSaved: ProductImage = await this.imageRepository.save(imageCreated);
+    return imageSaved;
   }
 
   async findAll() {
     try{
-      const allImages: ProductImage[] = await this.imageRepository.find();
+      const allImages: ProductImage[] = await this.imageRepository.find({ order: { id: 'ASC' } });
       return allImages;
     }
     catch{

@@ -1,14 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsArray,
   IsNotEmpty,
   IsPositive,
   IsString,
+  IsUrl,
   isURL,
   Length,
 } from 'class-validator';
 
 export class CreateProductDto {
-  @ApiProperty()
+  @ApiProperty() 
   @IsNotEmpty()
   @IsString()
   @Length(1, 200)
@@ -19,6 +21,18 @@ export class CreateProductDto {
   @IsString()
   @Length(1, 200)
   image: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  @Length(1, 1024)
+  description: string;
+
+  @ApiPropertyOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @IsUrl({}, { each: true })
+  secondariesImages?: string[];
 
   @ApiProperty()
   @IsNotEmpty()
@@ -34,4 +48,9 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsPositive()
   supplierId: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsPositive()
+  typeId: number;
 }

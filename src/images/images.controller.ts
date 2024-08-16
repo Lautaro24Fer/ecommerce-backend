@@ -3,6 +3,8 @@ import { ImagesService } from './images.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ProductImageResponseDto } from './dto/image-response.dto';
+import { ProductImage } from './entities/image.entity';
 
 @ApiTags('Images of products')
 @Controller('images')
@@ -19,8 +21,13 @@ export class ImagesController {
     description: 'Error adding a new image to a product'
   })
   @Post()
-  create(@Body() createImageDto: CreateImageDto) {
-    return this.imagesService.create(createImageDto);
+  async create(@Body() createImageDto: CreateImageDto) {
+    const imageServiceResponse: ProductImage = await this.imagesService.create(createImageDto);
+    const productImageResponse: ProductImageResponseDto = { 
+      id: imageServiceResponse.id, 
+      url: imageServiceResponse.url, 
+      productId: imageServiceResponse.product.id };
+      return productImageResponse
   }
 
   @ApiOperation({ summary: 'Get all images of all products' })
@@ -33,8 +40,8 @@ export class ImagesController {
     description: 'Error loading the images'
   })
   @Get()
-  findAll() {
-    return this.imagesService.findAll();
+  async findAll() {
+    return await this.imagesService.findAll();
   }
 
   @ApiOperation({ summary: 'Get one image by id' })
@@ -51,8 +58,8 @@ export class ImagesController {
     description: 'Error loading the image'
   })
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.imagesService.findOne(id);
+  async findOne(@Param('id') id: number) {
+    return await this.imagesService.findOne(id);
   }
 
   @ApiResponse({
@@ -69,8 +76,8 @@ export class ImagesController {
   })
   @ApiOperation({ summary: 'Update image data by id' })
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateImageDto: UpdateImageDto) {
-    return this.imagesService.update(id, updateImageDto);
+  async update(@Param('id') id: number, @Body() updateImageDto: UpdateImageDto) {
+    return await this.imagesService.update(id, updateImageDto);
   }
 
   @ApiOperation({ summary: 'Delete one image by id' })
@@ -87,7 +94,7 @@ export class ImagesController {
     description: 'Error deleting the image'
   })
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.imagesService.remove(id);
+  async remove(@Param('id') id: number) {
+    return await this.imagesService.remove(id);
   }
 }
