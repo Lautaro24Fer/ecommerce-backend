@@ -23,13 +23,6 @@ export class UpdateProductDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  @IsUrl({}, { each: true })
-  secondariesImages?: any[];
-
-  @ApiProperty()
-  @IsOptional()
   @IsPositive()
   price?: number;
 

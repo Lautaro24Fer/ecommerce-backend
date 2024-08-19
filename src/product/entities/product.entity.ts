@@ -22,7 +22,7 @@ export class Product {
   image: string;
 
   @OneToMany(() => ProductImage, (image) => image.product, { onDelete: 'CASCADE' })
-  secondariesImages: ProductImage[];
+  secondariesImages: ProductImage[]
 
   @ManyToOne(() => ProductType, (type) => type.id, { cascade: true })
   type: ProductType;

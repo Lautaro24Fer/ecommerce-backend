@@ -58,19 +58,6 @@ export class ProductService {
 
     const { id }: Product = await this.productRepository.save(newProduct);
 
-    /*
-    
-    LOGICA DE CASCADAS
-
-    Cuando las cascadas están activadas en una relacion entre dos entidades, te permite cambiar en una misma operacion
-    los valores de dos o más tablas a partir de las instancias a las entidades desde ts.
-    En este caso existe una propiedad llamada secondariesImages en la entidad de product que NO pertenece a la tabla de 
-    productos, sino que es una propiedad que hace referencia a aquellas imagenes que están en la tabla de imagesProducts que estén
-    relacionadas con la actual instancia de producto. De esta manera desde esta instancia podemos actualizar aquellos
-    registros que esten conectados mediante su id en distintas tablas
-    
-    */
-
     if(createProductDto.secondariesImages){
       const secondariesImagesMapped: any[] = await Promise.all(createProductDto.secondariesImages.map(async(image) =>{
         return await this.productImageService.create({ productId: id, url: image });
@@ -142,7 +129,7 @@ export class ProductService {
   async findOne(id: number): Promise<Product> {
     const productFinded: Product = await this.productRepository.findOne({
       where: { id },
-      relations: ['brand', 'supplier', 'secondariesImages', 'type'],
+      relations: ['brand', 'supplier', 'type', 'secondariesImages'],
     });
     if (!productFinded) {
       throw new NotFoundException(`The product with the id '${id}' was not founded`);
@@ -182,24 +169,17 @@ export class ProductService {
     }
 
     if(updateProductDto.typeId){
-      const type: ProductType = await this.typeService.findOne(updateProductDto.typeId);
+      const type: ProductType = await this.typeService.findOne(updateProductDto?.typeId);
       productFinded.type = type;
     }
 
-    if(updateProductDto.secondariesImages && updateProductDto.secondariesImages.length > 0){
-      productFinded.secondariesImages = await Promise.all(updateProductDto.secondariesImages.map(async (image) => {
-        const newProductImageDto = this.mapUrlToProductImage(image, productFinded.id);
-        const newProductImageCreated = await this.productImageService.create(newProductImageDto);
-        return newProductImageCreated;
-      }));
-    }
-
-    if(updateProductDto.secondariesImages && updateProductDto.secondariesImages.length === 0){
-      productFinded.secondariesImages = [...updateProductDto.secondariesImages];
-    } 
-
+    
+    // updateProductDto.secondariesImages: ["https://...", "https://..."] => arrays de strings cons las url
+    // productFinded.secondariesImages: [{ id: 1, url: "http://...", product: { id: 1 } }] => objeto de las imagenes 
+    
     const productUpdated: Product = await this.productRepository.save(productFinded);
     return productUpdated;
+
   }
 
   async remove(id: number): Promise<void> {
