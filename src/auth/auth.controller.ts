@@ -16,6 +16,7 @@ import { Request, Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from './auth-google.guard';
 import { AuthGuard } from './auth.guard';
+import { Roles } from './auth.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -82,6 +83,7 @@ export class AuthController {
 
   //Endpoint de prueba para testear en swagger
   @UseGuards(AuthGuard)
+  @Roles(['user'])
   @Get('test')
   test(){
     return { message: 'this is a authenticated recurse' }

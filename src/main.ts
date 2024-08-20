@@ -33,6 +33,7 @@ async function bootstrap() {
 
   app.use(
     session({
+      // Hay que pasar el secreto de sesión a una variable de entorno
       secret: 'adsadhjasdhjasdhasjdhjkh',
       resave: false,
       saveUninitialized: false,

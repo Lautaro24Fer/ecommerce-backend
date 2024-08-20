@@ -6,7 +6,10 @@ import { Product } from 'src/product/entities/product.entity';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
 import { ProductType } from 'src/type/entities/type.entity';
 import { ProductImage } from 'src/images/entities/image.entity';
+import { Role } from 'src/roles/entities/role.entity';
 
+
+// Pasar las credenciales a variables de entorno
 export const AppDataSource = new DataSource({
   type: 'mysql',
   host: 'localhost',
@@ -16,7 +19,7 @@ export const AppDataSource = new DataSource({
   database: 'nest',
   synchronize: false,
   logging: false,
-  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage], // Ajusta según tus entidades
+  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role], // Ajusta según tus entidades
   migrations: ['src/migrations/*.ts'],
   subscribers: [],
 });

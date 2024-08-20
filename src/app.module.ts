@@ -18,19 +18,22 @@ import { ProductImage } from './images/entities/image.entity';
 import { ProductType } from './type/entities/type.entity';
 import { TypeModule } from './type/type.module';
 import { ImagesModule } from './images/images.module';
+import { RolesModule } from './roles/roles.module';
+import { Role } from './roles/entities/role.entity';
 
 @Module({
   imports: [
     UserModule,
     AuthModule,
     TypeOrmModule.forRoot({
+      // Hay que pasar estas credenciales a variables de entorno
       type: 'mysql',
       host: 'localhost',
       port: 3306,
       username: 'root',
       password: '1234',
       database: 'nest',
-      entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType],
+      entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role],
       synchronize: false,
     }),
     ProductModule,
@@ -40,6 +43,7 @@ import { ImagesModule } from './images/images.module';
     ConfigModule.forRoot({ envFilePath: ['./.env'], isGlobal: true }),
     TypeModule,
     ImagesModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

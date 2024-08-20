@@ -7,11 +7,13 @@ import { AuthService } from 'src/auth/auth.service';
 import { UserService } from './user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RolesModule } from 'src/roles/roles.module';
 
 @Module({
   controllers: [UserController],
   providers: [UserService],
   imports: [
+    RolesModule,
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       imports: [ConfigModule],

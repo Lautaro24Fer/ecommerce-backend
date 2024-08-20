@@ -8,12 +8,16 @@ import * as bcrypt from 'bcryptjs';
 import { CreateUserStrategyDto } from './dto/create-user-strategy.dto';
 import { JwtService } from '@nestjs/jwt';
 import { AuthUserResponseDto } from './dto/auth-user-response.dto';
+import { RolesService } from 'src/roles/roles.service';
+import { Role } from 'src/roles/entities/role.entity';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly roleService: RolesService
   ) {}
 
   async hashPassword(password: string): Promise<string> {
@@ -27,15 +31,16 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
+
     createUserDto.password = await this.hashPassword(createUserDto.password);
+    
+    const createUser: User = this.userRepository.create({...createUserDto, roles: []});
+    const role: Role = await this.roleService.findOneByName('user');
+    createUser.roles.push(role);
 
-    await this.userRepository.save(createUserDto);
+    console.log(createUser)
 
-    const userCreated: User = await this.userRepository.findOne({
-      where: {
-        username: createUserDto.username,
-      },
-    });
+    const userCreated: User = await this.userRepository.save(createUser);
 
     return this.mapUserToUserDto(userCreated);
   }
@@ -49,7 +54,10 @@ export class UserService {
   }
 
   async findOne(id: number): Promise<UserDto | undefined> {
-    const user: User = await this.userRepository.findOneBy({ id });
+    const user: User = await this.userRepository.findOne({
+      where: { id },
+      relations: ['roles']
+    });
     if (!user) {
       throw new NotFoundException(`The user with id '${id}' was not founded`);
     }
@@ -57,25 +65,23 @@ export class UserService {
   }
 
   async findOneByCookie(cookieOnRequest: string) {
+    
+    // 19/08 23:44
+    // No tengo idea porque puse que si no tiene un usuario en la cookie devuelva 
+    // el usuario con id 1 
     const userDecoded: any = await this.jwtService.decode(cookieOnRequest);
-    const userOnDB: User = await this.userRepository.findOneBy({
-      id: userDecoded?.id ?? 1,
-    });
+    const userOnDB: User = await this.userRepository.findOneBy({ id: userDecoded?.id /*?? 1*/ });
     if (!userOnDB) {
-      throw new NotFoundException('user not founded');
+      throw new NotFoundException({ error: `Error extraing the user with id '${userDecoded.id}', not founded` });
     }
     return userOnDB;
   }
 
-  async responseByAuthStrategy(
-    cookie: string,
-  ): Promise<AuthUserResponseDto | undefined> {
+  async responseByAuthStrategy( cookie: string ): Promise<AuthUserResponseDto | undefined> {
+
     const user: User = await this.findOneByCookie(cookie);
     const userDto: UserDto = this.mapUserToUserDto(user);
-    const responseUser: AuthUserResponseDto = {
-      user: userDto,
-      isNewUser: false,
-    };
+    const responseUser: AuthUserResponseDto = { user: userDto, isNewUser: false };
     if (user.username.includes('null')) {
       responseUser.isNewUser = true;
     }
@@ -83,34 +89,28 @@ export class UserService {
   }
 
   async findOneByUserName(username: string): Promise<UserDto | undefined> {
-    const user: User = await this.userRepository.findOne({
-      where: {
-        username: username,
-      },
-    });
+
+    const user: User = await this.userRepository.findOne({ 
+      where: { username },
+      relations: ['roles']
+     });
     if (!user) {
-      throw new NotFoundException(
-        `The user with username '${username}' was not founded`,
-      );
+      throw new NotFoundException(`The user with username '${username}' was not founded`);
     }
     return this.mapUserToUserDto(user);
   }
 
   async findOneByUsernameEntity(username: string): Promise<User | undefined> {
-    const user: User = await this.userRepository.findOne({
-      where: {
-        username: username,
-      },
-    });
+
+    const user: User = await this.userRepository.findOneBy({ username });
     if (!user) {
-      throw new NotFoundException(
-        `The user with username '${username}' was not founded`,
-      );
+      throw new NotFoundException(`The user with username '${username}' was not founded`);
     }
     return user;
   }
 
   async findOneByEmail(email: string): Promise<UserDto | undefined> {
+
     const user: User = await this.userRepository.findOneBy({ email });
     return this.mapUserToUserDto(user);
   }
@@ -127,40 +127,37 @@ export class UserService {
   */
 
   async validateUserWithStrategy(payload: CreateUserStrategyDto) {
-    const user: User = await this.userRepository.findOneBy({
-      email: payload.email,
-    });
+
+    const user: User = await this.userRepository.findOneBy({ email: payload.email });
     if (!user) {
-      const userCreated: User = await this.userRepository.save(payload);
+      const createUser: User = this.userRepository.create({ ...payload, roles: []});
+      const role: Role = await this.roleService.findOneByName('user');
+      createUser.roles.push(role);
+      const userCreated: User = await this.userRepository.save(createUser);
       return userCreated;
     }
     return user;
   }
 
-  async update(
-    id: number,
-    updateUserDto: UpdateUserDto,
-  ): Promise<User | undefined> {
-    let userToUpdate: User = await this.userRepository.findOne({
-      where: { id: id },
-    });
+  async update( id: number, updateUserDto: UpdateUserDto ): Promise<UserDto | undefined> {
+
+    let userToUpdate: User = await this.userRepository.findOneBy({ id });
     if (!userToUpdate) {
       throw new NotFoundException(`The user with id '${id}' was not founded`);
     }
 
-    if (userToUpdate.password) {
+    if (userToUpdate.password) { // ESTO DEBERÍA HACERSE CON UN CODIGO QUE SE ENVÍE AL USUARIO MEDIANTE CORREO
       userToUpdate.password = await this.hashPassword(userToUpdate.password);
     }
 
-    userToUpdate = { ...userToUpdate, ...updateUserDto };
+    userToUpdate = { ...userToUpdate, ...updateUserDto};
     await this.userRepository.save(userToUpdate);
     return this.mapUserToUserDto(userToUpdate);
   }
 
   async remove(id: number): Promise<void> {
-    const userToRemove = await this.userRepository.findOne({
-      where: { id: id },
-    });
+
+    const userToRemove = await this.userRepository.findOneBy({ id });
     if (!userToRemove) {
       throw new NotFoundException(`user with id '${id}' was not founded`);
     }
@@ -174,6 +171,7 @@ export class UserService {
       username: user.username,
       email: user.email,
       method: user.method,
+      roles: user.roles ?? []
     };
     return userDto;
   }

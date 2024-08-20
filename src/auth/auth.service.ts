@@ -29,23 +29,25 @@ export class AuthService {
   }
   async getCookieByLocalAuth( login: InputLoginDto, res: Response ): Promise<LoginResponseDto | undefined> {
     const userLogin = await this.validateCredentials( login.username, login.password);
+    const user: User = await this.userService.findOneByUserName(login.username);
+
     try {
-      const token: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, }, '1m');
-      const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method }, '7m');
+      const token: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, role: user.roles }, '1m');
+      const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, role: user.roles }, '7m');
       res.cookie('user', token, {
-        maxAge: 1000 * 60 * 5, // Tiempo de vida de la cookie (1 minuto)
+        maxAge: 1000 * 60 * 5, // Tiempo de vida de la cookie (5 minuto)
         httpOnly: true,
         sameSite: 'strict',
         secure: process.env.NODE_ENV === 'production',
       });
       res.cookie('refresh', refreshToken, {
-        maxAge: 1000 * 60 * 7, // Tiempo de vida de la cookie (5 minutos)
+        maxAge: 1000 * 60 * 7, // Tiempo de vida de la cookie (7 minutos)
         httpOnly: true,
         sameSite: 'strict',
         secure: process.env.NODE_ENV === 'production',
       });
 
-      const responseLogin = new LoginResponseDto(true, 'login succesfully');
+      const responseLogin = new LoginResponseDto(true, 'login succesfully', { token, refreshToken });
       return responseLogin;
     } 
     catch {
@@ -53,8 +55,10 @@ export class AuthService {
     }
   }
   async getCookieByPassportStrategy( res: Response, user: any, ): Promise<void | undefined> {
-    const tokenPayload: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method }, '1m');
-    const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method }, '7m');
+
+    const userFinded: User = await this.userService.findOne(user?.id);
+    const tokenPayload: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '1m');
+    const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '7m');
     res.cookie('user', tokenPayload, {
       maxAge: 1000 * 60 * 1, // Tiempo de vida de la cookie (1 minuto)
       httpOnly: true,
@@ -62,7 +66,7 @@ export class AuthService {
       secure: process.env.NODE_ENV === 'production',
     });
     res.cookie('refresh', refreshToken, {
-      maxAge: 1000 * 60 * 7, // Tiempo de vida de la cookie (5 minutos)
+      maxAge: 1000 * 60 * 7, // Tiempo de vida de la cookie (7 minutos)
       httpOnly: true,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',
