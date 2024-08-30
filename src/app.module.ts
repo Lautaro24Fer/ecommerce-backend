@@ -24,34 +24,6 @@ import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
 import { DataSource } from 'typeorm';
 
-/* 
-
-TYPEORM_DATABASE_TYPE = 'mysql'
-
-TYPEORM_DATABASE_HOST = 'localhost'
-
-TYPEORM_DATABASE_PORT = '3306'
-
-TYPEORM_DATABASE_USERNAME = 'root'
-
-TYPEORM_DATABASE_PASSWORD = '1234'
-
-TYPEORM_DATABASE_NAME = 'nest'
-
- */
-
-
-const typeOrmModuleOptions: TypeOrmModuleOptions = {
-  type: 'mysql',
-  host: 'localhost',
-  port: 3306,
-  username: 'root',
-  password: '1234',
-  database: 'nest',
-  entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role],
-  synchronize: false,
-}
-
 @Module({
   imports: [
     UserModule,
