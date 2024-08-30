@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ProductModule } from './product/product.module';
 import { BrandModule } from './brand/brand.module';
 import { SupplierModule } from './supplier/supplier.module';
@@ -13,39 +13,79 @@ import { Order } from './order/entities/order.entity';
 import { Product } from './product/entities/product.entity';
 import { Supplier } from './supplier/entities/supplier.entity';
 import { User } from './user/entities/user.entity';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProductImage } from './images/entities/image.entity';
 import { ProductType } from './type/entities/type.entity';
 import { TypeModule } from './type/type.module';
 import { ImagesModule } from './images/images.module';
 import { RolesModule } from './roles/roles.module';
 import { Role } from './roles/entities/role.entity';
+import { EmailService } from './email/email.service';
+import { EmailModule } from './email/email.module';
+import { DataSource } from 'typeorm';
+
+/* 
+
+TYPEORM_DATABASE_TYPE = 'mysql'
+
+TYPEORM_DATABASE_HOST = 'localhost'
+
+TYPEORM_DATABASE_PORT = '3306'
+
+TYPEORM_DATABASE_USERNAME = 'root'
+
+TYPEORM_DATABASE_PASSWORD = '1234'
+
+TYPEORM_DATABASE_NAME = 'nest'
+
+ */
+
+
+const typeOrmModuleOptions: TypeOrmModuleOptions = {
+  type: 'mysql',
+  host: 'localhost',
+  port: 3306,
+  username: 'root',
+  password: '1234',
+  database: 'nest',
+  entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role],
+  synchronize: false,
+}
 
 @Module({
   imports: [
     UserModule,
     AuthModule,
-    TypeOrmModule.forRoot({
-      // Hay que pasar estas credenciales a variables de entorno
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '1234',
-      database: 'nest',
-      entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role],
-      synchronize: false,
+    ConfigModule,
+    ConfigModule.forRoot({ envFilePath: ['./.env'], isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('TYPEORM_DATABASE_HOST'),
+        port: +configService.get<string>('TYPEORM_DATABASE_PORT'),
+        username: configService.get<string>('TYPEORM_DATABASE_USERNAME'),
+        password: configService.get<string>('TYPEORM_DATABASE_PASSWORD'),
+        database: configService.get<string>('TYPEORM_DATABASE_NAME'),
+        entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role],
+        synchronize: false,
+      }),
+      dataSourceFactory: async (options) => {
+        const dataSource = await new DataSource(options).initialize();
+        return dataSource;
+      },
     }),
     ProductModule,
     BrandModule,
     SupplierModule,
     OrderModule,
-    ConfigModule.forRoot({ envFilePath: ['./.env'], isGlobal: true }),
     TypeModule,
     ImagesModule,
     RolesModule,
+    EmailModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, EmailService],
 })
 export class AppModule {}

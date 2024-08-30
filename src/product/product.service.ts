@@ -75,8 +75,8 @@ export class ProductService {
   } 
 
   async findAll(queryParams: QueryParamsDto): Promise<Product[]> {
-    const queryBuilder = this.dataSource
-      .createQueryBuilder(Product, 'product') 
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product') 
       .innerJoinAndSelect('product.brand', 'brand')
       .innerJoinAndSelect('product.type', 'type')
       .orderBy('product.id', 'ASC');

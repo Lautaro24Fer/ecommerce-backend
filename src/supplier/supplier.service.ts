@@ -37,9 +37,7 @@ export class SupplierService {
   }
 
   async findOne(id: number): Promise<Supplier> {
-    const supplier: Supplier = await this.supplierRepository.findOne({
-      where: { id: id },
-    });
+    const supplier: Supplier = await this.supplierRepository.findOneBy({ id });
     if (!supplier) {
       throw new NotFoundException(
         `The supplier with the id '${id}' was not founded`,
@@ -52,9 +50,7 @@ export class SupplierService {
     id: number,
     updateSupplierDto: UpdateSupplierDto,
   ): Promise<Supplier> {
-    const supplier: Supplier = await this.supplierRepository.findOne({
-      where: { id: id },
-    });
+    const supplier: Supplier = await this.supplierRepository.findOneBy({ id });
     if (!supplier) {
       throw new NotFoundException(
         `The supplier with the id '${id}' was not founded`,
@@ -71,9 +67,7 @@ export class SupplierService {
   }
 
   async remove(id: number): Promise<void> {
-    const supplier: Supplier = await this.supplierRepository.findOne({
-      where: { id: id },
-    });
+    const supplier: Supplier = await this.supplierRepository.findOneBy({ id });
     if (!supplier) {
       throw new NotFoundException(
         `The supplier with the id '${id}' was not founded`,

@@ -5,9 +5,14 @@ import * as cookieParser from 'cookie-parser';
 import { Session, ValidationPipe } from '@nestjs/common';
 import * as session from 'express-session';
 import * as passport from 'passport';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // CONFIGURATION SERVICE
+
+  const configService = new ConfigService()
 
   // SWAGGER
 
@@ -34,7 +39,7 @@ async function bootstrap() {
   app.use(
     session({
       // Hay que pasar el secreto de sesión a una variable de entorno
-      secret: 'adsadhjasdhjasdhasjdhjkh',
+      secret: configService.get<string>('COOKIE_SECRET'),
       resave: false,
       saveUninitialized: false,
     }),
