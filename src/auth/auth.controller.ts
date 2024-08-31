@@ -38,11 +38,16 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @Get('login/google/redirect')
   async googleLoginCallback(@Req() req: Request, @Res() res: Response) {
-    const user: any = { ...req.user };
 
-    await this.authService.getCookieByPassportStrategy(res, user);
+    const error = req.query['error'];
 
-    return res.redirect('http://localhost:8080'); // Esta es la pagina a donde va a redirigir una vez logeado
+    if((!error) || (error !== 'access_denied')){
+      const user: any = { ...req.user };
+
+      await this.authService.getCookieByPassportStrategy(res, user);
+    }
+
+    return res.redirect('http://localhost:8080'); // Esta es la pagina a donde va a redirigir una vez logeado o no
   }
 
   @Get('status')

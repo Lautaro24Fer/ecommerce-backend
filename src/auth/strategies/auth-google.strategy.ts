@@ -25,11 +25,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(
-    accessToken: string,
-    refreshToken: string,
-    profile: Profile,
-  ): Promise<any> {
+  async validate( accessToken: string, refreshToken: string, profile: Profile ): Promise<any> {
     const usernameNull = `username.null.${Date.now() + 1}`;
     const user: User = await this.userService.validateUserWithStrategy({
       name: profile.displayName,
