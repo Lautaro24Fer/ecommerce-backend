@@ -10,6 +10,7 @@ import {
   HttpStatus,
   Req,
   BadRequestException,
+  Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -17,9 +18,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { AuthUserResponseDto } from './dto/auth-user-response.dto';
 import { UserDto } from './dto/user.dto';
+import { UpdateUserPassword } from './dto/update-password-user.dto';
+import { UpdateUserPasswordValidate } from './dto/update-user-password-validate.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -152,5 +155,55 @@ export class UserController {
   @Delete(':id')
   async remove(@Param('id') id: number) {
     return await this.userService.remove(id);
+  }
+
+  // CAMBIO DE CONTRASEÑA
+
+  @ApiOperation({
+		summary: 'Send a code for reset password'
+	})
+	@ApiResponse({
+		status: HttpStatus.CREATED,
+		description: 'Mail sended succesfully'
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Mail was not sended succesfully'
+	})
+  @Get('/reset-pass-code')
+  async getResetPasswordCode(@Body() updateUserPassword: UpdateUserPassword){
+    const user: User = await this.userService.resetPasswordRequest(updateUserPassword.email);
+    return user;
+  }
+
+  @ApiOperation({
+    summary: 'Validation of the code passed by email for update password'
+  })
+  @ApiResponse({
+		status: HttpStatus.CREATED,
+		description: 'Code validated succesfully'
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Error validating code'
+	})
+  @Get('/reset-pass-validate-code')
+  async validateResetPasswordCode(@Body() updateUserPasswordValidate: UpdateUserPasswordValidate, @Res() res: Response){
+    const jwt: string = await this.userService.validatePasswordResetCode(updateUserPasswordValidate.code, updateUserPasswordValidate.email);
+    res.cookie('password-reset', jwt, {
+      maxAge: 1000 * 60 * 5, 
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+    })
+    return res.status(201).json({ status: true, message: 'Code verified succesfully' });
+  }
+
+  // Endpoint que requiere de la logica para el cambio de contraseña final
+  // Requiere la validación de la cookie temporal que permite el cambio de contraseña durante 5 minutos
+  // ya sea dentro de un guard o en el servicio (mejor el guard)
+  @Patch('reset-pass')
+  async resetPassword(){
+
   }
 }

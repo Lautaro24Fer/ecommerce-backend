@@ -21,6 +21,12 @@ export class User {
   @Column({ default: 'local' })
   method: string;
 
+  @Column({ nullable: true })
+  passwordResetToken: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  passwordResetTokenExpiresIn: Date;
+
   @ManyToMany(() => Role, (role) => role.id, { cascade: true })
   @JoinTable()
   roles: Role[];

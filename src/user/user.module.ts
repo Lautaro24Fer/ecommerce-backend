@@ -8,12 +8,14 @@ import { UserService } from './user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolesModule } from 'src/roles/roles.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   controllers: [UserController],
   providers: [UserService],
   imports: [
     RolesModule,
+    EmailModule,
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       imports: [ConfigModule],

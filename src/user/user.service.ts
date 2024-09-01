@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -11,13 +11,15 @@ import { AuthUserResponseDto } from './dto/auth-user-response.dto';
 import { RolesService } from 'src/roles/roles.service';
 import { Role } from 'src/roles/entities/role.entity';
 import { UserDto } from './dto/user.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-    private readonly roleService: RolesService
+    private readonly roleService: RolesService,
+    private readonly emailService: EmailService
   ) {}
 
   async hashPassword(password: string): Promise<string> {
@@ -162,6 +164,59 @@ export class UserService {
       throw new NotFoundException(`user with id '${id}' was not founded`);
     }
     await this.userRepository.remove(userToRemove);
+  }
+
+  // Manejo de correos
+
+  generateRandomToken(): number { // Codigo de un solo uso para poder validar el cambio de contraseña
+		return Math.floor(100000 + Math.random() * 900000);
+	}
+
+  /* 
+  ACTUALIZACIÓN A FUTURO
+  Una mejora sería darle al usuario dos opciones para cuando solicite el cambio de contraseña
+
+  1. Ingresa el correo electronico directamente
+  2. Ingresa el nombre de usuario para buscar el correo correspondiente
+  */
+  async resetPasswordRequest(email: string){
+
+    const user: User = await this.userRepository.findOneBy({ email });
+
+    if(!user){
+      throw new NotFoundException({ message: `The user with de email ${email} was not founded` });
+    }
+
+    const expiresIn = new Date(Date.now() + 10 * 60 * 1000);
+		const token = this.generateRandomToken();
+
+    user.passwordResetToken = token.toString(); // el codigo podría hashearse con bcrypt
+    user.passwordResetTokenExpiresIn = expiresIn;
+
+    await this.userRepository.save(user);
+
+    await this.emailService.sendEmailForResetPassword(token, email); // Envío del correo al usuario con el codigo de cambio de contraseña
+
+    return user;
+  }
+
+  async validatePasswordResetCode(code: number, email: string){
+
+    const user: User = await this.userRepository.findOneBy({ email });
+    if(!user){
+      throw new NotFoundException({ message: `The user with de email ${email} was not founded` });
+    }
+
+    if(user.passwordResetToken !== code.toString()){
+      throw new BadRequestException({ status: false, description: 'The code is incorrect' });
+    }
+
+    if(user.passwordResetTokenExpiresIn < new Date()){
+      throw new BadRequestException({ status: false, description: 'The code is expired' });
+    }
+
+    const jwt: string = await this.jwtService.signAsync({ userId: user.id,isValidOperation: true });
+    return jwt;
   }
 
   mapUserToUserDto(user: User): UserDto {
