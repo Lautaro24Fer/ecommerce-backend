@@ -7,19 +7,24 @@ import { Supplier } from 'src/supplier/entities/supplier.entity';
 import { ProductType } from 'src/type/entities/type.entity';
 import { ProductImage } from 'src/images/entities/image.entity';
 import { Role } from 'src/roles/entities/role.entity';
+import { ConfigService } from '@nestjs/config';
 
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-// Pasar las credenciales a variables de entorno
+const configService = new ConfigService();
+
 export const AppDataSource = new DataSource({
   type: 'mysql',
-  host: 'localhost',
-  port: 3306,
-  username: 'root',
-  password: '1234',
-  database: 'nest',
+  host: configService.get<string>('TYPEORM_DATABASE_HOST'),
+  port: configService.get<number>('TYPEORM_DATABASE_PORT'),
+  username: configService.get<string>('TYPEORM_DATABASE_USERNAME'),
+  password: configService.get<string>('TYPEORM_DATABASE_PASSWORD'),
+  database: configService.get<string>('TYPEORM_DATABASE_NAME'),
   synchronize: false,
   logging: false,
   entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role], // Ajusta según tus entidades
   migrations: ['src/migrations/*.ts'],
   subscribers: [],
 });
+

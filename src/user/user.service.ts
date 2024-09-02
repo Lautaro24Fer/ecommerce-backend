@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { CreateUserStrategyDto } from './dto/create-user-strategy.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -34,21 +34,36 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
 
+    const emailExists = await this.userRepository.existsBy({ email: createUserDto.email });
+
+    if(emailExists){
+      throw new BadRequestException({ error: `User with '${createUserDto.email}' already exists` });
+    }
+
+    const usernameExists = await this.userRepository.existsBy({ username: createUserDto.username });
+
+    if(usernameExists){
+      throw new BadRequestException({ error: `User with '${createUserDto.username}' already exists` });
+    }
+
     createUserDto.password = await this.hashPassword(createUserDto.password);
     
     const createUser: User = this.userRepository.create({...createUserDto, roles: []});
     const role: Role = await this.roleService.findOneByName('user');
     createUser.roles.push(role);
 
-    console.log(createUser)
+    const userSaved: User = await this.userRepository.save(createUser);
 
-    const userCreated: User = await this.userRepository.save(createUser);
+    const userCreated: User = await this.userRepository.findOne({
+      where: { id: userSaved.id},
+      relations: ['roles']
+    });
 
     return this.mapUserToUserDto(userCreated);
   }
 
   async findAll(): Promise<UserDto[]> {
-    const users: User[] = await this.userRepository.find();
+    const users: User[] = await this.userRepository.find({ relations: ['roles'] });
     const usersDto: UserDto[] = users.map((user) => {
       return this.mapUserToUserDto(user);
     });
@@ -143,17 +158,47 @@ export class UserService {
 
   async update( id: number, updateUserDto: UpdateUserDto ): Promise<UserDto | undefined> {
 
-    let userToUpdate: User = await this.userRepository.findOneBy({ id });
+    let userToUpdate: User = await this.userRepository.findOne({
+      where: { id },
+      relations: ['roles']
+    });
     if (!userToUpdate) {
       throw new NotFoundException(`The user with id '${id}' was not founded`);
     }
 
-    if (userToUpdate.password) { // ESTO DEBERÍA HACERSE CON UN CODIGO QUE SE ENVÍE AL USUARIO MEDIANTE CORREO
-      userToUpdate.password = await this.hashPassword(userToUpdate.password);
+    // -- validar que el email está en uso
+
+    if(updateUserDto.email){
+      const userWithSameEmail = await this.userRepository.findOne({
+        where: {
+          email: updateUserDto.email,
+          id: Not(id),
+        },
+      });
+  
+      if(userWithSameEmail){
+        throw new BadRequestException({ error: `The email '${updateUserDto.email}' is currently in use`});
+      }
+    }
+
+    // -- validar qu el username está en uso
+
+    if(updateUserDto.username){
+      const userWithSameUsername = await this.userRepository.findOne({
+        where: {
+          username: updateUserDto.username,
+          id: Not(id),
+        },
+      });
+  
+      if(userWithSameUsername){
+        throw new BadRequestException({ error: `The username '${updateUserDto.username}' is currently in use`});
+      }
     }
 
     userToUpdate = { ...userToUpdate, ...updateUserDto};
     await this.userRepository.save(userToUpdate);
+
     return this.mapUserToUserDto(userToUpdate);
   }
 
@@ -181,13 +226,16 @@ export class UserService {
   */
   async resetPasswordRequest(email: string){
 
-    const user: User = await this.userRepository.findOneBy({ email });
+    const user: User = await this.userRepository.findOne({
+      where: { email },
+      relations: ['roles']
+    });
 
     if(!user){
-      throw new NotFoundException({ message: `The user with de email ${email} was not founded` });
+      throw new NotFoundException({ message: `The user with de email '${email}' was not founded` });
     }
 
-    const expiresIn = new Date(Date.now() + 10 * 60 * 1000);
+    const expiresIn = new Date(Date.now() + 5 * 60 * 1000); // El codigo de correo durará 5 minutos
 		const token = this.generateRandomToken();
 
     user.passwordResetToken = token.toString(); // el codigo podría hashearse con bcrypt
@@ -197,14 +245,14 @@ export class UserService {
 
     await this.emailService.sendEmailForResetPassword(token, email); // Envío del correo al usuario con el codigo de cambio de contraseña
 
-    return user;
+    return this.mapUserToUserDto(user);
   }
 
   async validatePasswordResetCode(code: number, email: string){
 
     const user: User = await this.userRepository.findOneBy({ email });
     if(!user){
-      throw new NotFoundException({ message: `The user with de email ${email} was not founded` });
+      throw new NotFoundException({ message: `The user with de email '${email}' was not founded` });
     }
 
     if(user.passwordResetToken !== code.toString()){
@@ -215,8 +263,42 @@ export class UserService {
       throw new BadRequestException({ status: false, description: 'The code is expired' });
     }
 
-    const jwt: string = await this.jwtService.signAsync({ userId: user.id,isValidOperation: true });
+    const jwt: string = await this.jwtService.signAsync({ userId: user.id, isValidOperation: true });
     return jwt;
+  }
+
+  async resetPassword(jwt: string, newPassword: string){
+
+    const decoded = await this.jwtService.decode(jwt);
+
+    const user: User = await this.userRepository.findOne({
+      where: { id: decoded.userId },
+      relations: ['roles']
+    });
+
+    if(!user){
+      throw new NotFoundException({ message: `The user with the id '${decoded.id}' was not founded` });
+    }
+
+    try{
+
+      const newPasswordCrypted: string = await this.hashPassword(newPassword);
+
+      user.password = newPasswordCrypted;
+
+      user.passwordResetToken = null;
+
+      user.passwordResetTokenExpiresIn = null;
+
+      await this.userRepository.save(user);
+
+      return this.mapUserToUserDto(user);
+    }
+    catch(error){
+      console.error(error);
+      throw new BadRequestException({ error: 'Error saving the new password' });
+    }
+
   }
 
   mapUserToUserDto(user: User): UserDto {

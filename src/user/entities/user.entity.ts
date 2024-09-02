@@ -12,7 +12,7 @@ export class User {
   @Column({ unique: true })
   username: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column({ nullable: true })
@@ -22,10 +22,10 @@ export class User {
   method: string;
 
   @Column({ nullable: true })
-  passwordResetToken: string;
+  passwordResetToken?: string;
 
   @Column({ type: 'timestamp', nullable: true })
-  passwordResetTokenExpiresIn: Date;
+  passwordResetTokenExpiresIn?: Date;
 
   @ManyToMany(() => Role, (role) => role.id, { cascade: true })
   @JoinTable()

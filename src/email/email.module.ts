@@ -8,7 +8,8 @@ import { UserModule } from 'src/user/user.module';
 @Module({
   // DE MANERA MOMENTANEA SE DEJARÁ EL CONTROLADOR DE EMAILS. EN CASO DE NO SER NECESARIO DE BORRARÁ
   providers: [EmailService, ConfigService],
-  imports: [ConfigModule, UserModule],
-  exports: [EmailService]
+  imports: [ConfigModule],
+  exports: [EmailService],
+  controllers: []
 })
 export class EmailModule {}

@@ -1,13 +1,17 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsNotEmpty, IsNumber, IsString, MinLength } from "class-validator";
 
-export class UpdateUserPasswordValidate{
+// Email de la cuenta junto con el codigo enviado por mail
+
+export class ValidateUpdateUserPasswordCodeDto{
+	@ApiProperty()
 	@IsNotEmpty()
 	@IsString()
 	@IsEmail()
 	email: string;
 
+	@ApiProperty()
 	@IsNotEmpty()
 	@IsNumber()
-	@MinLength(6)
 	code: number;
 }

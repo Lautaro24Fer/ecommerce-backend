@@ -11,6 +11,7 @@ import {
   Req,
   BadRequestException,
   Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -21,8 +22,10 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { AuthUserResponseDto } from './dto/auth-user-response.dto';
 import { UserDto } from './dto/user.dto';
-import { UpdateUserPassword } from './dto/update-password-user.dto';
-import { UpdateUserPasswordValidate } from './dto/update-user-password-validate.dto';
+import { ResetUserPasswordGuard } from './user.guard';
+import { RequestUpdatePasswordCodeDto } from './dto/update-password-user-code.dto';
+import { ValidateUpdateUserPasswordCodeDto } from './dto/update-user-password-validate.dto';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -44,6 +47,8 @@ export class UserController {
     return await this.userService.create(createUserDto);
   }
 
+
+
   @ApiOperation({ summary: 'Find all users' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -58,6 +63,8 @@ export class UserController {
   async findAll(): Promise<UserDto[]> {
     return await this.userService.findAll();
   }
+
+
 
   @ApiOperation({ summary: 'Get user authenticated by the cookie' })
   @ApiResponse({
@@ -86,6 +93,79 @@ export class UserController {
     catch {
       throw new BadRequestException({ error: 'Error getting user authenticated' });
     }
+  }
+
+  // CAMBIO DE CONTRASEÑA
+
+  @ApiOperation({
+		summary: 'Send a code by email for validate the identity of the user'
+	})
+	@ApiResponse({
+		status: HttpStatus.CREATED,
+		description: 'Mail sended succesfully'
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Mail was not sended succesfully'
+	})
+  @Post('/reset-pass-code')
+  async getResetPasswordCode(@Body() updateUserPassword: RequestUpdatePasswordCodeDto){
+    const user: User = await this.userService.resetPasswordRequest(updateUserPassword.email);
+    return user;
+  }
+
+  @ApiOperation({
+    summary: 'Validation of the code passed by email for update password'
+  })
+  @ApiResponse({
+		status: HttpStatus.CREATED,
+		description: 'Code validated succesfully'
+	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Error validating code'
+	})
+  @Post('/reset-pass-validate-code')
+  async validateResetPasswordCode(@Body() updateUserPasswordValidate: ValidateUpdateUserPasswordCodeDto, @Res() res: Response){
+
+    const jwt: string = await this.userService.validatePasswordResetCode(updateUserPasswordValidate.code, updateUserPasswordValidate.email);
+    res.cookie('password-reset', jwt, {
+      maxAge: 1000 * 60 * 2, 
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+    })
+    return res.status(201).json({ status: true, message: 'Code verified succesfully' });
+  }
+
+  @ApiOperation({
+    summary: 'Once validate, update password by temporally jwt'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Password updated succesfully'
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Error updating the password'
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Time expired to update password'
+  })
+  @UseGuards(ResetUserPasswordGuard)
+  @Patch('/reset-pass')
+  async resetPassword(@Req() req: Request , @Res() res: Response, @Body() updateUserPasswordDto: UpdateUserPasswordDto){
+
+    const jwt: string = req.cookies['password-reset'];
+
+    if(!jwt){
+      throw new UnauthorizedException({ error: 'No jwt in request' });
+    }
+
+    const userUpdated = await this.userService.resetPassword(jwt, updateUserPasswordDto.newPassword);
+    res.cookie('password-reset', '', { httpOnly: true, expires: new Date(0) });
+    return res.status(201).json({ status: true, description: 'password updated succesfully', user: { ...userUpdated } });
   }
 
   @ApiOperation({ summary: 'Find one user by id' })
@@ -131,6 +211,8 @@ export class UserController {
     return await this.userService.update(id, updateUserDto);
   }
 
+
+
   @ApiOperation({ summary: 'Delete a user by id' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -157,53 +239,4 @@ export class UserController {
     return await this.userService.remove(id);
   }
 
-  // CAMBIO DE CONTRASEÑA
-
-  @ApiOperation({
-		summary: 'Send a code for reset password'
-	})
-	@ApiResponse({
-		status: HttpStatus.CREATED,
-		description: 'Mail sended succesfully'
-	})
-	@ApiResponse({
-		status: HttpStatus.BAD_REQUEST,
-		description: 'Mail was not sended succesfully'
-	})
-  @Get('/reset-pass-code')
-  async getResetPasswordCode(@Body() updateUserPassword: UpdateUserPassword){
-    const user: User = await this.userService.resetPasswordRequest(updateUserPassword.email);
-    return user;
-  }
-
-  @ApiOperation({
-    summary: 'Validation of the code passed by email for update password'
-  })
-  @ApiResponse({
-		status: HttpStatus.CREATED,
-		description: 'Code validated succesfully'
-	})
-	@ApiResponse({
-		status: HttpStatus.BAD_REQUEST,
-		description: 'Error validating code'
-	})
-  @Get('/reset-pass-validate-code')
-  async validateResetPasswordCode(@Body() updateUserPasswordValidate: UpdateUserPasswordValidate, @Res() res: Response){
-    const jwt: string = await this.userService.validatePasswordResetCode(updateUserPasswordValidate.code, updateUserPasswordValidate.email);
-    res.cookie('password-reset', jwt, {
-      maxAge: 1000 * 60 * 5, 
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-    })
-    return res.status(201).json({ status: true, message: 'Code verified succesfully' });
-  }
-
-  // Endpoint que requiere de la logica para el cambio de contraseña final
-  // Requiere la validación de la cookie temporal que permite el cambio de contraseña durante 5 minutos
-  // ya sea dentro de un guard o en el servicio (mejor el guard)
-  @Patch('reset-pass')
-  async resetPassword(){
-
-  }
 }

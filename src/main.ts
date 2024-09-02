@@ -5,6 +5,7 @@ import * as cookieParser from 'cookie-parser';
 import { Session, ValidationPipe } from '@nestjs/common';
 import * as session from 'express-session';
 import * as passport from 'passport';
+import * as bodyParser from 'body-parser';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
@@ -36,6 +37,7 @@ async function bootstrap() {
     }),
   );
 
+
   app.use(
     session({
       // Hay que pasar el secreto de sesión a una variable de entorno
@@ -49,8 +51,8 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.use(passport.initialize());
+  app.use(bodyParser.json());
   app.use(passport.session());
-  app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(3000);
 }
