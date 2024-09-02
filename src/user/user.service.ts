@@ -235,7 +235,7 @@ export class UserService {
       throw new NotFoundException({ message: `The user with de email '${email}' was not founded` });
     }
 
-    const expiresIn = new Date(Date.now() + 5 * 60 * 1000); // El codigo de correo durará 5 minutos
+    const expiresIn = new Date(Date.now() + 2 * 60 * 1000); // El codigo de correo durará 2 minutos
 		const token = this.generateRandomToken();
 
     user.passwordResetToken = token.toString(); // el codigo podría hashearse con bcrypt

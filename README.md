@@ -354,3 +354,22 @@ Algunas de las nuevas cosas que se van a poder hacer principalmente son
 - Operaciones basicas (getAll, getOne, update, delete) para tipos y las imagenes secundarias
 
 Las imagenes secundarias se manejan individualmente, si se requiere desde el front se manejará una forma para manejar las url de manera más dinamica como la creación de un conjunto de imagenes u operaciones relacionadas
+
+## CAMBIO DE CONTRASEÑA CON ENVIO DE CORREOS
+
+El cambio de contraseña combina 3 endpoints puntuales
+
+- POST /reset-pass-code (requiere el correo al que se enviará el codigo, este mismo debe ser el que está vinculado a la cuenta)
+- POST /reset-pass-validate-code (requiere el correo de la cuenta junto con el codigo enviado por mail)
+- PATCH /reset-pass (requiere unicamente la nueva contraseña)
+
+Las primeras dos rutas son públicas ya que cualquier usuario podría pedir el cambio de credenciales, pero la última requerirá de un token especial que tendrá cifrada la id del usuario en cuestión. Para conseguir este token basta con pedir el código de verificación (ruta 1) y escribirlo correctamente en la ventana requerida (ruta 2).
+Una vez realizado el cambio de contraseña se eliminará el token al igual que el codigo temporal junto con su tiempo de vida. Cabe destacar que el jwt es temporal y solo podrá ser usado durante un tiempo limitado desde su creación (Creemos conveniente que no sean mas de 5 minutos para el token y 15 minutos para el codigo por correo), además de que el código en caso de no ingresarse correctamente no se borrará de la DB, sino que será sobrescrito cuando se vuelva a pedir nuevamente el código. 
+
+IMP: El codigo temporal tiene las siguientes características:
+
+- Es un número al azar de 6 caracteres
+- NO está cifrado en la base de datos (podría cambiarse)
+- Su tiempo de vida está delimitado por la columna de tiempo de vida, una vez vencido quedará ahí pero será inútil
+
+Las contraseñas siempre deberán tener como mínimo 8 caracteres

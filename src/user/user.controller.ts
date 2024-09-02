@@ -111,7 +111,7 @@ export class UserController {
   @Post('/reset-pass-code')
   async getResetPasswordCode(@Body() updateUserPassword: RequestUpdatePasswordCodeDto){
     const user: User = await this.userService.resetPasswordRequest(updateUserPassword.email);
-    return user;
+    return { status: true, description: 'code sended succesfully', user: { ...user } };
   }
 
   @ApiOperation({
@@ -130,12 +130,12 @@ export class UserController {
 
     const jwt: string = await this.userService.validatePasswordResetCode(updateUserPasswordValidate.code, updateUserPasswordValidate.email);
     res.cookie('password-reset', jwt, {
-      maxAge: 1000 * 60 * 2, 
+      maxAge: 1000 * 60 * 1, // El jwt durará un minuto
       httpOnly: true,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',
     })
-    return res.status(201).json({ status: true, message: 'Code verified succesfully' });
+    return res.status(201).json({ status: true, description: 'Code verified succesfully' });
   }
 
   @ApiOperation({
