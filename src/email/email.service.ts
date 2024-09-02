@@ -18,7 +18,7 @@ export class EmailService {
 		const layout: string = resetPasswordLayout(token);
 
 		await this.resend.emails.send({
-			from: "no reply <fernandez@lautarodev.online>", // Acá iría el correo que está verificado con el dominio en resend
+			from: `no reply <${this.configService.get<string>('RESEND_FROM_EMAIL')}>`, // Acá iría el correo que está verificado con el dominio en resend
 			to: [toUser], // Estos serían los receptores, si es uno no es necesario ponerlo dentro de un array
 			subject: "Padel point - Reset password code", // Este sería el 'asunto'
 			html: layout, // Correo en html
