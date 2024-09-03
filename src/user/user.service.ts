@@ -87,7 +87,10 @@ export class UserService {
     // No tengo idea porque puse que si no tiene un usuario en la cookie devuelva 
     // el usuario con id 1 
     const userDecoded: any = await this.jwtService.decode(cookieOnRequest);
-    const userOnDB: User = await this.userRepository.findOneBy({ id: userDecoded?.id /*?? 1*/ });
+    const userOnDB: User = await this.userRepository.findOne({
+      where: { id: userDecoded.id },
+      relations: ['roles']
+    });
     if (!userOnDB) {
       throw new NotFoundException({ error: `Error extraing the user with id '${userDecoded.id}', not founded` });
     }
