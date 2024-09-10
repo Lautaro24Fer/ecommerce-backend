@@ -55,7 +55,7 @@ export class AuthController {
     const refreshToken: any = req.cookies['refresh']
     const accessToken: any = req.cookies['user']
     const response: any = await this.authService.getSessionStatue(accessToken, refreshToken)
-    return response
+    return response;
   }
 
   
@@ -76,7 +76,7 @@ export class AuthController {
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',
     })
-    return res.status(201).json({ message: 'token refreshed succesfully' })
+    return res.status(201).json({  essage: 'token refreshed succesfully', token: accessToken })
   }
 
   @Post('logout')

@@ -32,8 +32,8 @@ export class AuthService {
     const user: User = await this.userService.findOneByUserName(login.username);
 
     try {
-      const token: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, role: user.roles }, '1m');
-      const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, role: user.roles }, '7m');
+      const token: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: user.roles }, '1m');
+      const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: user.roles }, '7m');
       res.cookie('user', token, {
         maxAge: 1000 * 60 * 5, // Tiempo de vida de la cookie (5 minuto)
         httpOnly: true,
@@ -47,7 +47,7 @@ export class AuthService {
         secure: process.env.NODE_ENV === 'production',
       });
 
-      const responseLogin = new LoginResponseDto(true, 'login succesfully', { token, refreshToken });
+      const responseLogin = new LoginResponseDto(true, 'login succesfully', { token });
       return responseLogin;
     } 
     catch {
