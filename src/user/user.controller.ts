@@ -26,6 +26,7 @@ import { ResetUserPasswordGuard } from './user.guard';
 import { RequestUpdatePasswordCodeDto } from './dto/update-password-user-code.dto';
 import { ValidateUpdateUserPasswordCodeDto } from './dto/update-user-password-validate.dto';
 import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
+import { ResponsetUpdatePasswordCodeDto } from './dto/update-password-response.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -46,7 +47,7 @@ export class UserController {
   async create(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     return await this.userService.create(createUserDto);
   }
-
+  
 
 
   @ApiOperation({ summary: 'Find all users' })
@@ -95,10 +96,12 @@ export class UserController {
     }
   }
 
+
   // CAMBIO DE CONTRASEÑA
 
+
   @ApiOperation({
-		summary: 'Send a code by email for validate the identity of the user'
+		summary: 'Send a email code for validate the identity of the user'
 	})
 	@ApiResponse({
 		status: HttpStatus.CREATED,
@@ -110,9 +113,15 @@ export class UserController {
 	})
   @Post('/reset-pass-code')
   async getResetPasswordCode(@Body() updateUserPassword: RequestUpdatePasswordCodeDto){
-    const user: User = await this.userService.resetPasswordRequest(updateUserPassword.email);
-    return { status: true, description: 'code sended succesfully', user: { ...user } };
+    console.log("--RESET PASS CODE CONTROLLER--")
+    console.log("updatePasswordDto")
+    console.log(updateUserPassword)
+    // const user: User = await this.userService.resetPasswordRequest(updateUserPassword.usernameOrEmail);
+    // const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Code sended succesfully', user}
+    // return responseDto;  
   }
+
+
 
   @ApiOperation({
     summary: 'Validation of the code passed by email for update password'
@@ -135,8 +144,11 @@ export class UserController {
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',
     })
-    return res.status(201).json({ status: true, description: 'Code verified succesfully' });
+    const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Code verified succesfully' };
+    return res.status(201).json(responseDto);
   }
+
+
 
   @ApiOperation({
     summary: 'Once validate, update password by temporally jwt'
@@ -165,8 +177,11 @@ export class UserController {
 
     const userUpdated = await this.userService.resetPassword(jwt, updateUserPasswordDto.newPassword);
     res.cookie('password-reset', '', { httpOnly: true, expires: new Date(0) });
-    return res.status(201).json({ status: true, description: 'password updated succesfully', user: { ...userUpdated } });
+    const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Password updated succesfully', user: userUpdated };
+    return res.status(201).json(responseDto);
   }
+
+
 
   @ApiOperation({ summary: 'Find one user by id' })
   @ApiResponse({
@@ -191,6 +206,8 @@ export class UserController {
   async findOne(@Param('id') id: number): Promise<UserDto> {
     return await this.userService.findOne(id);
   }
+
+
 
   @ApiOperation({ summary: 'Update one user by id' })
   @ApiResponse({

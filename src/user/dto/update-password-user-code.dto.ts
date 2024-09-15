@@ -5,6 +5,5 @@ import { IsEmail } from "class-validator";
 
 export class RequestUpdatePasswordCodeDto{
 	@ApiProperty()
-	@IsEmail()
-	email: string;	
+	usernameOrEmail: string;	
 }

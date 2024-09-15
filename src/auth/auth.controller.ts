@@ -24,9 +24,24 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login/local')
-  async login( @Body() login: InputLoginDto, @Res() res: Response ): Promise<any> {
-    const loginResponse: LoginResponseDto = await this.authService.getCookieByLocalAuth(login, res);
-    return res.status(201).json(loginResponse);
+
+  async login( @Body() login: InputLoginDto, @Res() res: Response ): Promise<LoginResponseDto> {
+
+    const { token, refreshToken } = await this.authService.getCookieByLocalAuth(login);
+    res.cookie('user', token, {
+        maxAge: 1000 * 60 * 5, // Tiempo de vida de la cookie (5 minutos)
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+      });
+      res.cookie('refresh', refreshToken, {
+        maxAge: 1000 * 60 * 7, // Tiempo de vida de la cookie (7 minutos)
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+      });
+      const responseLogin = new LoginResponseDto(true, 'login succesfully', { token });
+      return responseLogin;
   }
 
   @UseGuards(GoogleAuthGuard)
@@ -44,7 +59,20 @@ export class AuthController {
     if((!error) || (error !== 'access_denied')){
       const user: any = { ...req.user };
 
-      await this.authService.getCookieByPassportStrategy(res, user);
+      const { token, refreshToken } = await this.authService.getCookieByPassportStrategy( user );
+
+      res.cookie('user', token, {
+        maxAge: 1000 * 60 * 1, // Tiempo de vida de la cookie (1 minuto)
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+      });
+      res.cookie('refresh', refreshToken, {
+        maxAge: 1000 * 60 * 7, // Tiempo de vida de la cookie (7 minutos)
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+      });
     }
 
     return res.redirect('http://localhost:8080'); // Esta es la pagina a donde va a redirigir una vez logeado o no

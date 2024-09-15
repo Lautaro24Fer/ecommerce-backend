@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import { LoginResponseDto } from './dto/response-login.dto';
@@ -19,59 +14,38 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
-  async validateCredentials( username: string, password: string ): Promise<User | undefined> {
-    const userFounded = await this.userService.findOneByUsernameEntity(username);
-    const isValidated: boolean = await this.userService.comparePasswords( password, userFounded.password );
+  async validateCredentials( usernameOrEmail: string, password: string ): Promise<User | undefined> {
+    
+    const userFounded: User = await this.userService.findOneByUsernameOrEmail(usernameOrEmail)
+    const user = await this.userService.findOneByUsernameEntity(userFounded.name);
+    const isValidated: boolean = await this.userService.comparePasswords( password, user.password );
     if (!isValidated) {
       throw new UnauthorizedException('the credentials not match');
     }
     return userFounded;
   }
-  async getCookieByLocalAuth( login: InputLoginDto, res: Response ): Promise<LoginResponseDto | undefined> {
+  async getCookieByLocalAuth(login: InputLoginDto){
+
     const userLogin = await this.validateCredentials( login.username, login.password);
     const user: User = await this.userService.findOneByUserName(login.username);
 
     try {
       const token: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: user.roles }, '1m');
       const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: user.roles }, '7m');
-      res.cookie('user', token, {
-        maxAge: 1000 * 60 * 5, // Tiempo de vida de la cookie (5 minuto)
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
-      });
-      res.cookie('refresh', refreshToken, {
-        maxAge: 1000 * 60 * 7, // Tiempo de vida de la cookie (7 minutos)
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
-      });
-
-      const responseLogin = new LoginResponseDto(true, 'login succesfully', { token });
-      return responseLogin;
+      return { token, refreshToken }
     } 
     catch {
       throw new HttpException( 'error creating the token', HttpStatus.BAD_REQUEST );
     }
   }
-  async getCookieByPassportStrategy( res: Response, user: any, ): Promise<void | undefined> {
+  async getCookieByPassportStrategy( user: any ) {
 
     const userFinded: User = await this.userService.findOne(user?.id);
-    const tokenPayload: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '1m');
+    const token: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '1m');
     const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '7m');
-    res.cookie('user', tokenPayload, {
-      maxAge: 1000 * 60 * 1, // Tiempo de vida de la cookie (1 minuto)
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-    });
-    res.cookie('refresh', refreshToken, {
-      maxAge: 1000 * 60 * 7, // Tiempo de vida de la cookie (7 minutos)
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-    });
+    return { token, refreshToken }
   }
+
   async getJwtTokenOrBadRequest( payload: any, timeToExpire: string, ): Promise<string | undefined> {
     try {
       const cookieCrypted = await this.jwtService.signAsync( payload, { expiresIn: timeToExpire });

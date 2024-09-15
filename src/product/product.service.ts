@@ -32,7 +32,6 @@ export class ProductService {
     @Inject(forwardRef(() => ImagesService)) private readonly productImageService: ImagesService,
     private readonly brandService: BrandService,
     private readonly supplierService: SupplierService,
-    private readonly dataSource: DataSource,
     private readonly typeService: TypeService,
   ) {}
 
@@ -173,10 +172,6 @@ export class ProductService {
       productFinded.type = type;
     }
 
-    
-    // updateProductDto.secondariesImages: ["https://...", "https://..."] => arrays de strings cons las url
-    // productFinded.secondariesImages: [{ id: 1, url: "http://...", product: { id: 1 } }] => objeto de las imagenes 
-    
     const productUpdated: Product = await this.productRepository.save(productFinded);
     return productUpdated;
 

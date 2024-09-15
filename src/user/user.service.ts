@@ -29,19 +29,18 @@ export class UserService {
   }
 
   async comparePasswords(password: string, hash: string): Promise<boolean> {
+
     return await bcrypt.compare(password, hash);
   }
 
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
 
     const emailExists = await this.userRepository.existsBy({ email: createUserDto.email });
-
     if(emailExists){
       throw new BadRequestException({ error: `User with '${createUserDto.email}' already exists` });
     }
 
     const usernameExists = await this.userRepository.existsBy({ username: createUserDto.username });
-
     if(usernameExists){
       throw new BadRequestException({ error: `User with '${createUserDto.username}' already exists` });
     }
@@ -63,6 +62,7 @@ export class UserService {
   }
 
   async findAll(): Promise<UserDto[]> {
+
     const users: User[] = await this.userRepository.find({ relations: ['roles'] });
     const usersDto: UserDto[] = users.map((user) => {
       return this.mapUserToUserDto(user);
@@ -71,6 +71,7 @@ export class UserService {
   }
 
   async findOne(id: number): Promise<UserDto | undefined> {
+
     const user: User = await this.userRepository.findOne({
       where: { id },
       relations: ['roles']
@@ -81,11 +82,37 @@ export class UserService {
     return this.mapUserToUserDto(user);
   }
 
+  async findOneByUsernameOrEmail(input: string){
+    
+    const isEmail: boolean = await this.validateEmail(input);
+    if(isEmail){
+      const user: User = await this.userRepository.findOne({
+        where: { email: input },
+        relations: ['roles']
+      })
+      if (!user) {
+        throw new NotFoundException(`The user with email '${input}' was not founded`);
+      }
+      return user;
+    }
+    const user: User = await this.userRepository.findOne({
+      where: { username: input },
+      relations: ['roles']
+    })
+    if (!user) {
+      throw new NotFoundException(`The user with username '${input}' was not founded`);
+    }
+    return user;
+  }
+
+  async validateEmail(input: string){
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(input);
+  }
+
   async findOneByCookie(cookieOnRequest: string) {
     
-    // 19/08 23:44
-    // No tengo idea porque puse que si no tiene un usuario en la cookie devuelva 
-    // el usuario con id 1 
     const userDecoded: any = await this.jwtService.decode(cookieOnRequest);
     const userOnDB: User = await this.userRepository.findOne({
       where: { id: userDecoded.id },
@@ -120,6 +147,7 @@ export class UserService {
     return this.mapUserToUserDto(user);
   }
 
+  /* Devuelve la entidad completa de usuario (Incluyendo contraseña) */
   async findOneByUsernameEntity(username: string): Promise<User | undefined> {
 
     const user: User = await this.userRepository.findOneBy({ username });
@@ -134,17 +162,6 @@ export class UserService {
     const user: User = await this.userRepository.findOneBy({ email });
     return this.mapUserToUserDto(user);
   }
-
-  /* IMPORTANTE
-  
-    Decidí crear un nuevo DTO para la creacion de usuarios en el archivo create-user-strategy.dto.ts 
-    en donde creas un usuario con la estrategia (ya sea googleo alguna mas que se pueda añadir en el futuro como facebook
-    o discord). ¿Por qué hago esto? Porque como pensarás, al momento de realizar el inicio de sesión con OAuth no
-    le vamos a pedir al usuario que ingrese una contraseña. Por lo que decidí crear un nuevo dto para justamente 
-    saltear la contraseña. 
-    Una cosa importante, yo acá voy a esperar que ingreses también un username que haré único en la DB. Por lo que vas a tener 
-    crear una ventana en donde el usuario ingrese un username y luego validaremos en la db si es único
-  */
 
   async validateUserWithStrategy(payload: CreateUserStrategyDto) {
 
@@ -217,7 +234,8 @@ export class UserService {
   // Manejo de correos
 
   generateRandomToken(): number { // Codigo de un solo uso para poder validar el cambio de contraseña
-		return Math.floor(100000 + Math.random() * 900000);
+		
+    return Math.floor(100000 + Math.random() * 900000);
 	}
 
   /* 
@@ -227,16 +245,9 @@ export class UserService {
   1. Ingresa el correo electronico directamente
   2. Ingresa el nombre de usuario para buscar el correo correspondiente
   */
-  async resetPasswordRequest(email: string){
+  async resetPasswordRequest(input: string){
 
-    const user: User = await this.userRepository.findOne({
-      where: { email },
-      relations: ['roles']
-    });
-
-    if(!user){
-      throw new NotFoundException({ message: `The user with de email '${email}' was not founded` });
-    }
+    const user: User = await this.findOneByUsernameOrEmail(input);
 
     const expiresIn = new Date(Date.now() + 2 * 60 * 1000); // El codigo de correo durará 2 minutos
 		const token = this.generateRandomToken();
@@ -246,7 +257,7 @@ export class UserService {
 
     await this.userRepository.save(user);
 
-    await this.emailService.sendEmailForResetPassword(token, email); // Envío del correo al usuario con el codigo de cambio de contraseña
+    await this.emailService.sendEmailForResetPassword(token, user.email); // Envío del correo al usuario con el codigo de cambio de contraseña
 
     return this.mapUserToUserDto(user);
   }
@@ -273,7 +284,6 @@ export class UserService {
   async resetPassword(jwt: string, newPassword: string){
 
     const decoded = await this.jwtService.decode(jwt);
-
     const user: User = await this.userRepository.findOne({
       where: { id: decoded.userId },
       relations: ['roles']
@@ -282,7 +292,6 @@ export class UserService {
     if(!user){
       throw new NotFoundException({ message: `The user with the id '${decoded.id}' was not founded` });
     }
-
     try{
 
       const newPasswordCrypted: string = await this.hashPassword(newPassword);
@@ -305,6 +314,7 @@ export class UserService {
   }
 
   mapUserToUserDto(user: User): UserDto {
+
     const userDto: UserDto = {
       id: user.id,
       name: user.name,

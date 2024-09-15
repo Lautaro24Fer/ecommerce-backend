@@ -82,10 +82,7 @@ export class SupplierController {
     description: 'Supplier not founded',
   })
   @Patch(':id')
-  update(
-    @Param('id') id: number,
-    @Body() updateSupplierDto: UpdateSupplierDto,
-  ) {
+  update( @Param('id') id: number, @Body() updateSupplierDto: UpdateSupplierDto ) {
     return this.supplierService.update(id, updateSupplierDto);
   }
 
