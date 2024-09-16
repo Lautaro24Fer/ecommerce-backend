@@ -7,6 +7,7 @@ import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { ConfigService } from '@nestjs/config';
 import { SessionStateDto } from './dto/session-state.dto';
+import { UserDto } from 'src/user/dto/user.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -16,28 +17,38 @@ export class AuthService {
   ) {}
   async validateCredentials( usernameOrEmail: string, password: string ): Promise<User | undefined> {
     
-    const userFounded: User = await this.userService.findOneByUsernameOrEmail(usernameOrEmail)
-    const user = await this.userService.findOneByUsernameEntity(userFounded.name);
+    console.log("VALIDATE CREDENTIALS");
+    const userFounded: UserDto = await this.userService.findOneByUsernameOrEmail(usernameOrEmail);
+    console.log("-- Usuario encontrado mediante el findOneByUsernameOrEmail --");
+    console.log(userFounded);
+    console.log("-- Parametro que se pasa al findOneByUsernameEntity --");
+    console.log(userFounded.username);
+    const user = await this.userService.findOneByUsernameEntity(userFounded.username);
+    console.log("-- Usuario encontrado el findOneByUsernameEntity  --")
+    console.log(user);
     const isValidated: boolean = await this.userService.comparePasswords( password, user.password );
+    console.log("-- las contraseñas coinciden --");
+    console.log(isValidated);
     if (!isValidated) {
-      throw new UnauthorizedException('the credentials not match');
+      throw new UnauthorizedException({ error: "The credentials not match" });
     }
-    return userFounded;
+    return user;
   }
+
+
   async getCookieByLocalAuth(login: InputLoginDto){
 
-    const userLogin = await this.validateCredentials( login.username, login.password);
-    const user: User = await this.userService.findOneByUserName(login.username);
-
+    const userLogin: User = await this.validateCredentials( login.input, login.password);
     try {
-      const token: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: user.roles }, '1m');
-      const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: user.roles }, '7m');
+      const token: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: userLogin.roles }, '1m');
+      const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: userLogin.roles }, '7m');
       return { token, refreshToken }
     } 
     catch {
       throw new HttpException( 'error creating the token', HttpStatus.BAD_REQUEST );
     }
   }
+
   async getCookieByPassportStrategy( user: any ) {
 
     const userFinded: User = await this.userService.findOne(user?.id);
@@ -45,6 +56,7 @@ export class AuthService {
     const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '7m');
     return { token, refreshToken }
   }
+
 
   async getJwtTokenOrBadRequest( payload: any, timeToExpire: string, ): Promise<string | undefined> {
     try {

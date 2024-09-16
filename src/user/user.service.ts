@@ -40,12 +40,13 @@ export class UserService {
       throw new BadRequestException({ error: `User with '${createUserDto.email}' already exists` });
     }
 
-    const usernameExists = await this.userRepository.existsBy({ username: createUserDto.username });
+    const usernameExists = await this.userRepository.existsBy({ username: createUserDto.username.toLowerCase() });
     if(usernameExists){
       throw new BadRequestException({ error: `User with '${createUserDto.username}' already exists` });
     }
 
     createUserDto.password = await this.hashPassword(createUserDto.password);
+    createUserDto.username = createUserDto.username.toLocaleLowerCase();
     
     const createUser: User = this.userRepository.create({...createUserDto, roles: []});
     const role: Role = await this.roleService.findOneByName('user');
@@ -82,7 +83,9 @@ export class UserService {
     return this.mapUserToUserDto(user);
   }
 
-  async findOneByUsernameOrEmail(input: string){
+  // _______
+
+  async findOneByUsernameOrEmail(input: string): Promise<UserDto | undefined>{
     
     const isEmail: boolean = await this.validateEmail(input);
     if(isEmail){
@@ -93,8 +96,9 @@ export class UserService {
       if (!user) {
         throw new NotFoundException(`The user with email '${input}' was not founded`);
       }
-      return user;
+      return this.mapUserToUserDto(user);
     }
+
     const user: User = await this.userRepository.findOne({
       where: { username: input },
       relations: ['roles']
@@ -102,8 +106,10 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(`The user with username '${input}' was not founded`);
     }
-    return user;
+    return this.mapUserToUserDto(user);
   }
+
+  // _______
 
   async validateEmail(input: string){
 
@@ -150,7 +156,10 @@ export class UserService {
   /* Devuelve la entidad completa de usuario (Incluyendo contraseña) */
   async findOneByUsernameEntity(username: string): Promise<User | undefined> {
 
-    const user: User = await this.userRepository.findOneBy({ username });
+    const user: User = await this.userRepository.findOne({ 
+      where: { username },
+      relations: ['roles']
+     });
     if (!user) {
       throw new NotFoundException(`The user with username '${username}' was not founded`);
     }

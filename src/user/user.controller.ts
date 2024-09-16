@@ -116,9 +116,9 @@ export class UserController {
     console.log("--RESET PASS CODE CONTROLLER--")
     console.log("updatePasswordDto")
     console.log(updateUserPassword)
-    // const user: User = await this.userService.resetPasswordRequest(updateUserPassword.usernameOrEmail);
-    // const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Code sended succesfully', user}
-    // return responseDto;  
+    const user: User = await this.userService.resetPasswordRequest(updateUserPassword.usernameOrEmail);
+    const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Code sended succesfully', user}
+    return responseDto;  
   }
 
 
