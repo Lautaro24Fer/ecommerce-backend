@@ -15,19 +15,13 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
+
+  
   async validateCredentials( usernameOrEmail: string, password: string ): Promise<User | undefined> {
     
-    console.log("VALIDATE CREDENTIALS");
     const userFounded: UserDto = await this.userService.findOneByUsernameOrEmail(usernameOrEmail);
-    console.log("-- Usuario encontrado mediante el findOneByUsernameOrEmail --");
-    console.log(userFounded);
-    console.log("-- Parametro que se pasa al findOneByUsernameEntity --");
-    console.log(userFounded.username);
     const user = await this.userService.findOneByUsernameEntity(userFounded.username);
-    console.log("-- Usuario encontrado el findOneByUsernameEntity  --")
-    console.log(user);
     const isValidated: boolean = await this.userService.comparePasswords( password, user.password );
-    console.log("-- las contraseñas coinciden --");
     console.log(isValidated);
     if (!isValidated) {
       throw new UnauthorizedException({ error: "The credentials not match" });

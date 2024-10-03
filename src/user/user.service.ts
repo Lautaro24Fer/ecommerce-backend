@@ -83,8 +83,6 @@ export class UserService {
     return this.mapUserToUserDto(user);
   }
 
-  // _______
-
   async findOneByUsernameOrEmail(input: string): Promise<UserDto | undefined>{
     
     const isEmail: boolean = await this.validateEmail(input);
@@ -108,8 +106,6 @@ export class UserService {
     }
     return this.mapUserToUserDto(user);
   }
-
-  // _______
 
   async validateEmail(input: string){
 
@@ -152,7 +148,6 @@ export class UserService {
     }
     return this.mapUserToUserDto(user);
   }
-
   /* Devuelve la entidad completa de usuario (Incluyendo contraseña) */
   async findOneByUsernameEntity(username: string): Promise<User | undefined> {
 
@@ -239,14 +234,12 @@ export class UserService {
     }
     await this.userRepository.remove(userToRemove);
   }
-
   // Manejo de correos
-
   generateRandomToken(): number { // Codigo de un solo uso para poder validar el cambio de contraseña
 		
     return Math.floor(100000 + Math.random() * 900000);
 	}
-
+  
   /* 
   ACTUALIZACIÓN A FUTURO
   Una mejora sería darle al usuario dos opciones para cuando solicite el cambio de contraseña

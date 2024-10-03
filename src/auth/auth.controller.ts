@@ -28,11 +28,6 @@ export class AuthController {
   async login( @Body() login: InputLoginDto, @Res() res: Response ): Promise<void> {
 
     const { token, refreshToken } = await this.authService.getCookieByLocalAuth(login);
-    console.log("CONTROLLER");
-    console.log("Token");
-    console.log(token);
-    console.log("\nRefreshToken");
-    console.log(refreshToken);
 
     res.cookie('user', token, {
         maxAge: 1000 * 60 * 5, // Tiempo de vida de la cookie (5 minutos)
@@ -46,8 +41,6 @@ export class AuthController {
         sameSite: 'strict',
         secure: process.env.NODE_ENV === 'production',
       });
-
-      console.log("Instancia de response editada con las cookies con éxito");
 
       const responseLogin = new LoginResponseDto(true, 'login succesfully', { token });
 
