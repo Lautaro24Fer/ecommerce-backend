@@ -1,28 +1,65 @@
 // Petición
 
-export interface IPaymentPreferenceRequest {
-    data: DataRequest;
-}
+import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsArray, IsNumber, IsString, Validate, ValidateNested } from "class-validator";
 
-export interface DataRequest {
-    attributes: AttributesReq;
-}
 
-export interface AttributesReq {
-    currency: string; // "032" es AR$
-    items:    ItemReq[];
-}
+// Convertir interfaces a clases
 
-export interface ItemReq {
-    id:        number;
-    name:      string;
-    unitPrice: UnitPriceReq;
-    quantity:  number;
-}
-
-export interface UnitPriceReq {
+export class UnitPriceReqDto {
+    @ApiProperty({ example: '032' })
+    @IsString() // Validación para cadenas de texto
     currency: string;
-    amount:   number;
+
+    @ApiProperty({ example: 100.5 })
+    @IsNumber() // Validación para números
+    amount: number;
+}
+
+export class ItemReqDto {
+    @ApiProperty({ example: 1 })
+    @IsNumber() // Validación para números
+    id: number;
+
+    @ApiProperty({ example: 'Product name' })
+    @IsString() // Validación para cadenas de texto
+    name: string;
+
+    @ApiProperty({ type: () => UnitPriceReqDto })
+    @ValidateNested() // Validación de objetos anidados
+    @Type(() => UnitPriceReqDto) // Necesario para que `class-transformer` sepa qué clase usar
+    unitPrice: UnitPriceReqDto;
+
+    @ApiProperty({ example: 2 })
+    @IsNumber() // Validación para números
+    quantity: number;
+}
+
+export class AttributesReqDto {
+    @ApiProperty({ example: '032', description: 'Currency code, e.g. "032" for ARS (Argentine Peso)' })
+    @IsString() // Validación para cadenas de texto
+    currency: string;
+
+    @ApiProperty({ type: () => [ItemReqDto] })
+    @IsArray() // Validación para arrays
+    @ValidateNested({ each: true }) // Validar cada elemento del array como objeto anidado
+    @Type(() => ItemReqDto) // Necesario para arrays de objetos
+    items: ItemReqDto[];
+}
+
+export class DataRequestDto {
+    @ApiProperty({ type: () => AttributesReqDto })
+    @ValidateNested() // Validación de objetos anidados
+    @Type(() => AttributesReqDto) // Especifica la clase correcta
+    attributes: AttributesReqDto;
+}
+
+export class PaymentPreferenceRequestDto {
+    @ApiProperty({ type: () => DataRequestDto })
+    @ValidateNested() // Validación de objetos anidados
+    @Type(() => DataRequestDto) // Especifica la clase correcta
+    data: DataRequestDto;
 }
 
 // Respuesta
