@@ -63,9 +63,9 @@ export class PaymentService {
 			if(!token.refresh_token) {
 				token.refresh_token = "";
 			}
-			const formatedDate: string = (new Date(Number(token.expires_in) * 1000) ).toLocaleString();
-			const tokenSetted = { ...token, expires_in: formatedDate };
-			const prevToken: Payment = await this.paymentRepository.find()[0];
+			// const formatedDate: string = (new Date(Number(token.expires_in) * 1000) ).toLocaleString();
+			const tokenSetted: any = { ...token  };
+			const prevToken: Payment = (await this.paymentRepository.find())[0];
 			if(prevToken){
 				await this.paymentRepository.remove(prevToken);
 			}
@@ -80,9 +80,18 @@ export class PaymentService {
 
 	jwtIsExpired(token: Payment): boolean {
 
-		const expirationDate = new Date(token.expires_in);
+		console.log("\n\n === VERIFICACIÓN DEL ESTADO DE EXPIRACIÓN DEL TOKEN ACTUAL ===\n\n");
+		console.log("jwtIsExpired --) 1) Fecha del token");
+		console.log(token.expires_in);
+		console.log("jwtIsExpired --) 2) Fecha formateada a tipo date");
+		const expirationDate = new Date(Number(token.expires_in) * 1000);
+		console.log(expirationDate)
+		console.log("jwtIsExpired --) 3) Fecha actual en tipo date");
 		const currentDate = new Date();
-		return currentDate < expirationDate
+		console.log(currentDate)
+		console.log("jwtIsExpired --) 4) resultado final de la comparación (el token está vencido?)");
+		console.log(currentDate > expirationDate);
+		return currentDate > expirationDate;
 	}
 
 	async refreshJwtExpired(token: Payment): Promise<Payment> {
@@ -120,14 +129,16 @@ export class PaymentService {
 		console.log("getTokensFromDatabase --) 2) Recuperar los tokens mediante el find")
 		const dbToken: Payment = (await this.paymentRepository.find())[0];
 
-		console.log("\n\n----")
-		console.log("repotirory.find() response")
-		const response = await this.paymentRepository.find()
-		console.log(response)
-		console.log("----\n\n")
+		console.log("\n\n ===== FIND COMPLETO DE TOKENS ===== \n\n")
+
+		const allTokens: Payment[] = await this.paymentRepository.find();
+		console.log(allTokens);
+
+		console.log("\n\n ===== FIND COMPLETO DE TOKENS ===== \n\n")
 
 		console.log("getTokensFromDatabase --) 3) __Token recuperado de la base de datos__")
 		console.log(dbToken)
+
 		if(!dbToken ) {
 			console.log("\ngetTokensFromDatabase --) 3.1) No se encontró entonces se pedirán directamente desde la api")
 			const tokenSaved: Payment = await this.getTokensFromAPI();
@@ -138,7 +149,6 @@ export class PaymentService {
 
 		if(this.jwtIsExpired(dbToken)){
 			console.log("\ngetTokensFromDatabase --) 4.1) El token existe en la db pero está expirado")
-			
 
 			if(dbToken.refresh_token !== "") {
 				console.log("Se refrescará token mediante refreshToken")
@@ -158,6 +168,8 @@ export class PaymentService {
 
 		}
 
+		console.log("\n\n getTokensFromDatabase --) 4.5) El token no está vencido! \n\n")
+
 		console.log("getTokensFromDatabase --) 5) Token retornado con éxito... \n\n")
 		return dbToken;
 	}
@@ -170,7 +182,7 @@ export class PaymentService {
 		console.log("createPaymentIntent --) 2) __Tokens__\n")
 		console.log(token);
 
-		let prueba = {
+		const prueba = {
 			data: {
 				attributes: {
 					currency: "032",
@@ -208,20 +220,20 @@ export class PaymentService {
 			body: JSON.stringify(prueba)
 		}
 
-		console.log("\N\N ======== ESTE ES EL PUNTO DE CORTE PREVIO AL FETCH ========")
-		return
-		// const paymentIntent: IPaymentPreferenceResponse = await fetch(this.configService.get<string>("OPENPAY_CHECKOUT_DEV"), fetchOptions)
-		// .then(response => response.json())
-		// .then(data => data)
-		// .catch(error => {
-		// 	console.error(error);
-		// 	throw new BadRequestException({ error: "Error creating the paymentPreference" });
-		// });
+		console.log("\n\n ======= CORTE PREVIO AL FETCH ======= \n\n");
 
-		// console.log("createPaymentIntent --) 3) __payment intent__\n");
-		// console.log(paymentIntent);
+		const paymentIntent: IPaymentPreferenceResponse = await fetch(this.configService.get<string>("OPENPAY_CHECKOUT_DEV"), fetchOptions)
+		.then(response => response.json())
+		.then(data => data)
+		.catch(error => {
+			console.error(error);
+			throw new BadRequestException({ error: "Error creating the paymentPreference" });
+		});
 
-		// return paymentIntent;
+		console.log("createPaymentIntent --) 3) __payment intent__\n");
+		console.log(paymentIntent);
+
+		return paymentIntent;
 	}
 
 }
