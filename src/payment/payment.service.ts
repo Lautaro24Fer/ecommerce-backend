@@ -118,7 +118,7 @@ export class PaymentService {
 	async getTokensFromDatabase(): Promise<Payment> {
 		console.log("\n\n== Recuperación de los tokens de la base de datos ==\n\n");
 		console.log("getTokensFromDatabase --) 2) Recuperar los tokens mediante el find")
-		const dbToken: Payment = await this.paymentRepository.find()[1];
+		const dbToken: Payment = (await this.paymentRepository.find())[0];
 
 		console.log("\n\n----")
 		console.log("repotirory.find() response")
