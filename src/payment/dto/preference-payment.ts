@@ -2,7 +2,7 @@
 
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsNumber, IsString, Validate, ValidateNested } from "class-validator";
+import { IsArray, IsInt, IsNumber, IsPositive, IsString, Validate, ValidateNested } from "class-validator";
 
 
 // Convertir interfaces a clases
@@ -12,8 +12,10 @@ export class UnitPriceReqDto {
     @IsString() // Validación para cadenas de texto
     currency: string;
 
-    @ApiProperty({ example: 100.5 })
+    @ApiProperty({ example: 100 })
     @IsNumber() // Validación para números
+    @IsInt()
+    @IsPositive()
     amount: number;
 }
 
@@ -42,14 +44,14 @@ export class AttributesReqDto {
     currency: string;
 
     @ApiProperty({ type: () => [ItemReqDto] })
-    @IsArray() // Validación para arrays
     @ValidateNested({ each: true }) // Validar cada elemento del array como objeto anidado
     @Type(() => ItemReqDto) // Necesario para arrays de objetos
     items: ItemReqDto[];
+    redirect_urls: OrderStatusRedirectURL;
 }
 
 export class DataRequestDto {
-    @ApiProperty({ type: () => AttributesReqDto })
+    @ApiProperty({ type: () => AttributesReqDto })  
     @ValidateNested() // Validación de objetos anidados
     @Type(() => AttributesReqDto) // Especifica la clase correcta
     attributes: AttributesReqDto;
@@ -60,61 +62,130 @@ export class PaymentPreferenceRequestDto {
     @ValidateNested() // Validación de objetos anidados
     @Type(() => DataRequestDto) // Especifica la clase correcta
     data: DataRequestDto;
-}
+}  
 
-// Respuesta
+// Response
 
 export interface IPaymentPreferenceResponse {
-    data: DataResponse;
+    data: PaymentPreferenceResData;
 }
 
-export interface DataResponse {
+export interface PaymentPreferenceResData {
     id:         string;
     type:       string;
-    attributes: AttributesRes;
-    links:      LinkRes[];
+    attributes: PaymentPreferenceResAttributes;
+    links:      PaymentPreferenceResLink[];
 }
 
-export interface AttributesRes {
+export interface PaymentPreferenceResAttributes {
+    uuid:                       string;
+    accountId:                  number;
+    subsidiaryId:               number;
+    source:                     string;
+    appId:                      string;
+    paymentLimits:              number;
+    orderNumber:                string;
+    price:                      PaymentPreferenceResPrice;
+    shipping:                   null;
+    tip:                        null;
+    items:                      PaymentPreferenceResItem[];
+    status:                     string;
+    taxes:                      any[];
+    externalData:               PaymentPreferenceResExternalData;
+    links:                      PaymentPreferenceResLink;
+    hasPendingPayment:          boolean;
+    payment:                    null;
+    payments:                   null;
+    store:                      null;
+    billing:                    null;
+    expireLimitMinutes:         number;
+    failedPaymentQuantityLimit: number;
+    webhookUrl:                 null;
+    redirectOnSuccess:          string;
+    redirectOnFailure:          string;
+}
+
+export interface PaymentPreferenceResExternalData {
+    user_uuid:    string;
+    checkout_url: string;
+}
+
+export interface PaymentPreferenceResItem {
+    name:      string;
+    quantity:  number;
+    unitPrice: PaymentPreferenceResPrice;
+    itemId:    null;
+}
+
+export interface PaymentPreferenceResPrice {
+    currency: string;
+    amount:   number;
+}
+
+export interface PaymentPreferenceResLink {
+    checkout:     string;
+    redirect_url: RedirectURL;
+}
+
+export interface RedirectURL {
+    success: string;
+    failed:  string;
+}
+
+
+// Estado de la orden
+
+export interface IOrderStatus {
+    data: OrderStatusData;
+}
+
+export interface OrderStatusData {
+    id:         string;
+    type:       string;
+    attributes: OrderStatusAttributes;
+    links:      OrderStatusLink[];
+}
+
+export interface OrderStatusAttributes {
     uuid:              string;
     source:            string;
     appId:             string;
     paymentLimits:     number;
     orderNumber:       string;
-    price:             PriceRes;
+    price:             OrderStatusPrice;
     shipping:          null;
-    items:             ItemRes[];
+    items:             OrderStatusItem[];
     status:            string;
     taxes:             any[];
-    links:             LinkRes;
+    links:             OrderStatusLink;
     hasPendingPayment: boolean;
-    payment:           PaymentRes;
-    payments:          PaymentRes[];
+    payment:           OrderStatusPayment;
+    payments:          OrderStatusPayment[];
 }
 
-export interface ItemRes {
+export interface OrderStatusItem {
     name:      string;
     quantity:  number;
-    unitPrice: PriceRes;
+    unitPrice: OrderStatusPrice;
     itemId:    null;
 }
 
-export interface PriceRes {
+export interface OrderStatusPrice {
     currency: string;
     amount:   number;
 }
 
-export interface LinkRes {
+export interface OrderStatusLink {
     checkout:     string;
-    redirect_url: RedirectURLRes;
+    redirect_url: OrderStatusRedirectURL;
 }
 
-export interface RedirectURLRes {
-    success: null;
-    failed:  null;
+export interface OrderStatusRedirectURL {
+    success: string | null;
+    failed:  string | null;
 }
 
-export interface PaymentRes {
+export interface OrderStatusPayment {
     id:                 number;
     authorization_code: string;
     reference_number:   string;
