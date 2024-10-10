@@ -174,7 +174,7 @@ export class PaymentService {
 		return dbToken;
 	}
 
-	async createPaymentPreference(orderData: PaymentPreferenceRequestDto): Promise<IPaymentPreferenceResponse> {
+	async createPaymentPreference(orderData: PaymentPreferenceRequestDto): Promise<any> {
 		console.log(`== Creación de la intención de pago ==\n\n`);
 		console.log("createPaymentIntent --) 1) Recuperar tokens de la base de datos")
 		const token: Payment = await this.getTokensFromDatabase();
@@ -215,20 +215,16 @@ export class PaymentService {
 			headers: {
 				"Content-Type": "application/vnd.api+json",
 				"Accept": "application/vnd.api+json",
-				"Authorization": `${token.token_type} ${token.access_token}`
+				"Authorization": `Bearer ${token.access_token}`
 			},
 			body: JSON.stringify(prueba)
 		}
 
 		console.log("\n\n ======= CORTE PREVIO AL FETCH ======= \n\n");
 
-		const paymentIntent: IPaymentPreferenceResponse = await fetch(this.configService.get<string>("OPENPAY_CHECKOUT_DEV"), fetchOptions)
-		.then(response => response.json())
-		.then(data => data)
-		.catch(error => {
-			console.error(error);
-			throw new BadRequestException({ error: "Error creating the paymentPreference" });
-		});
+		const paymentIntent = await fetch(`${this.configService.get<string>('OPENPAY_CHECKOUT_PROD')}/api/v2/orders`, fetchOptions)
+
+
 
 		console.log("createPaymentIntent --) 3) __payment intent__\n");
 		console.log(paymentIntent);
