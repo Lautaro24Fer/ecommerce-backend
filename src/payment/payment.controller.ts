@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpStatus, Req, Res } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IPaymentPreferenceResponse, PaymentPreferenceRequestDto } from './dto/preference-payment';
+import { IOrderStatus, IPaymentPreferenceResponse, PaymentPreferenceRequestDto } from './dto/preference-payment';
 import { Request, Response } from 'express';
 
 @ApiTags('Payments')
@@ -21,14 +21,25 @@ export class PaymentController {
     description: 'Error creating payment preference'
   })
   @Post('/preference')
-  async createPaymentPreference(@Body() paymentPreference: PaymentPreferenceRequestDto, req: Request, res: Response ){
-    
+  async createPaymentPreference(@Body() paymentPreference: PaymentPreferenceRequestDto, @Req() req: Request, @Res() res: Response ){
+    console.log("______ ESTE ES EL CONTROLSDOR ________")
     const paymentPreferenceCreated: IPaymentPreferenceResponse = await this.paymentService.createPaymentPreference(paymentPreference); 
-    console.log(" ====== CONTROLADO =======")
     console.log("payment preference created")
     console.log(JSON.stringify(paymentPreferenceCreated, null , 2));
     const location: string = paymentPreferenceCreated.data.id;
-    const orderStatus = await this.paymentService.getOrderStatus(location);
+    const orderStatus: IOrderStatus = await this.paymentService.getOrderStatus(location);
+
+    try{
+      console.log("Link del checkout")
+      console.log(orderStatus.data.links[0].checkout)
+      // No se testea en swagger, requiere cliente
+      return res.status(201).json({ url: orderStatus.data.links[0].checkout })
+    }
+    catch(error){ 
+      console.error(error)
+      return res.status(400).json({ message: error })
+    }
+    
   }
 
   @ApiOperation({

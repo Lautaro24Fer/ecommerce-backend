@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ITokenReq, PaymentPreferenceRequestDto } from './dto/preference-payment';
+import { IPaymentPreferenceResponse, ITokenReq, PaymentPreferenceRequestDto } from './dto/preference-payment';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -175,51 +175,12 @@ export class PaymentService {
 		return dbToken;
 	}
 
-	// async getUUIDFromPaymentPreference(location: string): Promise<string> {
-
-		
-	// }
-
-	async createPaymentPreference(orderData: PaymentPreferenceRequestDto): Promise<any> {
+	async createPaymentPreference(orderData: PaymentPreferenceRequestDto): Promise<IPaymentPreferenceResponse> {
 		console.log(`== Creación de la intención de pago ==\n\n`);
 
 		console.log("createPaymentIntent --) .5) data de la order entrante");
 		console.log(orderData)
 		console.log(JSON.stringify(orderData, null , 2));
-
-		// const prueba: PaymentPreferenceRequestDto = {
-		// 	data: {
-		// 		attributes: {
-		// 			currency: "032",
-		// 			items: [
-		// 				{
-		// 					id: 1,
-		// 					name: "Chicken roll",
-		// 					unitPrice: {
-		// 						currency: "032",
-		// 						amount: 110000
-		// 					},
-		// 					quantity: 1
-		// 				},
-		// 				{
-		// 					id: 3,
-		// 					name: "Porto cheese burger",
-		// 					unitPrice: {
-		// 						currency: "032",
-		// 						amount: 120000
-		// 					},
-		// 					quantity: 2
-		// 				}
-		// 			]
-		// 		}
-		// 	}
-		// }
-
-		// console.log("createPaymentIntent --) .6) body de la request de prueba")
-		// console.log(prueba)
-		// console.log("createPaymentIntent --) .7) body stringifeado")
-		// console.log(JSON.stringify(prueba, null , 2));
-
 
 		console.log("createPaymentIntent --) 1) Recuperar tokens de la base de datos")
 		const token: Payment = await this.getTokensFromDatabase();
@@ -248,7 +209,7 @@ export class PaymentService {
 
 		console.log("\n\n ======= CORTE PREVIO AL FETCH ======= \n\n");
 
-		const paymentIntent = await fetch(`${this.configService.get<string>('OPENPAY_CHECKOUT_PROD')}/api/v2/orders`, fetchOptions)
+		const paymentIntent: IPaymentPreferenceResponse = await fetch(`${this.configService.get<string>('OPENPAY_CHECKOUT_PROD')}/api/v2/orders`, fetchOptions)
 		.then(response => response.json())
 		.then(data => data)
 		.catch(error => console.error(error));
