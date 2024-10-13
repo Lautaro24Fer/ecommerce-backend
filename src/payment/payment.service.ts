@@ -13,22 +13,26 @@ import { ModuleTokenFactory } from '@nestjs/core/injector/module-token-factory';
 @Injectable()
 export class PaymentService {
 
+	private readonly OP_CLIENT_ID: string;
+	private readonly OP_CLIENT_SECRET: string;
+	private readonly OP_AUTH_PROD: string;
+	private readonly OP_CHECKOUT_PROD: string;
+	private readonly OP_JWT_SECRET: string;
+	private readonly DEV_API_DOMAIN: string;
+
 	constructor ( 
 		@InjectRepository(Payment) private readonly paymentRepository: Repository<Payment>, 
 		private readonly configService: ConfigService,
 		private readonly jwtService: JwtService,
-		private readonly OP_CLIENT_ID: string,
-		private readonly OP_CLIENT_SECRET: string,
-		private readonly OP_AUTH_PROD: string,
-		private readonly OP_CHECKOUT_PROD: string,
-		private readonly OP_JWT_SECRET: string
+		
 	) {
 
-			OP_AUTH_PROD = this.configService.get<string>('OPENPAY_AUTH_PROD');
-			OP_CHECKOUT_PROD = this.configService.get<string>('OPENPAY_CHECKOUT_PROD');
-			OP_CLIENT_ID = this.configService.get<string>('OPENPAY_CLIENT_ID');
-			OP_CLIENT_SECRET = this.configService.get<string>('OPENPAY_CLIENT_SECRET');
-			OP_JWT_SECRET = this.configService.get<string>('OPENPAY_JWT_SECRET');
+			this.OP_AUTH_PROD = this.configService.get<string>('OPENPAY_AUTH_PROD');
+			this.OP_CHECKOUT_PROD = this.configService.get<string>('OPENPAY_CHECKOUT_PROD');
+			this.OP_CLIENT_ID = this.configService.get<string>('OPENPAY_CLIENT_ID');
+			this.OP_CLIENT_SECRET = this.configService.get<string>('OPENPAY_CLIENT_SECRET');
+			this.OP_JWT_SECRET = this.configService.get<string>('OPENPAY_JWT_SECRET');
+			this.DEV_API_DOMAIN = this.configService.get<string>('DEV_API_DOMAIN');
 	}
 
   // OpenPay
@@ -91,9 +95,11 @@ export class PaymentService {
 		}
 
 		bodyData.data.attributes.redirect_urls = {
-			success: "http://localhost:3000/payment/success",
-			failed: "http://localhost:3000/payment/failed"	
+			success: `${this.DEV_API_DOMAIN}/payment/success`,
+			failed: `${this.DEV_API_DOMAIN}/payment/failed`	
 		}
+
+		bodyData.data.attributes.webhookUrl = `${this.DEV_API_DOMAIN}/payment/webhook`
 
 		const tokenDecoded: ITokenReq = await this.verifyJwtAsync(token, this.OP_JWT_SECRET);
 
@@ -120,21 +126,21 @@ export class PaymentService {
 		return paymentIntent;
 	}
 
-	async getOrderStatus(location: string): Promise<any> {
+	async getOrderStatus(location: string, token: string): Promise<any> {
 
 		console.log("====== SOLICITUD DEL ESTADO DE LA ORDEN ======\n\n")
 		
-		const token = { access_token: "" } // OBJETO TEMPORAL PARA EVITAR ERRRORES DE SINTAXIS
+		const tokenDecoded: ITokenReq = await this.verifyJwtAsync(token, this.OP_JWT_SECRET);
 
 		console.log("getOrderStatus --) 1) token que se usará");
-		console.log(token);
+		console.log(tokenDecoded);
 
 		const fetchOptions = {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/vnd.api+json',	
 				'Accept': 'application/vnd.api+json',
-				'Authorization': `Bearer ${token.access_token}`
+				'Authorization': `Bearer ${tokenDecoded.access_token}`
 			}
 		}
 

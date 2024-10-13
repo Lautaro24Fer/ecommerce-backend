@@ -60,7 +60,7 @@ export class PaymentController {
     console.log("payment preference created")
     console.log(JSON.stringify(paymentPreferenceCreated, null , 2));
     const location: string = paymentPreferenceCreated.data.id;
-    const orderStatus: IOrderStatus = await this.paymentService.getOrderStatus(location);
+    const orderStatus: IOrderStatus = await this.paymentService.getOrderStatus(location, token);
 
     try{
       console.log("Link del checkout")
@@ -74,6 +74,26 @@ export class PaymentController {
     }
     
   }
+
+  @ApiOperation({
+    summary: "webhook url for know the status operation"
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'The webhook was recived succesfully'
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Error in the reception of the hook'
+  })
+  @Post('webhook')
+  async webhookStatus(@Req() req: Request, @Res() res: Response) {
+
+    console.log("\n\n (=== WEBHOOK ===)\n");
+    console.log(req);
+    console.log(" (=== FIN WEBHOOK ===)\n\n");
+  }
+
 
   @ApiOperation({
     summary: "Redirection URL in succces situation"

@@ -48,6 +48,7 @@ export class AttributesReqDto {
     @Type(() => ItemReqDto) // Necesario para arrays de objetos
     items: ItemReqDto[];
     redirect_urls: OrderStatusRedirectURL;
+    webhookUrl: string | null;
 }
 
 export class DataRequestDto {
