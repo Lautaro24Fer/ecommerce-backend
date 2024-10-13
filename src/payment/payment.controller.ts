@@ -52,8 +52,10 @@ export class PaymentController {
   @UseGuards(PaymentGuard)
   @Post('/preference')
   async createPaymentPreference(@Body() paymentPreference: PaymentPreferenceRequestDto, @Req() req: Request, @Res() res: Response ){
-    console.log("______ ESTE ES EL CONTROLSDOR ________")
-    const token = req.cookies['openpay_token'];
+    console.log("______ ESTE ES EL CONTROLSDOR DE LA PREFERENCIA ________")
+    const token: string = req.cookies['openpay_token'];
+    console.log("token")
+    console.log(token)
     const paymentPreferenceCreated: IPaymentPreferenceResponse = await this.paymentService.createPaymentPreference(paymentPreference, token); 
     console.log("payment preference created")
     console.log(JSON.stringify(paymentPreferenceCreated, null , 2));

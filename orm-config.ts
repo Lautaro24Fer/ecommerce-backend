@@ -23,7 +23,7 @@ export const AppDataSource = new DataSource({
   database: configService.get<string>('TYPEORM_DATABASE_NAME'),
   synchronize: false,
   logging: false,
-  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role, Payment], // Ajusta según tus entidades
+  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role], // Ajusta según tus entidades
   migrations: ['src/migrations/*.ts'],
   subscribers: [],
 });

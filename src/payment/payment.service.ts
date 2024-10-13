@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthService } from 'src/auth/auth.service';
 import { response } from 'express';
 import { json } from 'stream/consumers';
+import { ModuleTokenFactory } from '@nestjs/core/injector/module-token-factory';
 
 @Injectable()
 export class PaymentService {
@@ -16,15 +17,27 @@ export class PaymentService {
 		@InjectRepository(Payment) private readonly paymentRepository: Repository<Payment>, 
 		private readonly configService: ConfigService,
 		private readonly jwtService: JwtService,
-	) {}
+		private readonly OP_CLIENT_ID: string,
+		private readonly OP_CLIENT_SECRET: string,
+		private readonly OP_AUTH_PROD: string,
+		private readonly OP_CHECKOUT_PROD: string,
+		private readonly OP_JWT_SECRET: string
+	) {
+
+			OP_AUTH_PROD = this.configService.get<string>('OPENPAY_AUTH_PROD');
+			OP_CHECKOUT_PROD = this.configService.get<string>('OPENPAY_CHECKOUT_PROD');
+			OP_CLIENT_ID = this.configService.get<string>('OPENPAY_CLIENT_ID');
+			OP_CLIENT_SECRET = this.configService.get<string>('OPENPAY_CLIENT_SECRET');
+			OP_JWT_SECRET = this.configService.get<string>('OPENPAY_JWT_SECRET');
+	}
 
   // OpenPay
 	async getTokensFromAPI(): Promise<string>{
 
 		const data = {
 			grant_type: "client_credentials",
-			client_id: this.configService.get<string>('OPENPAY_CLIENT_ID'),
-			client_secret: this.configService.get<string>('OPENPAY_CLIENT_SECRET'),
+			client_id: this.OP_CLIENT_ID,
+			client_secret: this.OP_CLIENT_SECRET,
 			scope: '*'
 		}
 
@@ -36,7 +49,7 @@ export class PaymentService {
 				body: JSON.stringify(data)
 		}
 
-		const apiToken: ITokenReq = await fetch(`${this.configService.get<string>('OPENPAY_AUTH_PROD')}/oauth/token`, fetchOptions)
+		const apiToken: ITokenReq = await fetch(`${this.OP_AUTH_PROD}/oauth/token`, fetchOptions)
 		.then(response => response.json())
 		.then(data => data)
 		.catch(error => {
@@ -53,7 +66,7 @@ export class PaymentService {
 
 		try{
 
-			const tokenJwt: string = await this.jwtService.signAsync(apiToken, { secret: this.configService.get<string>('OPENPAY_JWT_SECRET') })
+			const tokenJwt: string = await this.jwtService.signAsync(apiToken, { secret: this.OP_JWT_SECRET })
 			return tokenJwt;
 		}
 		catch(error){
@@ -61,7 +74,17 @@ export class PaymentService {
 		}
 	}
 
-	async createPaymentPreference(orderData: PaymentPreferenceRequestDto, token: ITokenReq): Promise<IPaymentPreferenceResponse> {
+	async verifyJwtAsync(jwt: string, secret: string): Promise<any> {
+
+		try {
+			const token: any = await this.jwtService.verifyAsync(jwt, { secret });
+			return token;
+		} catch (error) {
+			throw new BadRequestException({ error: 'Error decoding jwt' })
+		}
+	}
+
+	async createPaymentPreference(orderData: PaymentPreferenceRequestDto, token: string): Promise<IPaymentPreferenceResponse> {
 
 		const bodyData: PaymentPreferenceRequestDto = {
 			...orderData
@@ -72,19 +95,21 @@ export class PaymentService {
 			failed: "http://localhost:3000/payment/failed"	
 		}
 
+		const tokenDecoded: ITokenReq = await this.verifyJwtAsync(token, this.OP_JWT_SECRET);
+
 		const fetchOptions = {
 			method: 'POST',
 			headers: {
 				"Content-Type": "application/vnd.api+json",
 				"Accept": "application/vnd.api+json",
-				"Authorization": `Bearer ${token.access_token}`
+				"Authorization": `Bearer ${tokenDecoded.access_token}`
 			},
 			body: JSON.stringify(bodyData)
 			}
 
 		console.log("\n\n ======= CORTE PREVIO AL FETCH ======= \n\n");
 
-		const paymentIntent: IPaymentPreferenceResponse = await fetch(`${this.configService.get<string>('OPENPAY_CHECKOUT_PROD')}/api/v2/orders`, fetchOptions)
+		const paymentIntent: IPaymentPreferenceResponse = await fetch(`${this.OP_CHECKOUT_PROD}/api/v2/orders`, fetchOptions)
 		.then(response => response.json())
 		.then(data => data)
 		.catch(error => console.error(error));
@@ -113,7 +138,7 @@ export class PaymentService {
 			}
 		}
 
-		const order = await fetch(`${this.configService.get<string>('OPENPAY_CHECKOUT_PROD')}${location}`, fetchOptions)
+		const order = await fetch(`${this.OP_CHECKOUT_PROD}${location}`, fetchOptions)
 		.then(response => response.json())
 		.then(data => data)
 		.catch(error => console.error(error))

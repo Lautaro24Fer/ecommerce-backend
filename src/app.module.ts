@@ -42,7 +42,7 @@ import { Payment } from './payment/entities/payment.entity';
         username: configService.get<string>('TYPEORM_DATABASE_USERNAME'),
         password: configService.get<string>('TYPEORM_DATABASE_PASSWORD'),
         database: configService.get<string>('TYPEORM_DATABASE_NAME'),
-        entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role, Payment],
+        entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role],
         synchronize: false,
       }),
       dataSourceFactory: async (options) => {
