@@ -391,31 +391,31 @@ POST
 En donde hay que tener en cuenta el siguiente formato en el body
 ```typescript
 {
-			data: {
-				attributes: {
-					currency: "032",
-					items: [
-						{
-							id: 1,
-							name: "Chicken roll",
-							unitPrice: {
-								currency: "032",
-								amount: 100 // El amount representa la cantidad en CENTAVOS (100 === 1 peso)
-							},
-							quantity: 1
-						},
-						{
-							id: 3,
-							name: "Porto cheese burger",
-							unitPrice: {
-								currency: "032",
-								amount: 100
-							},
-							quantity: 2
-						}
-					]
+	data: {
+		attributes: {
+			currency: "032",
+			items: [
+				{
+					id: 1,
+					name: "Chicken roll",
+					unitPrice: {
+						currency: "032",
+						amount: 100 // El amount representa la cantidad en CENTAVOS (100 === 1 peso)
+					},
+					quantity: 1
+				},
+				{
+					id: 3,
+					name: "Porto cheese burger",
+					unitPrice: {
+						currency: "032",
+						amount: 100
+					},
+					quantity: 2
 				}
-			}
+			]
 		}
+	}
+}
 ```
 Como respuesta se dará una url al formulario embebido, al que se debe redirigir desde el cliente. 
