@@ -1,10 +1,14 @@
+// Payment preference respo
+
+
+
 // Payment preference request
 
 export interface IPaymentPreferenceReq {
     items: Item[];
 }
 
-// Preference payment response
+// Preference payment
 
 export interface IPaymentPreference {
     items:                Item[];

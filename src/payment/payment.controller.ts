@@ -28,27 +28,23 @@ export class PaymentController {
   // @UseGuards(PaymentGuard)
   @Post('mp/preference')
   async createPaymentPreference(@Body() paymentPreference: IPaymentPreferenceReq,  @Req() req: Request, @Res() res: Response ){
-    console.log(" ===== CONTROLADOR ===== ")
-    console.log(paymentPreference)
-    const response = await this.paymentService.createPaymentPreference(paymentPreference);
-    console.log("CONTROLLER)) Response")
-    console.log(response)
+    await this.paymentService.createPaymentPreference(paymentPreference, res);
   }
 
 
-  @Post("mp/preference/success")
+  @Get("mp/preference/success")
   async successRedirect() {
-
+    return { status: "El pago se hizo correctamente :D" }
   }
 
-  @Post("mp/preference/failure")
+  @Get("mp/preference/failure")
   async failureRedirect() {
-    
+    return { status: "Error volviendo al sitio :(" }
   }
 
-  @Post("mp/preference/pending")
+  @Get("mp/preference/pending")
   async pendingRedirect() {
-    
+    return { status: "EL pag esta pendiente :/" }
   }
 
   @Post("mp/preference/webhook")

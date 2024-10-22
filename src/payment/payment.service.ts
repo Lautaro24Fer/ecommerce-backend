@@ -1,16 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { IPaymentPreferenceReq } from './dto/preference-payment';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Payment } from './entities/payment.entity';
-import { JwtService } from '@nestjs/jwt';
-import { AuthService } from 'src/auth/auth.service';
-import { response } from 'express';
-import { json } from 'stream/consumers';
-import { ModuleTokenFactory } from '@nestjs/core/injector/module-token-factory';
-import axios from 'axios';
 import MercadoPagoConfig, { Preference } from 'mercadopago';
+import { Response } from 'express';
 
 @Injectable()
 export class PaymentService {
@@ -25,31 +17,14 @@ export class PaymentService {
 	client = new MercadoPagoConfig({ accessToken: this.ACCESS_TOKEN })
 
 
-	async createPaymentPreference(bodyItems: IPaymentPreferenceReq) {
+	async createPaymentPreference(bodyItems: IPaymentPreferenceReq, res: Response) {
 
 		console.log(" ===== SERVICE =====")
 		const preference = new Preference(this.client)
 		preference.create({
+			// TODO: La informacón del payer podría venir de la base de datos
 			body: {
-				items: [...bodyItems.items],
-				payer: {
-					name: "Juan",
-					surname: "Lopez",
-					email: "user@email.com",
-					phone: {
-						area_code: "11",
-						number: "4444-4444"
-					},
-					identification: {
-						type: "DNI",
-						number: "12345678"
-					},
-					address: {
-						street_name: "Street",
-						street_number: "123",
-						zip_code: "5700"
-					}
-				},
+				items: [...bodyItems.items], 
 				back_urls: {
 					success: "http://localhost:3000/payment/mp/preference/success",
 					failure: "http://localhost:3000/payment/mp/preference/failure",
@@ -77,7 +52,10 @@ export class PaymentService {
 				expiration_date_to: "2025-02-28T12:00:00.000-04:00"
 			}
 		})
-			.then(console.log)
+			.then(data => {
+				res.json({ status: 201, description: 'The form was created succesfully', url: data.init_point })
+			})
 			.catch(console.error)
+
 	}
 }
