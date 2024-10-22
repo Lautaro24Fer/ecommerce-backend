@@ -9,150 +9,21 @@ import { AuthService } from 'src/auth/auth.service';
 import { response } from 'express';
 import { json } from 'stream/consumers';
 import { ModuleTokenFactory } from '@nestjs/core/injector/module-token-factory';
+import axios from 'axios';
+import MercadoPagoConfig from 'mercadopago';
 
 @Injectable()
 export class PaymentService {
 
-	private readonly OP_CLIENT_ID: string;
-	private readonly OP_CLIENT_SECRET: string;
-	private readonly OP_AUTH_PROD: string;
-	private readonly OP_CHECKOUT_PROD: string;
-	private readonly OP_JWT_SECRET: string;
-	private readonly DEV_API_DOMAIN: string;
+	constructor(private readonly configService: ConfigService) {}
 
-	constructor ( 
-		@InjectRepository(Payment) private readonly paymentRepository: Repository<Payment>, 
-		private readonly configService: ConfigService,
-		private readonly jwtService: JwtService,
-		
-	) {
+	ACCESS_TOKEN = this.configService.get<string>('MP_ACCESS_TOKEN');
+	PUBLIC_KEY = this.configService.get<string>('MP_PUBLIC_KEY');
+	CLIENT_ID = this.configService.get<string>('MP_CLIENT_ID');
+	CLIENT_SECRET = this.configService.get<string>('MP_CLIENT_SECRET');
 
-			this.OP_AUTH_PROD = this.configService.get<string>('OPENPAY_AUTH_PROD');
-			this.OP_CHECKOUT_PROD = this.configService.get<string>('OPENPAY_CHECKOUT_PROD');
-			this.OP_CLIENT_ID = this.configService.get<string>('OPENPAY_CLIENT_ID');
-			this.OP_CLIENT_SECRET = this.configService.get<string>('OPENPAY_CLIENT_SECRET');
-			this.OP_JWT_SECRET = this.configService.get<string>('OPENPAY_JWT_SECRET');
-			this.DEV_API_DOMAIN = this.configService.get<string>('DEV_API_DOMAIN');
-	}
+	client = new MercadoPagoConfig({ accessToken: this.ACCESS_TOKEN })
 
-  // OpenPay
-	async getTokensFromAPI(): Promise<string>{
-
-		const data = {
-			grant_type: "client_credentials",
-			client_id: this.OP_CLIENT_ID,
-			client_secret: this.OP_CLIENT_SECRET,
-			scope: '*'
-		}
-
-		const fetchOptions: any = {
-			method: 'POST',
-			headers: {
-			'Content-Type': 'application/json'
-			},
-				body: JSON.stringify(data)
-		}
-
-		const apiToken: ITokenReq = await fetch(`${this.OP_AUTH_PROD}/oauth/token`, fetchOptions)
-		.then(response => response.json())
-		.then(data => data)
-		.catch(error => {
-			console.error(error);
-			throw new BadRequestException({ error: "error taking tokens from API" });
-		});
-
-		console.log("getTokenFromAPI --) respuesta de la api: \n")
-		console.log(apiToken)
-		console.log("\n")
-		if(!apiToken) {
-			console.log("getTokenFromAPI --) esfalso")
-		}
-
-		try{
-
-			const tokenJwt: string = await this.jwtService.signAsync(apiToken, { secret: this.OP_JWT_SECRET })
-			return tokenJwt;
-		}
-		catch(error){
-			throw new BadRequestException({ message: error })
-		}
-	}
-
-	async verifyJwtAsync(jwt: string, secret: string): Promise<any> {
-
-		try {
-			const token: any = await this.jwtService.verifyAsync(jwt, { secret });
-			return token;
-		} catch (error) {
-			throw new BadRequestException({ error: 'Error decoding jwt' })
-		}
-	}
-
-	async createPaymentPreference(orderData: PaymentPreferenceRequestDto, token: string): Promise<IPaymentPreferenceResponse> {
-
-		const bodyData: PaymentPreferenceRequestDto = {
-			...orderData
-		}
-
-		bodyData.data.attributes.redirect_urls = {
-			success: `${this.DEV_API_DOMAIN}/payment/success`,
-			failed: `${this.DEV_API_DOMAIN}/payment/failed`	
-		}
-
-		bodyData.data.attributes.webhookUrl = `${this.DEV_API_DOMAIN}/payment/webhook`
-
-		const tokenDecoded: ITokenReq = await this.verifyJwtAsync(token, this.OP_JWT_SECRET);
-
-		const fetchOptions = {
-			method: 'POST',
-			headers: {
-				"Content-Type": "application/vnd.api+json",
-				"Accept": "application/vnd.api+json",
-				"Authorization": `Bearer ${tokenDecoded.access_token}`
-			},
-			body: JSON.stringify(bodyData)
-			}
-
-		console.log("\n\n ======= CORTE PREVIO AL FETCH ======= \n\n");
-
-		const paymentIntent: IPaymentPreferenceResponse = await fetch(`${this.OP_CHECKOUT_PROD}/api/v2/orders`, fetchOptions)
-		.then(response => response.json())
-		.then(data => data)
-		.catch(error => console.error(error));
-
-		console.log("createPaymentIntent --) 3) __payment intent__\n");
-		console.log(paymentIntent);
-
-		return paymentIntent;
-	}
-
-	async getOrderStatus(location: string, token: string): Promise<any> {
-
-		console.log("====== SOLICITUD DEL ESTADO DE LA ORDEN ======\n\n")
-		
-		const tokenDecoded: ITokenReq = await this.verifyJwtAsync(token, this.OP_JWT_SECRET);
-
-		console.log("getOrderStatus --) 1) token que se usará");
-		console.log(tokenDecoded);
-
-		const fetchOptions = {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/vnd.api+json',	
-				'Accept': 'application/vnd.api+json',
-				'Authorization': `Bearer ${tokenDecoded.access_token}`
-			}
-		}
-
-		const order = await fetch(`${this.OP_CHECKOUT_PROD}${location}`, fetchOptions)
-		.then(response => response.json())
-		.then(data => data)
-		.catch(error => console.error(error))
-
-		console.log(" ______ GET UUID FROM PAYMENT PREFERENCE ______")
-		console.log(JSON.stringify(order, null, 2));
-
-		return order;
-	}
+	
 
 }
