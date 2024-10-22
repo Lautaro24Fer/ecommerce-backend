@@ -30,7 +30,7 @@ export interface Item {
     id:          string;
     title:       string;
     currency_id: string;
-    picture_url: string;
+    picture_url?: string | null;
     description: string;
     category_id: string;
     quantity:    number;

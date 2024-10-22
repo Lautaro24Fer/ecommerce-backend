@@ -25,11 +25,34 @@ export class PaymentController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Unauthorized operation. Need tokens for make a payment preference'
   })
-  @UseGuards(PaymentGuard)
-  @Post('/preference')
+  // @UseGuards(PaymentGuard)
+  @Post('mp/preference')
   async createPaymentPreference(@Body() paymentPreference: IPaymentPreferenceReq,  @Req() req: Request, @Res() res: Response ){
-    
+    console.log(" ===== CONTROLADOR ===== ")
+    console.log(paymentPreference)
+    const response = await this.paymentService.createPaymentPreference(paymentPreference);
+    console.log("CONTROLLER)) Response")
+    console.log(response)
+  }
+
+
+  @Post("mp/preference/success")
+  async successRedirect() {
+
+  }
+
+  @Post("mp/preference/failure")
+  async failureRedirect() {
     
   }
 
+  @Post("mp/preference/pending")
+  async pendingRedirect() {
+    
+  }
+
+  @Post("mp/preference/webhook")
+  async notificationWehbook(){
+
+  }
 }
