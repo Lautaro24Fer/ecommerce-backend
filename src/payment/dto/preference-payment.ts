@@ -20,8 +20,8 @@ export interface IPaymentPreference {
     statement_descriptor: string;
     external_reference:   string;
     expires:              boolean;
-    expiration_date_from: Date;
-    expiration_date_to:   Date;
+    expiration_date_from: string;
+    expiration_date_to:   string;
 }
 
 export interface BackUrls {
