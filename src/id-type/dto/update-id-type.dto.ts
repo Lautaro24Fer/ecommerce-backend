@@ -1,4 +1,9 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateIdTypeDto } from './create-id-type.dto';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
-export class UpdateIdTypeDto extends PartialType(CreateIdTypeDto) {}
+export class UpdateIdTypeDto{
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  name?: string;
+}

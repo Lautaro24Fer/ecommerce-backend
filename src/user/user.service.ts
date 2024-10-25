@@ -312,7 +312,6 @@ export class UserService {
       console.error(error);
       throw new BadRequestException({ error: 'Error saving the new password' });
     }
-
   }
 
   mapUserToUserDto(user: User): UserDto {
@@ -323,7 +322,11 @@ export class UserService {
       username: user.username,
       email: user.email,
       method: user.method,
-      roles: user.roles ?? []
+      roles: user.roles ?? [],
+      surname: user.surname,
+      postalCode: user.postalCode,
+      idType: user.idType,
+      idNumber: user.idNumber
     };
     return userDto;
   }

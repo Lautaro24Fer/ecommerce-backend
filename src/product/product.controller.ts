@@ -43,6 +43,10 @@ export class ProductController {
     description: 'All products loaded succesfully',
   })
   @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'The products was not founded'
+  })
+  @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Error loading the products',
   })
