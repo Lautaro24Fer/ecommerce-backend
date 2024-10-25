@@ -1,5 +1,6 @@
+import { IdType } from 'src/id-type/entities/id-type.entity';
 import { Role } from 'src/roles/entities/role.entity';
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('user')
 export class User {
@@ -9,8 +10,26 @@ export class User {
   @Column()
   name: string;
 
+  @Column()
+  surname: string;
+
   @Column({ unique: true })
   username: string;
+
+  @Column()
+  postalCode: string;
+
+  @ManyToOne(() => IdType, (m) => m.id, { cascade: true })
+  idType: IdType;
+
+  @Column()
+  idNumber: string;
+
+  @Column({ nullable: true })
+  addressStreet?: string;
+
+  @Column({ nullable: true })
+  addressNumber?: string;
 
   @Column({ unique: true })
   email: string;

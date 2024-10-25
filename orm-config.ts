@@ -10,6 +10,7 @@ import { Role } from 'src/roles/entities/role.entity';
 import { ConfigService } from '@nestjs/config';
 import * as dotenv from 'dotenv';
 import { Payment } from 'src/payment/entities/payment.entity';
+import { IdType } from 'src/id-type/entities/id-type.entity';
 dotenv.config();
 
 const configService = new ConfigService();
@@ -23,7 +24,7 @@ export const AppDataSource = new DataSource({
   database: configService.get<string>('TYPEORM_DATABASE_NAME'),
   synchronize: false,
   logging: false,
-  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role], // Ajusta según tus entidades
+  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role, IdType], // Ajusta según tus entidades
   migrations: ['src/migrations/*.ts'],
   subscribers: [],
 });

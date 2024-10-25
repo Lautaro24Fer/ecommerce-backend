@@ -25,6 +25,8 @@ import { EmailModule } from './email/email.module';
 import { DataSource } from 'typeorm';
 import { PaymentModule } from './payment/payment.module';
 import { Payment } from './payment/entities/payment.entity';
+import { IdTypeModule } from './id-type/id-type.module';
+import { IdType } from './id-type/entities/id-type.entity';
 
 @Module({
   imports: [
@@ -42,7 +44,7 @@ import { Payment } from './payment/entities/payment.entity';
         username: configService.get<string>('TYPEORM_DATABASE_USERNAME'),
         password: configService.get<string>('TYPEORM_DATABASE_PASSWORD'),
         database: configService.get<string>('TYPEORM_DATABASE_NAME'),
-        entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role],
+        entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role, IdType],
         synchronize: false,
       }),
       dataSourceFactory: async (options) => {
@@ -59,6 +61,7 @@ import { Payment } from './payment/entities/payment.entity';
     RolesModule,
     EmailModule,
     PaymentModule,
+    IdTypeModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],
