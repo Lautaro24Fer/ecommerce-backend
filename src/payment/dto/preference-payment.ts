@@ -45,14 +45,14 @@ export interface Payer {
     name:           string;
     surname:        string;
     email:          string;
-    phone:          Phone;
+    phone?:          Phone;
     identification: Identification;
     address:        Address;
 }
 
 export interface Address {
     street_name:   string;
-    street_number: number;
+    street_number: string;
     zip_code:      string;
 }
 
