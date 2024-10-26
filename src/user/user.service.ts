@@ -337,7 +337,9 @@ export class UserService {
       surname: user.surname,
       postalCode: user.postalCode,
       idType: user.idType,
-      idNumber: user.idNumber
+      idNumber: user.idNumber,
+      addressStreet: user.addressStreet,
+      addressNumber: user.addressNumber
     };
     return userDto;
   }

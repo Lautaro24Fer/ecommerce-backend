@@ -36,14 +36,18 @@ export class UpdateUserDto {
   email?: string;
 
   @ApiProperty()
-  @IsPostalCode()
-  postalCode?: string;
+  @IsOptional()
+  @IsString()
+  @Length(4, 8)
+  postalCode?: string;  
 
   @ApiProperty()
+  @IsOptional()
   @IsPositive()
   idType?: number;
 
   @ApiProperty()
+  @IsOptional()
   @IsPositive()
   idNumber?: string;
 
