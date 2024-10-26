@@ -77,15 +77,29 @@ export class UserService {
   }
 
   async findOne(id: number): Promise<UserDto | undefined> {
+    console.log("====== ENTRA USER SERVICE ======");
+    console.log("====== findOne(id) ======");
+    console.log("id (id que entra como parametro)")
+    console.log(id)
 
     const user: User = await this.userRepository.findOne({
       where: { id },
-      relations: ['roles']
-    });
+      relations: {
+        roles: true,
+        idType: true
+      }
+    }).catch((error) => {
+      throw new BadRequestException({ status: false, message: `Error finding the user with id '${id}'` })
+    })
     if (!user) {
-      throw new NotFoundException(`The user with id '${id}' was not founded`);
+      throw new NotFoundException({ status: false, message: `The user with id '${id}' was not founded` });
     }
-    return this.mapUserToUserDto(user);
+    console.log("Usuario encontrado con dicha id de tipo User");
+    console.log(user);
+    const parsedUser: UserDto = this.mapUserToUserDto(user);
+    console.log("Usuario parseado a UserDto")
+    console.log(parsedUser)
+    return parsedUser;
   }
 
   async findOneByUsernameOrEmail(input: string): Promise<UserDto | undefined>{

@@ -3,11 +3,13 @@ import { IPaymentPreference, IPaymentPreferenceReq } from './dto/preference-paym
 import { ConfigService } from '@nestjs/config';
 import MercadoPagoConfig, { Preference } from 'mercadopago';
 import { Response } from 'express';
+import { UserService } from 'src/user/user.service';
+import { UserDto } from 'src/user/dto/user.dto';
 
 @Injectable()
 export class PaymentService {
 
-	constructor(private readonly configService: ConfigService) { }
+	constructor(private readonly configService: ConfigService, private readonly userService: UserService) { }
 
 	CLIENT_DOMAIN = this.configService.get<string>('DEV_CLIENT_DOMAIN');
 	ACCESS_TOKEN = this.configService.get<string>('MP_ACCESS_TOKEN');
@@ -18,31 +20,44 @@ export class PaymentService {
 	client = new MercadoPagoConfig({ accessToken: this.ACCESS_TOKEN })
 
 
-	async createPaymentPreference(bodyItems: IPaymentPreferenceReq, res: Response) {
+	async createPaymentPreference(preferenceData: IPaymentPreferenceReq, res: Response) {
 
-		console.log(" ===== SERVICE =====")
+		console.log("\n\n")
+		console.log("_______________________________________________________________________")
+		console.log("\n\n")
+
+		console.log(" ===== ENTRA SERVICIO PAYMENT =====")
+		console.log("preference data (datos que llegan desde el clente)")
+		console.log(preferenceData	)
 		const preference = new Preference(this.client)
 		const expDataFrom = new Date;
-		const expDataTo = new Date(Date.now() + (1000 * 60 * 15))
+		const expDataTo = new Date(Date.now() + (1000 * 60 * 15));
+
+		const payer: UserDto = await this.userService.findOne(preferenceData.userId);
+
+		console.log(" ===== SERVICIO PAYMENT=====")
+		console.log("payer (usuario recuperado desde la db con la id del preference data)")
+		console.log(payer)
+
 		const preferenceBody: IPaymentPreference = {
-				items: [...bodyItems.items], 
+				items: [...preferenceData.items], 
 				back_urls: {
 					success: `${this.CLIENT_DOMAIN}/success`,
 					failure: `${this.CLIENT_DOMAIN}/failure`,
 					pending: `${this.CLIENT_DOMAIN}/pending`
 				},
 				payer: {
-					name: "Lautaro",
-					surname: "Fernandez",
-					email: "lautarofer456@gmail.com",
+					name: payer.name,
+					surname: payer.surname,
+					email: payer.email,
 					identification: {
-						type: "DNI",
-						number: "12345678"
+						type: payer.idType.name,
+						number: payer.idNumber
 					},
 					address: {
-						street_name: "Street",
-						street_number: "123",	
-						zip_code: "5700"
+						street_name: payer.addressStreet ?? "",
+						street_number: payer.addressNumber ?? "",	
+						zip_code: payer.postalCode
 					}
 				},
 				auto_return: "approved",
@@ -59,8 +74,6 @@ export class PaymentService {
 				expiration_date_to: expDataTo.toISOString()
 		}
 
-		console.log("Preference body")
-		console.log(preferenceBody)
 		preference.create({
 			body: { ...preferenceBody }
 		})

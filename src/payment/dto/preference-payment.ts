@@ -1,10 +1,19 @@
 // Payment preference respo
 
+import { ApiProperty } from "@nestjs/swagger";
+import { IsArray, IsPositive } from "class-validator";
+
 
 
 // Payment preference request
 
-export interface IPaymentPreferenceReq {
+export class IPaymentPreferenceReq {
+    @ApiProperty()
+    @IsPositive()
+    userId: number;
+
+    @ApiProperty()
+    @IsArray()
     items: Item[];
 }
 

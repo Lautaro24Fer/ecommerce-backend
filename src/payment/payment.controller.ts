@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, HttpStatus, Req, Res, UseGuards } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { PaymentGuard } from './payment.guard';
 import { IPaymentPreferenceReq } from './dto/preference-payment';
 
@@ -26,8 +26,9 @@ export class PaymentController {
     description: 'Unauthorized operation. Need tokens for make a payment preference'
   })
   // @UseGuards(PaymentGuard)
+  // TODO: La id no debería llegar desde el body, sino desde la cookie ya que es un recurso protegido
   @Post('mp/preference')
-  async createPaymentPreference(@Body() paymentPreference: IPaymentPreferenceReq,  @Req() req: Request, @Res() res: Response ){
+  async createPaymentPreference(@Body() paymentPreference: IPaymentPreferenceReq,  @Res() res: Response ){
     await this.paymentService.createPaymentPreference(paymentPreference, res);
   }
 
@@ -49,6 +50,6 @@ export class PaymentController {
 
   @Post("mp/preference/webhook")
   async notificationWehbook(){
-
+    
   }
 }
