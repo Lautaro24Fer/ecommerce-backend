@@ -2,8 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@
 import { IdTypeService } from './id-type.service';
 import { CreateIdTypeDto } from './dto/create-id-type.dto';
 import { UpdateIdTypeDto } from './dto/update-id-type.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Identification Types')
 @Controller('id-type')
 export class IdTypeController {
   constructor(private readonly idTypeService: IdTypeService) {}
@@ -72,8 +73,8 @@ export class IdTypeController {
     description: 'Error in the loading of the identification type'
   })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.idTypeService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.idTypeService.findOne(id);
   }
 
   @ApiOperation({
@@ -96,8 +97,8 @@ export class IdTypeController {
     description: 'Error in the updating of the identification type'
   })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateIdTypeDto: UpdateIdTypeDto) {
-    return this.idTypeService.update(+id, updateIdTypeDto);
+  update(@Param('id') id: number, @Body() updateIdTypeDto: UpdateIdTypeDto) {
+    return this.idTypeService.update(id, updateIdTypeDto);
   }
 
   @ApiOperation({
@@ -105,7 +106,7 @@ export class IdTypeController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'The identidication type was deleted succesfully'
+    description: 'The identification type was deleted succesfully'
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -120,7 +121,8 @@ export class IdTypeController {
     description: 'Error in the deleting of the identification type'
   })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.idTypeService.remove(+id);
+  async remove(@Param('id') id: number) {
+    await this.idTypeService.remove(id);
+    return { status: true, message: `The product with id '${id}' was deleted succesfully` }
   }
 }

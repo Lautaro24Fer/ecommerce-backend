@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class First1729874979147 implements MigrationInterface {
-    name = 'First1729874979147'
+export class First1729906205218 implements MigrationInterface {
+    name = 'First1729906205218'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE \`identification_type\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(255) NOT NULL, UNIQUE INDEX \`IDX_1bddbdc00ecfb061c6b81a3cc8\` (\`name\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
@@ -68,6 +68,10 @@ export class First1729874979147 implements MigrationInterface {
         // TIPO DE USUARIO
 
         await queryRunner.query(`insert into roles (name) values ('user'), ('admin')`);
+
+        // TIPOS DE IDENTIFICACION
+
+        await queryRunner.query(`insert into identification_type (name) values ('DNI'), ('CPF'), ('CURP'), ('RUT')`);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {

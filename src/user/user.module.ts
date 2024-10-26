@@ -9,6 +9,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolesModule } from 'src/roles/roles.module';
 import { EmailModule } from 'src/email/email.module';
+import { IdTypeModule } from 'src/id-type/id-type.module';
 
 @Module({
   controllers: [UserController],
@@ -16,6 +17,7 @@ import { EmailModule } from 'src/email/email.module';
   imports: [
     RolesModule,
     EmailModule,
+    IdTypeModule,
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       imports: [ConfigModule],

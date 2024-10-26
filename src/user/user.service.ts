@@ -12,6 +12,8 @@ import { RolesService } from 'src/roles/roles.service';
 import { Role } from 'src/roles/entities/role.entity';
 import { UserDto } from './dto/user.dto';
 import { EmailService } from 'src/email/email.service';
+import { IdTypeService } from 'src/id-type/id-type.service';
+import { IdType } from 'src/id-type/entities/id-type.entity';
 
 @Injectable()
 export class UserService {
@@ -19,7 +21,8 @@ export class UserService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly roleService: RolesService,
-    private readonly emailService: EmailService
+    private readonly emailService: EmailService,
+    private readonly idTypeService: IdTypeService
   ) {}
 
   async hashPassword(password: string): Promise<string> {
@@ -47,8 +50,10 @@ export class UserService {
 
     createUserDto.password = await this.hashPassword(createUserDto.password);
     createUserDto.username = createUserDto.username.toLocaleLowerCase();
+
+    const idTypeOfUser: IdType = await this.idTypeService.findOne(createUserDto.idType);
     
-    const createUser: User = this.userRepository.create({...createUserDto, roles: []});
+    const createUser: User = this.userRepository.create({...createUserDto, roles: [], idType: idTypeOfUser });
     const role: Role = await this.roleService.findOneByName('user');
     createUser.roles.push(role);
 
@@ -205,7 +210,7 @@ export class UserService {
       }
     }
 
-    // -- validar qu el username está en uso
+    // -- validar que el username está en uso
 
     if(updateUserDto.username){
       const userWithSameUsername = await this.userRepository.findOne({
@@ -219,8 +224,14 @@ export class UserService {
         throw new BadRequestException({ error: `The username '${updateUserDto.username}' is currently in use`});
       }
     }
+  
+    userToUpdate = { ...userToUpdate, ...updateUserDto, idType: userToUpdate.idType }
 
-    userToUpdate = { ...userToUpdate, ...updateUserDto};
+    if(updateUserDto.idType){
+      const idTypeOfUser: IdType = await this.idTypeService.findOne(updateUserDto.idType);
+      userToUpdate = { ...userToUpdate, ...updateUserDto, idType: idTypeOfUser};
+    }
+    
     await this.userRepository.save(userToUpdate);
 
     return this.mapUserToUserDto(userToUpdate);

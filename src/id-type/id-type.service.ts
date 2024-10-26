@@ -26,7 +26,7 @@ export class IdTypeService {
 
   async findAll(): Promise<IdType[]> {
     const idTypes: IdType[] = await this.idTypeRepository.find().catch((error) => {
-      const exResponse: IBadRequestex = { status: false, message: error }
+      const exResponse: IBadRequestex = { status: false, message: "Erroin finding all products" }
       throw new BadRequestException(exResponse);
     });
 
@@ -39,11 +39,11 @@ export class IdTypeService {
 
   async findOne(id: number): Promise<IdType> {
     const idType: IdType = await this.idTypeRepository.findOneBy({ id }).catch((error) => {
-      const exResponse: IBadRequestex = { status: false, message: error }
+      const exResponse: IBadRequestex = { status: false, message: `Error finding the product by id '${id}'` };
       throw new BadRequestException(exResponse);
     });
     if(!idType){
-      const exResponse: INotFoundEx = { status: false, message: 'Identification type not founded' };
+      const exResponse: INotFoundEx = { status: false, message: `Identification type not founded by id '${id}'` };
       throw new NotFoundException(exResponse);
     }
     return idType;
@@ -51,14 +51,14 @@ export class IdTypeService {
 
   async update(id: number, updateIdTypeDto: UpdateIdTypeDto): Promise<IdType> {
     const idTypeToUpdate: IdType = await this.idTypeRepository.findOneBy({ id }).catch((error) => {
-      const exResponse: IBadRequestex = { status: false, message: error };
+      const exResponse: IBadRequestex = { status: false, message: `Error finding the product by id '${id}'` };
       throw new BadRequestException(exResponse);
     });
 
     const idTypeUpdatedBody = { ...idTypeToUpdate, ...updateIdTypeDto };
 
     const idTypeUpdated: IdType = await this.idTypeRepository.save(idTypeUpdatedBody).catch((error) => {
-      const exResponse: IBadRequestex = { status: false, message: error };
+      const exResponse: IBadRequestex = { status: false, message: `Error saving the product by id '${id}'` };
       throw new BadRequestException(exResponse);
     });
 
@@ -68,17 +68,17 @@ export class IdTypeService {
   async remove(id: number) {
     
     const idTypeToRemove: IdType = await this.idTypeRepository.findOneBy({ id }).catch((error) => {
-      const exResponse: IBadRequestex = { status: false, message: error };
+      const exResponse: IBadRequestex = { status: false, message: `Error deleting the product by id '${id}'` };
       throw new BadRequestException(exResponse);
     });
     
     if(!idTypeToRemove){
-      const exResponse: IBadRequestex = { status: false, message: `The id '${id}' was not founded` };
-      throw new BadRequestException(exResponse);
+      const exResponse: INotFoundEx = { status: false, message: `The id '${id}' was not founded` };
+      throw new NotFoundException(exResponse)
     }
 
     await this.idTypeRepository.remove(idTypeToRemove).catch((error) => {
-      const exResponse: IBadRequestex = { status: false, message: error };
+      const exResponse: IBadRequestex = { status: false, message: `Error finding the product by id '${id}'` };
       throw new BadRequestException(exResponse);
     });
   }
