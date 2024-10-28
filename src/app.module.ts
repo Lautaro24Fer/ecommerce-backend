@@ -28,6 +28,7 @@ import { Payment } from './payment/entities/payment.entity';
 import { IdTypeModule } from './id-type/id-type.module';
 import { IdType } from './id-type/entities/id-type.entity';
 import { AddressModule } from './address/address.module';
+import { Address } from './address/entities/address.entity';
 
 @Module({
   imports: [
@@ -45,7 +46,7 @@ import { AddressModule } from './address/address.module';
         username: configService.get<string>('TYPEORM_DATABASE_USERNAME'),
         password: configService.get<string>('TYPEORM_DATABASE_PASSWORD'),
         database: configService.get<string>('TYPEORM_DATABASE_NAME'),
-        entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role, IdType],
+        entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role, IdType, Address],
         synchronize: false,
       }),
       dataSourceFactory: async (options) => {
