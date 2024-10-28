@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -172,7 +172,10 @@ export class UserService {
 
     const user: User = await this.userRepository.findOne({ 
       where: { username },
-      relations: ['roles']
+      relations: {
+        roles: true,
+        idType: true
+      }
      });
     if (!user) {
       throw new NotFoundException(`The user with username '${username}' was not founded`);
@@ -188,12 +191,31 @@ export class UserService {
 
   async validateUserWithStrategy(payload: CreateUserStrategyDto) {
 
-    const user: User = await this.userRepository.findOneBy({ email: payload.email });
+    const user: UserDto = await this.userRepository.findOne({
+      where: { email: payload.email },
+      relations: {
+        roles: true,
+        idType: true
+      }
+    });
     if (!user) {
-      const createUser: User = this.userRepository.create({ ...payload, roles: []});
       const role: Role = await this.roleService.findOneByName('user');
+      const idType: IdType = await this.idTypeService.findOne(payload.idType);
+      const createUser = {
+        name: payload.name,
+        surname: payload.surname,
+        username: payload.username,
+        postalCode: payload.postalCode ?? '',
+        idNumber: payload.idNumber ?? '',
+        email: payload.email,
+        method: payload.method,
+        roles: [],
+        idType: { ...idType },
+      };
       createUser.roles.push(role);
-      const userCreated: User = await this.userRepository.save(createUser);
+      const userCreated: User = await this.userRepository.save(createUser).catch((error) => {
+        throw new HttpException('Error in the creation of the new user by OAuth', HttpStatus.BAD_REQUEST)
+      });
       return userCreated;
     }
     return user;
@@ -203,7 +225,10 @@ export class UserService {
 
     let userToUpdate: User = await this.userRepository.findOne({
       where: { id },
-      relations: ['roles']
+      relations: {
+        roles: true,
+        idType: true
+      }
     });
     if (!userToUpdate) {
       throw new NotFoundException(`The user with id '${id}' was not founded`);

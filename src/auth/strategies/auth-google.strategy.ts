@@ -32,8 +32,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       username: profile.username ?? usernameNull,
       method: 'google',
       email: profile.emails[0].value,
-      password: '',
-      // Investigar más si se puede guardar la contraseña como cadena vacía par los logins OAUTH
+      password: '', // Invesigar si se pueden almacenar contraseñas vacías
+      surname: profile.name.familyName,
+      postalCode: '',
+      idNumber: ''
     });
     return user || null;
   }

@@ -4,7 +4,7 @@ import { UpdateIdTypeDto } from './dto/update-id-type.dto';
 import { Repository } from 'typeorm';
 import { IdType } from './entities/id-type.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IBadRequestex, INotFoundEx } from './dto/responseInterfaces';
+import { IBadRequestex, INotFoundEx } from "../global/responseInterfaces"
 
 @Injectable()
 export class IdTypeService {

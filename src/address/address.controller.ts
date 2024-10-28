@@ -1,0 +1,127 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { AddressService } from './address.service';
+import { CreateAddressDto } from './dto/create-address.dto';
+import { UpdateAddressDto } from './dto/update-address.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Address')
+@Controller('address')
+export class AddressController {
+  constructor(private readonly addressService: AddressService) {}
+
+  @ApiOperation({
+    summary: 'Create a new address'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Address created succesfully'
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'You are not autorize to create a new address'
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Error in the creation of the new address'
+  })
+  @Post()
+  create(@Body() createAddressDto: CreateAddressDto) {
+    return this.addressService.create(createAddressDto);
+  }
+
+  @ApiOperation({
+    summary: 'Find all addreses'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Address loaded succesfully'
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'You are not autorize to get addresses'
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'The addresses was not founded'
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Error loading the addresses'
+  })
+  @Get()
+  findAll() {
+    return this.addressService.findAll();
+  }
+
+  @ApiOperation({
+    summary: 'Get one address by id'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Address loaded succesfully'
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'You are not autorize to get the address'
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'The address was not founded'
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Error loading the address'
+  })
+  @Get(':id')
+  findOne(@Param('id') id: number) {
+    return this.addressService.findOne(id);
+  }
+
+  @ApiOperation({
+    summary: 'Update one address by id'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Address updated succesfully'
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'You are not autorize to update the address'
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'The address was not founded'
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Error updating the address'
+  })
+  @Patch(':id')
+  update(@Param('id') id: number, @Body() updateAddressDto: UpdateAddressDto) {
+    return this.addressService.update(id, updateAddressDto);
+  }
+
+  @ApiOperation({
+    summary: 'Remove one address by id'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Address deleted succesfully'
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'You are not autorize to delete the address'
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'The address was not founded'
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Error removing the address'
+  })
+  @Delete(':id')
+  remove(@Param('id') id: number) {
+    return this.addressService.remove(id);
+  }
+}

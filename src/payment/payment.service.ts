@@ -63,10 +63,14 @@ export class PaymentService {
 				auto_return: "approved",
 				payment_methods: {
 					excluded_payment_methods: [],
-					excluded_payment_types: [],
+					excluded_payment_types: [
+            {
+              id: "ticket"
+            }
+       	  ],
 					installments: 12
 				},
-				notification_url: "http://localhost:3000/payment/mp/preference/webhook",
+				notification_url: "",
 				statement_descriptor: "PADEL POINT",
 				external_reference: "Padel Point",
 				expires: true,

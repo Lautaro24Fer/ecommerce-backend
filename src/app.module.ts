@@ -27,6 +27,7 @@ import { PaymentModule } from './payment/payment.module';
 import { Payment } from './payment/entities/payment.entity';
 import { IdTypeModule } from './id-type/id-type.module';
 import { IdType } from './id-type/entities/id-type.entity';
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { IdType } from './id-type/entities/id-type.entity';
     EmailModule,
     PaymentModule,
     IdTypeModule,
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],
