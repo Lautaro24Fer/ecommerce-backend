@@ -13,6 +13,9 @@ import { EmailService } from 'src/email/email.service';
 import { IdTypeService } from 'src/id-type/id-type.service';
 import { IdType } from 'src/id-type/entities/id-type.entity';
 import { AuthUserResponseDto, CreateUserStrategyDto } from './dto/oauth-data';
+import { IBadRequestex, INotFoundEx } from 'src/global/responseInterfaces';
+
+enum UniqueUserRecourse { USERNAME = 'username', EMAIL = 'email'  };
 
 @Injectable()
 export class UserService {
@@ -37,14 +40,24 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
 
-    const emailExists = await this.userRepository.existsBy({ email: createUserDto.email });
+    const emailExists = await this.userRepository.existsBy({ email: createUserDto.email }).catch((error) => {
+      const response: IBadRequestex = { status: false, message: 'Error in verification if email exists in create user process' };
+      console.error(error);
+      throw new BadRequestException(response);
+    });
     if(emailExists){
-      throw new BadRequestException({ error: `User with '${createUserDto.email}' already exists` });
+      const response: IBadRequestex = { status: false, message: `User with '${createUserDto.email}' already exists` };
+      throw new BadRequestException(response);
     }
 
-    const usernameExists = await this.userRepository.existsBy({ username: createUserDto.username.toLowerCase() });
+    const usernameExists = await this.userRepository.existsBy({ username: createUserDto.username.toLowerCase() }).catch((error) => {
+      const response: IBadRequestex = { status: false, message: 'Error in verification if username exists un create user process' };
+      console.error(error);
+      throw new BadRequestException(response);
+    });
     if(usernameExists){
-      throw new BadRequestException({ error: `User with '${createUserDto.username}' already exists` });
+      const response: IBadRequestex = { status: false, message: `User with '${createUserDto.username}' already exists` };
+      throw new BadRequestException(response);
     }
 
     createUserDto.password = await this.hashPassword(createUserDto.password);
@@ -60,7 +73,7 @@ export class UserService {
 
     const userCreated: User = await this.userRepository.findOne({
       where: { id: userSaved.id},
-      relations: ['roles']
+      relations: ['roles', 'idType', 'address']
     });
 
     return this.mapUserToUserDto(userCreated);
@@ -68,36 +81,24 @@ export class UserService {
 
   async findAll(): Promise<UserDto[]> {
 
-    const users: User[] = await this.userRepository.find({ relations: ['roles'] });
+    const users: User[] = await this.userRepository.find({ relations: ['roles', 'idType', 'address'] });
     const usersDto: UserDto[] = users.map((user) => {
       return this.mapUserToUserDto(user);
     });
     return usersDto;
   }
 
-  async findOne(id: number): Promise<UserDto | undefined> {
-    console.log("====== ENTRA USER SERVICE ======");
-    console.log("====== findOne(id) ======");
-    console.log("id (id que entra como parametro)")
-    console.log(id)
-
-    const user: User = await this.userRepository.findOne({
-      where: { id },
-      relations: {
-        roles: true,
-        idType: true
-      }
-    }).catch((error) => {
-      throw new BadRequestException({ status: false, message: `Error finding the user with id '${id}'` })
-    })
+  async findOneById(id: number): Promise<UserDto | undefined> {
+    const user: User = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'idType', 'address']}).catch((error) => {
+      const response: IBadRequestex = { status: false, message: `Error finding the user with id '${id}'` };
+      console.error(error);
+      throw new BadRequestException(response)
+    });
     if (!user) {
-      throw new NotFoundException({ status: false, message: `The user with id '${id}' was not founded` });
+      const response: INotFoundEx = { status: false, message: `The user with id '${id}' was not founded` };
+      throw new NotFoundException(response);
     }
-    console.log("Usuario encontrado con dicha id de tipo User");
-    console.log(user);
     const parsedUser: UserDto = this.mapUserToUserDto(user);
-    console.log("Usuario parseado a UserDto")
-    console.log(parsedUser)
     return parsedUser;
   }
 
@@ -105,19 +106,13 @@ export class UserService {
     
     const isEmail: boolean = await this.validateEmail(input);
     if(isEmail){
-      const user: User = await this.userRepository.findOne({
-        where: { email: input },
-        relations: ['roles']
-      })
-      if (!user) {
-        throw new NotFoundException(`The user with email '${input}' was not founded`);
-      }
-      return this.mapUserToUserDto(user);
+      const user: UserDto = await this.findOneByEmail(input);
+      return user;
     }
 
     const user: User = await this.userRepository.findOne({
       where: { username: input },
-      relations: ['roles']
+      relations: ['roles', 'idType', 'address']
     })
     if (!user) {
       throw new NotFoundException(`The user with username '${input}' was not founded`);
@@ -157,46 +152,51 @@ export class UserService {
 
   async findOneByUserName(username: string): Promise<UserDto | undefined> {
 
-    const user: User = await this.userRepository.findOne({ 
-      where: { username },
-      relations: ['roles']
-     });
+    const user: User = await this.userRepository.findOne({ where: { username }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
+      const response: IBadRequestex = { status: false, message: `Error finding the user with username '${username}'` };
+      console.error(error);
+      throw new BadRequestException(response)
+    });
     if (!user) {
-      throw new NotFoundException(`The user with username '${username}' was not founded`);
+      const response: INotFoundEx = { status: false, message: `The user with username '${username}' was not founded` };
+      throw new NotFoundException(response);
     }
-    return this.mapUserToUserDto(user);
+    const parsedUser: UserDto = this.mapUserToUserDto(user);
+    return parsedUser;
   }
+
   /* Devuelve la entidad completa de usuario (Incluyendo contraseña) */
   async findOneByUsernameEntity(username: string): Promise<User | undefined> {
 
-    const user: User = await this.userRepository.findOne({ 
-      where: { username },
-      relations: {
-        roles: true,
-        idType: true
-      }
-     });
+    const user: User = await this.userRepository.findOne({ where: { username }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
+      const response: IBadRequestex = { status: false, message: `Error finding the user with username '${username}'` };
+      console.error(error);
+      throw new BadRequestException(response)
+    });
     if (!user) {
-      throw new NotFoundException(`The user with username '${username}' was not founded`);
+      const response: INotFoundEx = { status: false, message: `The user with username '${username}' was not founded` };
+      throw new NotFoundException(response);
     }
     return user;
   }
 
   async findOneByEmail(email: string): Promise<UserDto | undefined> {
 
-    const user: User = await this.userRepository.findOneBy({ email });
+    const user: User = await this.userRepository.findOne({ where: { email }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
+      const response: IBadRequestex = { status: false, message: `Error finding the user with email '${email}'` };
+      console.error(error);
+      throw new BadRequestException(response)
+    })
+    if (!user) {
+      const response: INotFoundEx = { status: false, message: `The user with email '${email}' was not founded` }
+      throw new NotFoundException(response);
+    }
     return this.mapUserToUserDto(user);
   }
 
   async validateUserWithStrategy(payload: CreateUserStrategyDto) {
 
-    const user: UserDto = await this.userRepository.findOne({
-      where: { email: payload.email },
-      relations: {
-        roles: true,
-        idType: true
-      }
-    });
+    const user: UserDto = await this.findOneByEmail(payload.email);
     if (!user) {
       const role: Role = await this.roleService.findOneByName('user');
       const idType: IdType = await this.idTypeService.findOne(payload.idType);
@@ -213,36 +213,52 @@ export class UserService {
       };
       createUser.roles.push(role);
       const userCreated: User = await this.userRepository.save(createUser).catch((error) => {
-        throw new HttpException('Error in the creation of the new user by OAuth', HttpStatus.BAD_REQUEST)
+        const response: IBadRequestex = { status: false, message: 'Error in the creation of the user in strategy validation' };
+        console.error(error)
+        throw new BadRequestException(response);
       });
       return userCreated;
     }
     return user;
   }
 
+  async recourseInUse( input: string, recourseName: UniqueUserRecourse, idPretended?: number ): Promise<boolean>{
+
+    // La idea de enviar un id de manera opcional es en caso de que se deba obviar la id 
+    // para buscar el resto de registros
+
+    let response: boolean;
+    switch(recourseName){
+      case (UniqueUserRecourse.EMAIL):
+        response = await this.userRepository.existsBy({ email: input }).catch((error) => {
+          const catchErrorResponse: IBadRequestex = { status: false, message: 'Error in the verification if email exists' };
+          console.error(error);
+          throw new BadRequestException(catchErrorResponse);
+        });
+      break;
+      case (UniqueUserRecourse.USERNAME):
+        response = await this.userRepository.existsBy({ username: input }).catch((error) => {
+          const catchErrorResponse: IBadRequestex = { status: false, message: 'Error in the verification if username exists' };
+          console.error(error);
+          throw new BadRequestException(catchErrorResponse);
+        });
+      break;
+      default:
+        const catchErrorResponse: IBadRequestex = { status: false, message: 'Error in the verification if the recourse exists' };
+        throw new BadRequestException(catchErrorResponse);
+      break;
+    }
+    return response;
+  }
+
   async update( id: number, updateUserDto: UpdateUserDto ): Promise<UserDto | undefined> {
 
-    let userToUpdate: User = await this.userRepository.findOne({
-      where: { id },
-      relations: {
-        roles: true,
-        idType: true
-      }
-    });
-    if (!userToUpdate) {
-      throw new NotFoundException(`The user with id '${id}' was not founded`);
-    }
+    const userToUpdate: UserDto = await this.findOneById(id);
 
     // -- validar que el email está en uso
 
     if(updateUserDto.email){
-      const userWithSameEmail = await this.userRepository.findOne({
-        where: {
-          email: updateUserDto.email,
-          id: Not(id),
-        },
-      });
-  
+      const userWithSameEmail: boolean = await this.recourseInUse(updateUserDto.email, UniqueUserRecourse.EMAIL);
       if(userWithSameEmail){
         throw new BadRequestException({ error: `The email '${updateUserDto.email}' is currently in use`});
       }
@@ -251,12 +267,7 @@ export class UserService {
     // -- validar que el username está en uso
 
     if(updateUserDto.username){
-      const userWithSameUsername = await this.userRepository.findOne({
-        where: {
-          username: updateUserDto.username,
-          id: Not(id),
-        },
-      });
+      const userWithSameUsername: boolean = await this.recourseInUse(updateUserDto.email, UniqueUserRecourse.USERNAME);
   
       if(userWithSameUsername){
         throw new BadRequestException({ error: `The username '${updateUserDto.username}' is currently in use`});
