@@ -20,13 +20,10 @@ import { User } from './entities/user.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { AuthUserResponseDto } from './dto/auth-user-response.dto';
 import { UserDto } from './dto/user.dto';
 import { ResetUserPasswordGuard } from './user.guard';
-import { RequestUpdatePasswordCodeDto } from './dto/update-password-user-code.dto';
-import { ValidateUpdateUserPasswordCodeDto } from './dto/update-user-password-validate.dto';
-import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
-import { ResponsetUpdatePasswordCodeDto } from './dto/update-password-response.dto';
+import { AuthUserResponseDto } from './dto/oauth-data';
+import { RequestUpdatePasswordCodeDto, ResponsetUpdatePasswordCodeDto, UpdateUserPasswordDto, ValidateUpdateUserPasswordCodeDto } from './dto/password-change';
 
 @ApiTags('Users')
 @Controller('user')

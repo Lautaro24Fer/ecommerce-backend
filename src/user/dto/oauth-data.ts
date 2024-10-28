@@ -1,3 +1,5 @@
+
+// DATA QUE LLEGA DESDE EL LOGGEO DE OAUTH MEDIANTE PASSPORT A LA API
 export interface CreateUserStrategyDto {
   username?: string;
   // Al momento de inicializarse será nulo, luego desde el front create una ventana que le indique al usuario
@@ -14,4 +16,11 @@ export interface CreateUserStrategyDto {
   idNumber?: string;
   addressStreet?: string;
   addressNumber?: string;
+}
+
+// AL MOMENTO DE CREAR UN NUEVO USUARIO MEDIANTE OAUTH VERIFICA SI ESTE USUARIO EXISTÍA PREVIAMENTE
+// PARA PODER VERIFICAR SI DEBE INGRESAR UN USERNAME
+export class AuthUserResponseDto {
+  user: object;
+  isNewUser: boolean;
 }

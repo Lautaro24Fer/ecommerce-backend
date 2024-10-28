@@ -5,15 +5,14 @@ import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { CreateUserStrategyDto } from './dto/create-user-strategy.dto';
 import { JwtService } from '@nestjs/jwt';
-import { AuthUserResponseDto } from './dto/auth-user-response.dto';
 import { RolesService } from 'src/roles/roles.service';
 import { Role } from 'src/roles/entities/role.entity';
 import { UserDto } from './dto/user.dto';
 import { EmailService } from 'src/email/email.service';
 import { IdTypeService } from 'src/id-type/id-type.service';
 import { IdType } from 'src/id-type/entities/id-type.entity';
+import { AuthUserResponseDto, CreateUserStrategyDto } from './dto/oauth-data';
 
 @Injectable()
 export class UserService {
@@ -374,11 +373,9 @@ export class UserService {
       method: user.method,
       roles: user.roles ?? [],
       surname: user.surname,
-      postalCode: user.postalCode,
       idType: user.idType,
       idNumber: user.idNumber,
-      addressStreet: user.addressStreet,
-      addressNumber: user.addressNumber
+      address: user.address ?? []
     };
     return userDto;
   }
