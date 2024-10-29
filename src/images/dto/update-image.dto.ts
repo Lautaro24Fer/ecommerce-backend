@@ -2,11 +2,11 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional, IsNumber, IsPositive, IsString, Length, IsUrl, IsBoolean } from "class-validator";
 
 export class UpdateImageDto {
-    @ApiProperty()
+  @ApiProperty()
 	@IsOptional()
 	@IsString()
 	@Length(1, 80)
-    @IsUrl()
+  @IsUrl()
 	url?: string;
 
 	@ApiProperty()

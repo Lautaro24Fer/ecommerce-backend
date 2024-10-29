@@ -13,3 +13,15 @@ export interface IRecourseDeleted {
   message: string;
   recourse: any;
 }
+
+export interface IRecourseFound {
+  status: boolean;
+  message: string;
+  recourse: any;
+}
+
+export interface IRecourseCreated {
+  status: boolean;
+  message: string;
+  recourse: any;
+}

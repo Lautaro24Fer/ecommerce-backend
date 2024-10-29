@@ -4,7 +4,7 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Address } from './entities/address.entity';
 import { Repository } from 'typeorm';
-import { IBadRequestex, INotFoundEx, IRecourseDeleted } from 'src/global/responseInterfaces';
+import { IBadRequestex, INotFoundEx, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
 
 @Injectable()
 export class AddressService {
@@ -62,5 +62,36 @@ export class AddressService {
     await this.addressRepository.remove(address);
     const response: IRecourseDeleted = { status: true, message: `The address with id '${id}' was deleted succesfully`, recourse: address };
     return response;
+  }
+
+  // Teniendo en cuenta que hay muchas variantes de direcciones, se busca 
+  // que una dirección exacta exista previamente en la base de datos
+  async findOneByAllData(postalCode: string, addressStreet: string, addressNumber: string){
+
+    const address: Address = await this.addressRepository.findOneBy({
+      postalCode,
+      addressStreet,
+      addressNumber
+    }).catch((error) => {
+    
+      const response: IBadRequestex = { status: false, message: 'Error finding the address by all data of the entity' };
+      throw new BadRequestException(response);
+    });
+
+    if(!address){
+      const response: INotFoundEx = { 
+        status: false, 
+        message: `The address with postal code '${postalCode}', addressStreet '${addressStreet}' and addressNumber ${addressNumber} was not founded` 
+      };
+      throw new NotFoundException(response);
+    };
+
+    const recourse: IRecourseFound = {
+      status: true,
+      message: 'The recourse was founded succesfully',
+      recourse: address
+    };
+
+    return recourse;
   }
 }

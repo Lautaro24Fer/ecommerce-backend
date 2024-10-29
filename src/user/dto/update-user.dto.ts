@@ -7,6 +7,7 @@ import {
   IsString,
   Length,
 } from 'class-validator';
+import { Address } from 'src/address/entities/address.entity';
 
 export class UpdateUserDto {
   @ApiProperty()
@@ -33,13 +34,7 @@ export class UpdateUserDto {
   @ApiProperty()
   @IsOptional()
   @IsEmail()
-  email?: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  @Length(4, 8)
-  postalCode?: string;  
+  email?: string;  
 
   @ApiProperty()
   @IsOptional()
@@ -53,11 +48,23 @@ export class UpdateUserDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsString()
-  addressStreet?: string;
+  address?: AddressDto[];
+}
+
+class AddressDto {
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  addressNumber?: string;
+  @Length(4, 8)
+  postalCode: string;
+
+  @ApiProperty()
+  @IsString()
+  @Length(1, 50)
+  addressStreet: string;
+
+  @ApiProperty()
+  @IsString()
+  @Length(1, 8)
+  addressNumber: string;
 }

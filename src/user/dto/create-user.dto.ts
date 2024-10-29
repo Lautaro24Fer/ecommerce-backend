@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsOptional, IsPositive, IsPostalCode, IsString, Length, MinLength } from 'class-validator';
+import { Address } from 'src/address/entities/address.entity';
 import { IdType } from 'src/id-type/entities/id-type.entity';
 import { Role } from 'src/roles/entities/role.entity';
 
@@ -32,11 +33,6 @@ export class CreateUserDto {
   email: string;
 
   @ApiProperty()
-  @IsString()
-  @Length(4, 8)
-  postalCode: string;
-
-  @ApiProperty()
   @IsPositive()
   idType: number;
 
@@ -46,11 +42,23 @@ export class CreateUserDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsString()
-  addressStreet?: string;
+  address?: Address;
+}
+
+class AddressDto {
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  addressNumber?: string;
+  @Length(4, 8)
+  postalCode: string;
+
+  @ApiProperty()
+  @IsString()
+  @Length(1, 50)
+  addressStreet: string;
+
+  @ApiProperty()
+  @IsString()
+  @Length(1, 8)
+  addressNumber: string;
 }
