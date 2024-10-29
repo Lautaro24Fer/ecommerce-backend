@@ -11,6 +11,21 @@ export class AddressService {
 
   constructor( @InjectRepository(Address) private readonly addressRepository: Repository<Address> ) {}
 
+  createInstance(createAddressDto: CreateAddressDto){
+    try{
+    const addressInstance: Address = this.addressRepository.create(createAddressDto);
+    return addressInstance;
+    }
+    catch(error){
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: 'Error in the creation of the new instance of Address'
+      };
+      throw new BadRequestException(badRequestError);
+    }
+  }
+
   async create(createAddressDto: CreateAddressDto) {
     
     const addressCreated: Address = await this.addressRepository.save(createAddressDto).catch((_) => {

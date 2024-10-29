@@ -24,6 +24,7 @@ import { UserDto } from './dto/user.dto';
 import { ResetUserPasswordGuard } from './user.guard';
 import { AuthUserResponseDto } from './dto/oauth-data';
 import { RequestUpdatePasswordCodeDto, ResponsetUpdatePasswordCodeDto, UpdateUserPasswordDto, ValidateUpdateUserPasswordCodeDto } from './dto/password-change';
+import { IRecourseFound } from 'src/global/responseInterfaces';
 
 @ApiTags('Users')
 @Controller('user')
@@ -197,8 +198,8 @@ export class UserController {
   })
   // @UseGuards(AuthGuard) -- Elimino las restricciones por testeo
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<UserDto> {
-    return await this.userService.findOne(id);
+  async findOne(@Param('id') id: number): Promise<IRecourseFound> {
+    return await this.userService.findOneById(id);
   }
 
 
@@ -219,7 +220,7 @@ export class UserController {
   })
   @Patch(':id')
   async update( @Param('id') id: number, @Body() updateUserDto: UpdateUserDto ): Promise<UserDto> {
-    return await this.userService.update(id, updateUserDto);
+    return await this.userService.partialUpdate(id, updateUserDto);
   }
 
 

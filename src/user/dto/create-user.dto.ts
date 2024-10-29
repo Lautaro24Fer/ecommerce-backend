@@ -42,7 +42,7 @@ export class CreateUserDto {
 
   @ApiProperty()
   @IsOptional()
-  address?: Address;
+  address?: Address[];
 }
 
 class AddressDto {

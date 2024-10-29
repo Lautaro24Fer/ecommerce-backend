@@ -310,7 +310,7 @@ export class UserService {
     return response;
   }
 
-  async update( id: number, updateUserDto: UpdateUserDto ): Promise<UserDto | undefined> {
+  async partialUpdate( id: number, updateUserDto: UpdateUserDto ): Promise<UserDto | undefined> {
 
     const userToUpdate: User = await this.findOneByParam(id.toString(), SearchParam.ID);
 
@@ -341,13 +341,23 @@ export class UserService {
     let bodyUpdated: UserDto = { 
       ...userToUpdate, 
       ...updateUserDto,
-      address: [],
+      address: userToUpdate.address,
       idType: userToUpdate.idType
     }
 
     if(updateUserDto.idType){
       const idTypeOfUser: IdType = await this.idTypeService.findOne(updateUserDto.idType);
       bodyUpdated.idType = idTypeOfUser;
+    }
+
+    if((updateUserDto.address) && (updateUserDto.address.length > 0) ){
+      updateUserDto?.address.forEach(async address => {
+
+        const addressParsed: Address = this.addressService.createInstance(address);
+        if(!userToUpdate.address.includes(addressParsed)){
+          // GUARDAR INSTANCIA EN LA BASE DE DATOS
+        }
+      });
     }
 
     await this.userRepository.save(userToUpdate);
@@ -357,7 +367,7 @@ export class UserService {
 
   async remove(id: number) {
 
-    const userToRemove = await this.findOneById(id);
+    const userToRemove: User = await this.findOneByParam(id.toString(), SearchParam.ID);
     const userRemoved = await this.userRepository.remove(userToRemove);
     const response: IRecourseDeleted = { 
       status: true, 
