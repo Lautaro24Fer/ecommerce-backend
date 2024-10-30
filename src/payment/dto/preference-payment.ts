@@ -13,6 +13,10 @@ export class IPaymentPreferenceReq {
     userId: number;
 
     @ApiProperty()
+    @IsPositive()
+    addressId: number;
+
+    @ApiProperty()
     @IsArray()
     items: Item[];
 }

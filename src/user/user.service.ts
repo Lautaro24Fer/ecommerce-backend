@@ -1,6 +1,6 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { FullUpdateUserDto, PartialUpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,12 +13,13 @@ import { EmailService } from 'src/email/email.service';
 import { IdTypeService } from 'src/id-type/id-type.service';
 import { IdType } from 'src/id-type/entities/id-type.entity';
 import { AuthUserResponseDto, CreateUserStrategyDto } from './dto/oauth-data';
-import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 import { AddressService } from 'src/address/address.service';
 import { Address } from 'src/address/entities/address.entity';
 
 enum UniqueUserRecourse { USERNAME = 'username', EMAIL = 'email'  };
 enum SearchParam { ID, USERNAME, EMAIL };
+export enum UpdateType { PARTIAL, FULL };
 
 @Injectable()
 export class UserService {
@@ -310,7 +311,7 @@ export class UserService {
     return response;
   }
 
-  async partialUpdate( id: number, updateUserDto: UpdateUserDto ): Promise<UserDto | undefined> {
+  async update( id: number, updateUserDto: PartialUpdateUserDto, updateType: UpdateType ): Promise<IRecourseUpdated> {
 
     const userToUpdate: User = await this.findOneByParam(id.toString(), SearchParam.ID);
 
@@ -337,32 +338,56 @@ export class UserService {
         
       }
     }
-  
-    let bodyUpdated: UserDto = { 
-      ...userToUpdate, 
+
+    const bodyUpdate: UserDto = {
+      ...userToUpdate,
       ...updateUserDto,
-      address: userToUpdate.address,
-      idType: userToUpdate.idType
+      idType: userToUpdate.idType,
+      address: userToUpdate.address
+    }
+  
+    if(updateUserDto?.idType) {
+      const idTypeArrived: IdType = await this.idTypeService.findOne(updateUserDto.idType);
+      bodyUpdate.idType = idTypeArrived;
     }
 
-    if(updateUserDto.idType){
-      const idTypeOfUser: IdType = await this.idTypeService.findOne(updateUserDto.idType);
-      bodyUpdated.idType = idTypeOfUser;
+    if((updateUserDto?.address) && (updateUserDto?.address.length > 0)){
+      switch(updateType){
+        case UpdateType.FULL:
+          // Se sobrescribe todo el array existente
+          bodyUpdate.address = [];
+          updateUserDto?.address.forEach(async ad => {
+            const address: Address = await this.addressService.findOrCreate(ad);
+            bodyUpdate.address.push(address);
+          });
+        break;
+        case UpdateType.PARTIAL:
+          updateUserDto?.address.forEach(async ad => {
+            const address: Address = await this.addressService.findOrCreate(ad);
+            bodyUpdate.address.push(address);
+          });
+        break;
+        default:
+          const badRequestError: IBadRequestex = {
+            status: false,
+            message: 'The update type is invalid'
+          };
+          throw new BadRequestException(badRequestError);
+        break;
+      }
     }
 
-    if((updateUserDto.address) && (updateUserDto.address.length > 0) ){
-      updateUserDto?.address.forEach(async address => {
+    await this.userRepository.update(id, { ...bodyUpdate });
 
-        const addressParsed: Address = this.addressService.createInstance(address);
-        if(!userToUpdate.address.includes(addressParsed)){
-          // GUARDAR INSTANCIA EN LA BASE DE DATOS
-        }
-      });
-    }
+    const userUpdated: User = (await this.findOneById(id)).recourse;
 
-    await this.userRepository.save(userToUpdate);
+    const response: IRecourseUpdated = {
+      status: true,
+      message: 'The recourse was updated succesfully',
+      recourse: userUpdated
+    };
 
-    return this.mapUserToUserDto(userToUpdate);
+    return response;
   }
 
   async remove(id: number) {

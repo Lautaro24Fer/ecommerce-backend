@@ -25,3 +25,9 @@ export interface IRecourseCreated {
   message: string;
   recourse: any;
 }
+
+export interface IRecourseUpdated {
+  status: boolean;
+  message: string;
+  recourse: any;
+}

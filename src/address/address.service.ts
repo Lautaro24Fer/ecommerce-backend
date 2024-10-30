@@ -5,25 +5,26 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Address } from './entities/address.entity';
 import { Repository } from 'typeorm';
 import { IBadRequestex, INotFoundEx, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
+import { Exception } from 'handlebars';
 
 @Injectable()
 export class AddressService {
 
   constructor( @InjectRepository(Address) private readonly addressRepository: Repository<Address> ) {}
 
-  createInstance(createAddressDto: CreateAddressDto){
-    try{
-    const addressInstance: Address = this.addressRepository.create(createAddressDto);
-    return addressInstance;
-    }
-    catch(error){
-      console.error(error);
-      const badRequestError: IBadRequestex = {
-        status: false,
-        message: 'Error in the creation of the new instance of Address'
-      };
-      throw new BadRequestException(badRequestError);
-    }
+  async findOrCreate(createAddressDto: CreateAddressDto){
+    const { postalCode, addressNumber, addressStreet } = createAddressDto;
+    const address: Address = await this.findOneByAllData(postalCode, addressStreet, addressNumber)
+    .then(data => data.recourse)
+    .catch((error) => {
+      if(error instanceof NotFoundException){
+        return this.create({ postalCode, addressNumber, addressStreet });
+      }
+      else{
+        throw error;
+      }
+    });
+    return address;
   }
 
   async create(createAddressDto: CreateAddressDto) {
@@ -88,7 +89,7 @@ export class AddressService {
       addressStreet,
       addressNumber
     }).catch((error) => {
-    
+      console.error(error);
       const response: IBadRequestex = { status: false, message: 'Error finding the address by all data of the entity' };
       throw new BadRequestException(response);
     });

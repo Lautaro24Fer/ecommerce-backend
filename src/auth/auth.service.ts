@@ -45,7 +45,7 @@ export class AuthService {
 
   async getCookieByPassportStrategy( user: any ) {
 
-    const userFinded: User = await this.userService.findOne(user?.id);
+    const userFinded: User = (await this.userService.findOneById(user?.id)).recourse; 
     const token: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '1m');
     const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '7m');
     return { token, refreshToken }

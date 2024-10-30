@@ -12,10 +12,11 @@ import {
   BadRequestException,
   Res,
   UnauthorizedException,
+  Put,
 } from '@nestjs/common';
-import { UserService } from './user.service';
+import { UpdateType, UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { FullUpdateUserDto, PartialUpdateUserDto  } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -24,7 +25,7 @@ import { UserDto } from './dto/user.dto';
 import { ResetUserPasswordGuard } from './user.guard';
 import { AuthUserResponseDto } from './dto/oauth-data';
 import { RequestUpdatePasswordCodeDto, ResponsetUpdatePasswordCodeDto, UpdateUserPasswordDto, ValidateUpdateUserPasswordCodeDto } from './dto/password-change';
-import { IRecourseFound } from 'src/global/responseInterfaces';
+import { IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 
 @ApiTags('Users')
 @Controller('user')
@@ -204,7 +205,7 @@ export class UserController {
 
 
 
-  @ApiOperation({ summary: 'Update one user by id' })
+  @ApiOperation({ summary: 'Update partially one user by id' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The user was updated succesfully',
@@ -219,10 +220,30 @@ export class UserController {
     description: 'Bad request, error updating the user' 
   })
   @Patch(':id')
-  async update( @Param('id') id: number, @Body() updateUserDto: UpdateUserDto ): Promise<UserDto> {
-    return await this.userService.partialUpdate(id, updateUserDto);
+  async patchUpdate( @Param('id') id: number, @Body() updateUserDto: PartialUpdateUserDto ): Promise<IRecourseUpdated> {
+    const response = await this.userService.update(id, updateUserDto, UpdateType.PARTIAL);
+    const userParsed: UserDto = this.userService.mapUserToUserDto(response.recourse);
+    response.recourse = userParsed;
+    return response;
   }
 
+  @ApiOperation({ summary: 'Full update one user by id' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'The user was updated succesfully'
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'The user was not founded',
+  })
+  @ApiResponse({ 
+    status: HttpStatus.BAD_REQUEST, 
+    description: 'Bad request, error updating the user' 
+  })
+  @Put(':id')
+  async putUpdate( @Param('id') id: number, @Body() updateUserDto: FullUpdateUserDto ) {
+    return await this.userService.update(id, updateUserDto, UpdateType.FULL);
+  }
 
 
   @ApiOperation({ summary: 'Delete a user by id' })

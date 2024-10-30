@@ -5,6 +5,9 @@ import MercadoPagoConfig, { Preference } from 'mercadopago';
 import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { UserDto } from 'src/user/dto/user.dto';
+import { User } from 'src/user/entities/user.entity';
+import { Address } from 'src/address/entities/address.entity';
+import { IBadRequestex } from 'src/global/responseInterfaces';
 
 @Injectable()
 export class PaymentService {
@@ -33,7 +36,15 @@ export class PaymentService {
 		const expDataFrom = new Date;
 		const expDataTo = new Date(Date.now() + (1000 * 60 * 15));
 
-		const payer: UserDto = await this.userService.findOne(preferenceData.userId);
+		const payer: UserDto = (await this.userService.findOneById(preferenceData.userId)).recourse;
+
+		const address: Address = payer.address.find(a => a.id === preferenceData.addressId);
+
+		if(!address){
+
+			const badRequestError: IBadRequestex = { status: false, message: `The id address '${preferenceData.addressId}' not exists in the user register` };
+			throw new BadRequestException(badRequestError);
+		}
 
 		console.log(" ===== SERVICIO PAYMENT=====")
 		console.log("payer (usuario recuperado desde la db con la id del preference data)")
@@ -55,9 +66,9 @@ export class PaymentService {
 						number: payer.idNumber
 					},
 					address: {
-						street_name: payer.addressStreet ?? "",
-						street_number: payer.addressNumber ?? "",	
-						zip_code: payer.postalCode
+						street_name: address.addressStreet ?? "",
+						street_number: address.addressNumber ?? "",	
+						zip_code: address.postalCode
 					}
 				},
 				auto_return: "approved",

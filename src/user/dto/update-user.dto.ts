@@ -9,7 +9,41 @@ import {
 } from 'class-validator';
 import { Address } from 'src/address/entities/address.entity';
 
-export class UpdateUserDto {
+export class FullUpdateUserDto {
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsString()
+  surname: string;
+
+  @ApiProperty()
+  @IsString()
+  username: string;
+
+  @ApiProperty()
+  @IsString()
+  @Length(8, 50)
+  password: string;
+
+  @ApiProperty()
+  @IsEmail()
+  email: string;  
+
+  @ApiProperty()
+  @IsPositive()
+  idType: number;
+
+  @ApiProperty()
+  @IsPositive()
+  idNumber: string;
+
+  @ApiProperty()
+  address: AddressDto[];
+}
+
+export class PartialUpdateUserDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
