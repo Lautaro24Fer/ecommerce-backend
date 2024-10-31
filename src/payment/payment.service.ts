@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { IPaymentPreference, IPaymentPreferenceReq } from './dto/preference-payment';
 import { ConfigService } from '@nestjs/config';
 import MercadoPagoConfig, { Preference } from 'mercadopago';
@@ -7,7 +7,7 @@ import { UserService } from 'src/user/user.service';
 import { UserDto } from 'src/user/dto/user.dto';
 import { User } from 'src/user/entities/user.entity';
 import { Address } from 'src/address/entities/address.entity';
-import { IBadRequestex } from 'src/global/responseInterfaces';
+import { IBadRequestex, INotFoundEx } from 'src/global/responseInterfaces';
 
 @Injectable()
 export class PaymentService {
@@ -42,8 +42,8 @@ export class PaymentService {
 
 		if(!address){
 
-			const badRequestError: IBadRequestex = { status: false, message: `The id address '${preferenceData.addressId}' not exists in the user register` };
-			throw new BadRequestException(badRequestError);
+			const badRequestError: INotFoundEx = { status: false, message: `The id address '${preferenceData.addressId}' not exists in the user register` };
+			throw new NotFoundException(badRequestError);
 		}
 
 		console.log(" ===== SERVICIO PAYMENT=====")
@@ -75,9 +75,7 @@ export class PaymentService {
 				payment_methods: {
 					excluded_payment_methods: [],
 					excluded_payment_types: [
-            {
-              id: "ticket"
-            }
+            { id: 'ticket' }
        	  ],
 					installments: 12
 				},
