@@ -6,11 +6,33 @@ import { Address } from './entities/address.entity';
 import { Repository } from 'typeorm';
 import { IBadRequestex, INotFoundEx, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
 import { Exception } from 'handlebars';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 
 @Injectable()
 export class AddressService {
 
-  constructor( @InjectRepository(Address) private readonly addressRepository: Repository<Address> ) {}
+  constructor(
+    @InjectRepository(Address) private readonly addressRepository: Repository<Address>,
+    private readonly schedulerRegistery: SchedulerRegistry) {}
+
+  // @Cron('*/2 * * * *')  cada dos min
+  @Cron('0 0 * * *') // Ejecuta la limpieza cada día a medianoche
+
+  async handleCron() {
+    await this.removeOrphanedAddresses();
+  }
+
+  async removeOrphanedAddresses(): Promise<void> {
+    const orphanedAddresses = await this.addressRepository
+      .createQueryBuilder('address')
+      .leftJoin('address.user', 'user')
+      .where('user.id IS NULL')
+      .getMany();
+
+    if (orphanedAddresses.length > 0) {
+      await this.addressRepository.remove(orphanedAddresses);
+    }
+  }
 
   async findOrCreate(createAddressDto: CreateAddressDto){
     const { postalCode, addressNumber, addressStreet } = createAddressDto;

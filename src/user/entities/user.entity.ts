@@ -17,10 +17,10 @@ export class User {
   @Column({ unique: true })
   username: string;
 
-  @ManyToOne(() => IdType, (m) => m.id, { cascade: true })
+  @ManyToOne(() => IdType, (m) => m.id)
   idType: IdType;
 
-  @Column()
+  @Column({ unique: true })
   idNumber: string;
 
   @Column({ unique: true })
@@ -29,24 +29,13 @@ export class User {
   @Column({ default: 'local' })
   method: string;
 
-  @ManyToMany(() => Address, (m) => m.user, { cascade: true })
+  @ManyToMany(() => Address, (m) => m.user)
   @JoinTable()
   address: Address[];
 
-  @ManyToMany(() => Role, (role) => role.id, { cascade: true })
+  @ManyToMany(() => Role, (role) => role.id)
   @JoinTable()
   roles: Role[];
-
-  // Optionals
-
-  // @Column({ nullable: true })
-  // postalCode: string;
-
-  // @Column({ nullable: true })
-  // addressStreet?: string;
-
-  // @Column({ nullable: true })
-  // addressNumber?: string;
 
   @Column({ nullable: true })
   password?: string;

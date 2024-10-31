@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsEmail,
   IsOptional,
@@ -6,8 +7,8 @@ import {
   IsPostalCode,
   IsString,
   Length,
+  ValidateNested,
 } from 'class-validator';
-import { Address } from 'src/address/entities/address.entity';
 
 export class FullUpdateUserDto {
   @ApiProperty()
@@ -39,7 +40,9 @@ export class FullUpdateUserDto {
   @IsPositive()
   idNumber: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: () => [AddressDto] })
+  @ValidateNested({ each: true })  // Valida cada objeto dentro del array
+  @Type(() => AddressDto)  
   address: AddressDto[];
 }
 
@@ -80,8 +83,10 @@ export class PartialUpdateUserDto {
   @IsPositive()
   idNumber?: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: () => [AddressDto] })
   @IsOptional()
+  @ValidateNested({ each: true })  // Valida cada objeto dentro del array
+  @Type(() => AddressDto)  
   address?: AddressDto[];
 }
 

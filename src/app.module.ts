@@ -29,6 +29,7 @@ import { IdTypeModule } from './id-type/id-type.module';
 import { IdType } from './id-type/entities/id-type.entity';
 import { AddressModule } from './address/address.module';
 import { Address } from './address/entities/address.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { Address } from './address/entities/address.entity';
     PaymentModule,
     IdTypeModule,
     AddressModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],

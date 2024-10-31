@@ -25,7 +25,7 @@ import { UserDto } from './dto/user.dto';
 import { ResetUserPasswordGuard } from './user.guard';
 import { AuthUserResponseDto } from './dto/oauth-data';
 import { RequestUpdatePasswordCodeDto, ResponsetUpdatePasswordCodeDto, UpdateUserPasswordDto, ValidateUpdateUserPasswordCodeDto } from './dto/password-change';
-import { IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 
 @ApiTags('Users')
 @Controller('user')
@@ -43,8 +43,12 @@ export class UserController {
     description: 'Error creating the new user' 
   })
   @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
-    return await this.userService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto): Promise<IRecourseCreated> {
+    console.log("CONTROLLER")
+    const response = await this.userService.create(createUserDto);
+    const userParsed: UserDto = this.userService.mapUserToUserDto(response.recourse);
+    response.recourse = userParsed;
+    return response;
   }
   
 
@@ -242,7 +246,10 @@ export class UserController {
   })
   @Put(':id')
   async putUpdate( @Param('id') id: number, @Body() updateUserDto: FullUpdateUserDto ) {
-    return await this.userService.update(id, updateUserDto, UpdateType.FULL);
+    const response: IRecourseUpdated = await this.userService.update(id, updateUserDto, UpdateType.FULL);
+    const userParsed: UserDto = this.userService.mapUserToUserDto(response.recourse);
+    response.recourse = userParsed;
+    return response;
   }
 
 

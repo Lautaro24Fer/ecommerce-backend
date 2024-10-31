@@ -43,7 +43,7 @@ export class UserService {
     return await bcrypt.compare(password, hash);
   }
 
-  async create(createUserDto: CreateUserDto): Promise<UserDto> {
+  async create(createUserDto: CreateUserDto): Promise<IRecourseCreated> {
 
     const emailExists = await this.userRepository.existsBy({ email: createUserDto.email }).catch((error) => {
       const response: IBadRequestex = { status: false, message: 'Error in verification if email exists in create user process' };
@@ -70,7 +70,7 @@ export class UserService {
 
     const idTypeOfUser: IdType = await this.idTypeService.findOne(createUserDto.idType);
     
-    const createUser: User = this.userRepository.create({...createUserDto, roles: [], idType: idTypeOfUser });
+    const createUser: User = this.userRepository.create({...createUserDto, roles: [], idType: idTypeOfUser, idNumber: createUserDto.idNumber.toString() });
     const role: Role = await this.roleService.findOneByName('user');
     createUser.roles.push(role);
 
@@ -81,7 +81,13 @@ export class UserService {
       relations: ['roles', 'idType', 'address']
     });
 
-    return this.mapUserToUserDto(userCreated);
+    const response: IRecourseCreated = {
+      status: true,
+      message: 'The user was created succesfully',
+      recourse: userCreated
+    };
+
+    return response;
   }
 
   async findAll(): Promise<UserDto[]> {
@@ -135,10 +141,11 @@ export class UserService {
   }
 
   async findOneById(id: number) {
+    console.log("findOneByid)) Entrada al metodo")
     const user: User = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'idType', 'address']}).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with id '${id}'` };
       console.error(error);
-      throw new BadRequestException(response)
+      throw new BadRequestException(response);
     });
     if (!user) {
       const response: INotFoundEx = { status: false, message: `The user with id '${id}' was not founded` };
@@ -339,32 +346,30 @@ export class UserService {
       }
     }
 
-    const bodyUpdate: UserDto = {
-      ...userToUpdate,
-      ...updateUserDto,
-      idType: userToUpdate.idType,
-      address: userToUpdate.address
-    }
+    Object.assign(userToUpdate, updateUserDto);
+
+    console.log("===BODY UPDATE===");
+    console.log(userToUpdate);
   
     if(updateUserDto?.idType) {
       const idTypeArrived: IdType = await this.idTypeService.findOne(updateUserDto.idType);
-      bodyUpdate.idType = idTypeArrived;
+      userToUpdate.idType = idTypeArrived;
     }
 
     if((updateUserDto?.address) && (updateUserDto?.address.length > 0)){
       switch(updateType){
         case UpdateType.FULL:
           // Se sobrescribe todo el array existente
-          bodyUpdate.address = [];
+          userToUpdate.address = [];
           updateUserDto?.address.forEach(async ad => {
             const address: Address = await this.addressService.findOrCreate(ad);
-            bodyUpdate.address.push(address);
+            userToUpdate.address.push(address);
           });
         break;
         case UpdateType.PARTIAL:
           updateUserDto?.address.forEach(async ad => {
             const address: Address = await this.addressService.findOrCreate(ad);
-            bodyUpdate.address.push(address);
+            userToUpdate.address.push(address);
           });
         break;
         default:
@@ -377,7 +382,15 @@ export class UserService {
       }
     }
 
-    await this.userRepository.update(id, { ...bodyUpdate });
+
+    await this.userRepository.save(userToUpdate).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: 'Error in the updating of the user'
+      };
+      throw new BadRequestException(badRequestError);
+    });
 
     const userUpdated: User = (await this.findOneById(id)).recourse;
 

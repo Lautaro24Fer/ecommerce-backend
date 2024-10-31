@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsPositive, IsPostalCode, IsString, Length, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEmail, IsNotEmpty, IsOptional, IsPositive, IsPostalCode, IsString, Length, MinLength, ValidateNested } from 'class-validator';
 import { Address } from 'src/address/entities/address.entity';
 import { IdType } from 'src/id-type/entities/id-type.entity';
 import { Role } from 'src/roles/entities/role.entity';
@@ -38,11 +39,12 @@ export class CreateUserDto {
 
   @ApiProperty()
   @IsPositive()
-  idNumber: string;
+  idNumber: number;
 
-  @ApiProperty()
-  @IsOptional()
-  address?: AddressDto[];
+  @ApiProperty({ type: () => [AddressDto] })
+  @ValidateNested({ each: true })  // Valida cada objeto dentro del array
+  @Type(() => AddressDto)  // Especifica que el tipo de cada elemento es `AddressDto`
+  address: AddressDto[];
 }
 
 class AddressDto {
