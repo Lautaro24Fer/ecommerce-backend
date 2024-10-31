@@ -113,7 +113,7 @@ export class AuthController {
   }
 
   @Post('logout')
-  logout(@Req() req: Request, @Res() res: Response) {
+  logout(@Res() res: Response) {
     res.cookie('user', '', { httpOnly: true, expires: new Date(0) });
     res.cookie('refresh', '', { httpOnly: true, expires: new Date(0) });
     res.status(200).json({ message: 'Logout successful' });

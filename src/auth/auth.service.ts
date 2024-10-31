@@ -1,13 +1,11 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
-import { LoginResponseDto } from './dto/response-login.dto';
 import { InputLoginDto } from './dto/input-login.dto';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { ConfigService } from '@nestjs/config';
 import { SessionStateDto } from './dto/session-state.dto';
-import { UserDto } from 'src/user/dto/user.dto';
+import { IBadRequestex, IUnauthorizedEx } from 'src/global/responseInterfaces';
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,12 +17,15 @@ export class AuthService {
   
   async validateCredentials( usernameOrEmail: string, password: string ): Promise<User | undefined> {
     
-    const userFounded: UserDto = await this.userService.findOneByUsernameOrEmail(usernameOrEmail);
-    const user = await this.userService.findOneByUsernameEntity(userFounded.username);
+    const user: User = await this.userService.findOneByUsernameOrEmail(usernameOrEmail);
     const isValidated: boolean = await this.userService.comparePasswords( password, user.password );
     console.log(isValidated);
     if (!isValidated) {
-      throw new UnauthorizedException({ error: "The credentials not match" });
+      const unauthorizedError: IUnauthorizedEx = {
+        status: false,
+        message: "The credentials not match"
+      }
+      throw new UnauthorizedException(unauthorizedError);
     }
     return user;
   }
@@ -39,7 +40,11 @@ export class AuthService {
       return { token, refreshToken }
     } 
     catch {
-      throw new HttpException( 'error creating the token', HttpStatus.BAD_REQUEST );
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error in the creation of the token by local auth"
+      };
+      throw new BadRequestException(badRequestError);
     }
   }
 
@@ -91,16 +96,24 @@ export class AuthService {
     }
   }
   async verifyJwtIsExpired(jwt: string): Promise<boolean>{
-    try{
-    const response: any = this.jwtService.verifyAsync(jwt, { secret: this.configService.get<string>('JWT_SECRET') })
-    return true
-    }
-    catch{
-      return false
-    }
+    const response: boolean = await this.jwtService.verifyAsync(jwt, { secret: this.configService.get<string>('JWT_SECRET') }).then((_) => {
+      return true;
+    })
+    .catch((error) => {
+      console.error(error);
+      return false;
+    })
+    return response;
   }
   async getTokenRefreshed(refreshToken: string): Promise<string>{
-    const payload: any = await this.jwtService.verifyAsync(refreshToken, { secret: this.configService.get<string>('JWT_SECRET') });
+    const payload: any = await this.jwtService.verifyAsync(refreshToken, { secret: this.configService.get<string>('JWT_SECRET') }).catch((error) => {
+      console.error(error);
+      const response: IBadRequestex = {
+        status: false,
+        message: "Error decoding the payload of the refresh token"
+      };
+      throw new BadRequestException(response);
+    });
     const accessToken: string = await this.getJwtTokenOrBadRequest({ id: payload.id, method: payload.method }, '1m');
     return accessToken;
   }

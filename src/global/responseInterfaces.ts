@@ -3,6 +3,11 @@ export interface INotFoundEx {
   message: any;
 }
 
+export interface IUnauthorizedEx {
+  status: boolean;
+  message: string;
+}
+
 export interface IBadRequestex {
   status: boolean;
   message: any;
