@@ -17,7 +17,7 @@ export class AuthService {
   
   async validateCredentials( usernameOrEmail: string, password: string ): Promise<User | undefined> {
     
-    const user: User = await this.userService.findOneByUsernameOrEmail(usernameOrEmail);
+    const user: User = (await this.userService.findOneByUsernameOrEmail(usernameOrEmail)).recourse;
     const isValidated: boolean = await this.userService.comparePasswords( password, user.password );
     console.log(isValidated);
     if (!isValidated) {

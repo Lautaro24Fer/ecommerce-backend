@@ -98,7 +98,7 @@ export class AddressService {
   async remove(id: number) {
     const address: Address = await this.findOne(id);
     await this.addressRepository.remove(address);
-    const response: IRecourseDeleted = { status: true, message: `The address with id '${id}' was deleted succesfully`, recourse: address };
+    const response: IRecourseDeleted<Address> = { status: true, message: `The address with id '${id}' was deleted succesfully`, recourse: address };
     return response;
   }
 
@@ -124,7 +124,7 @@ export class AddressService {
       throw new NotFoundException(response);
     };
 
-    const recourse: IRecourseFound = {
+    const recourse: IRecourseFound<Address> = {
       status: true,
       message: 'The recourse was founded succesfully',
       recourse: address

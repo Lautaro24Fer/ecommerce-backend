@@ -43,7 +43,7 @@ export class UserService {
     return await bcrypt.compare(password, hash);
   }
 
-  async create(createUserDto: CreateUserDto): Promise<IRecourseCreated> {
+  async create(createUserDto: CreateUserDto): Promise<IRecourseCreated<User>> {
 
     const emailExists = await this.userRepository.existsBy({ email: createUserDto.email }).catch((error) => {
       const response: IBadRequestex = { status: false, message: 'Error in verification if email exists in create user process' };
@@ -81,7 +81,7 @@ export class UserService {
       relations: ['roles', 'idType', 'address']
     });
 
-    const response: IRecourseCreated = {
+    const response: IRecourseCreated<User> = {
       status: true,
       message: 'The user was created succesfully',
       recourse: userCreated
@@ -90,57 +90,29 @@ export class UserService {
     return response;
   }
 
-  async findAll(): Promise<UserDto[]> {
+  async findAll(): Promise<IRecourseFound<User[]>> {
 
-    const users: User[] = await this.userRepository.find({ relations: ['roles', 'idType', 'address'] });
-    const usersDto: UserDto[] = users.map((user) => {
-      return this.mapUserToUserDto(user);
+    const users: User[] = await this.userRepository.find({ relations: ['roles', 'idType', 'address'] }).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error finding the users in the db"
+      };
+      throw new BadRequestException(badRequestError);
     });
-    return usersDto;
-  }
-
-  async findOneByParam(param: string, searchParam: SearchParam): Promise<User | undefined> {
-    const userResponse: IRecourseFound = {
+    const usersParsed: UserDto[] = users.map((user) => {
+      return this.mapUserToUserDto(user);
+    })
+    const response: IRecourseFound<User[]> = {
       status: true,
-      message: 'The user was found succesfully',
-      recourse: null
-    }
-    switch(searchParam){
-      case SearchParam.ID:
-        let idParsed: number;
-        try{
-          idParsed = Number(param)
-        }
-        catch{
-          const badRequestError: IBadRequestex = {
-            status: false,
-            message: 'Can not parse the param arrived to a number'
-          }
-          throw new BadRequestException(badRequestError);
-        }
-        const responseId: IRecourseFound = await this.findOneById(idParsed);
-        userResponse.recourse = responseId.recourse;
-      break;
-      case SearchParam.USERNAME:
-        const responseUsername: IRecourseFound = await this.findOneByUserName(param);
-        userResponse.recourse = responseUsername.recourse;
-      break;
-      case SearchParam.EMAIL:
-        const responseEmail: IRecourseFound = await this.findOneByEmail(param);
-        userResponse.recourse = responseEmail.recourse
-      break;
-      default:
-        const badRequestError: IBadRequestex = {
-          status: false,
-          message: 'The search param is invalid'
-        };
-        throw new BadRequestException(badRequestError);
-      break;
-    }
-    return userResponse.recourse;
+      message: 'The users was loaded succesfully',
+      recourse: usersParsed
+    };
+    return response;
   }
 
-  async findOneById(id: number) {
+
+  async findOneById(id: number): Promise<IRecourseFound<User>> {
     console.log("findOneByid)) Entrada al metodo")
     const user: User = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'idType', 'address']}).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with id '${id}'` };
@@ -152,7 +124,7 @@ export class UserService {
       throw new NotFoundException(response);
     }
 
-    const recourseResponse: IRecourseFound = {
+    const recourseResponse: IRecourseFound<User> = {
       status: true,
       message: 'The user was found succesfully by id',
       recourse: user
@@ -161,7 +133,7 @@ export class UserService {
     return recourseResponse;
   }
 
-  async findOneByUserName(username: string) {
+  async findOneByUserName(username: string): Promise<IRecourseFound<User>> {
 
     const user: User = await this.userRepository.findOne({ where: { username }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with username '${username}'` };
@@ -172,29 +144,15 @@ export class UserService {
       const response: INotFoundEx = { status: false, message: `The user with username '${username}' was not founded` };
       throw new NotFoundException(response);
     }
-    const response: IRecourseFound = {
+    const response: IRecourseFound<User> = {
       status: true,
       message: 'The user was found succesfully by username',
       recourse: user
     }
     return response;
   }
-  /* Devuelve la entidad completa de usuario (Incluyendo contraseña) */
-  async findOneByUsernameEntity(username: string): Promise<User | undefined> {
 
-    const user: User = await this.userRepository.findOne({ where: { username }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
-      const response: IBadRequestex = { status: false, message: `Error finding the user with username '${username}'` };
-      console.error(error);
-      throw new BadRequestException(response)
-    });
-    if (!user) {
-      const response: INotFoundEx = { status: false, message: `The user with username '${username}' was not founded` };
-      throw new NotFoundException(response);
-    }
-    return user;
-  }
-
-  async findOneByEmail(email: string) {
+  async findOneByEmail(email: string): Promise<IRecourseFound<User>> {
 
     if(!this.validateEmail(email)){
       const badRequestError: IBadRequestex = {
@@ -213,7 +171,7 @@ export class UserService {
       throw new NotFoundException(response);
     }
 
-    const userResponse: IRecourseFound = {
+    const userResponse: IRecourseFound<User> = {
       status: true,
       message: 'The user was found succesfully by email',
       recourse: user
@@ -221,14 +179,14 @@ export class UserService {
     return userResponse;
   }
 
-  async findOneByUsernameOrEmail(input: string) {
+  async findOneByUsernameOrEmail(input: string): Promise<IRecourseFound<User>> {
     
     const isEmail: boolean = await this.validateEmail(input);
     if(isEmail){
-      const userByEmail = await this.findOneByParam(input, SearchParam.EMAIL);
+      const userByEmail = await this.findOneByEmail(input)
       return userByEmail;
     }
-    const userByUsername = await this.findOneByParam(input, SearchParam.USERNAME);
+    const userByUsername = await this.findOneByUserName(input);
     return userByUsername;
   }
 
@@ -242,7 +200,7 @@ export class UserService {
     const userDecoded: any = await this.jwtService.decode(cookieOnRequest);
     const userOnDB: User = await this.userRepository.findOne({
       where: { id: userDecoded.id },
-      relations: ['roles']
+      relations: ['roles', 'idType', 'address']
     });
     if (!userOnDB) {
       throw new NotFoundException({ error: `Error extraing the user with id '${userDecoded.id}', not founded` });
@@ -262,29 +220,34 @@ export class UserService {
   }
   async validateUserWithStrategy(payload: CreateUserStrategyDto) {
 
-    const user: User = await this.findOneByParam(payload.email, SearchParam.EMAIL);
-    if (!user) {
-      const role: Role = await this.roleService.findOneByName('user');
-      const idType: IdType = await this.idTypeService.findOne(payload.idType);
-      const createUser = {
-        name: payload.name,
-        surname: payload.surname,
-        username: payload.username,
-        postalCode: payload.postalCode ?? '',
-        idNumber: payload.idNumber ?? '',
-        email: payload.email,
-        method: payload.method,
-        roles: [],
-        idType: { ...idType },
-      };
-      createUser.roles.push(role);
-      const userCreated: User = await this.userRepository.save(createUser).catch((error) => {
-        const response: IBadRequestex = { status: false, message: 'Error in the creation of the user in strategy validation' };
-        console.error(error)
-        throw new BadRequestException(response);
-      });
-      return userCreated;
-    }
+    const user: User = await this.findOneByEmail(payload.email).then(data => data.recourse)
+    .catch(async (error) => {
+      if (error instanceof NotFoundException) {
+        const role: Role = await this.roleService.findOneByName('user');
+        const idType: IdType = await this.idTypeService.findOne(payload.idType);
+        const createUser = {
+          name: payload.name,
+          surname: payload.surname,
+          username: payload.username,
+          postalCode: payload.postalCode ?? '',
+          idNumber: payload.idNumber ?? '',
+          email: payload.email,
+          method: payload.method,
+          roles: [],
+          idType: { ...idType },
+        };
+        createUser.roles.push(role);
+        const userCreated: User = await this.userRepository.save(createUser).catch((error) => {
+          const response: IBadRequestex = { status: false, message: 'Error in the creation of the user in strategy validation' };
+          console.error(error)
+          throw new BadRequestException(response);
+        });
+        return userCreated;
+      }
+      else{
+        throw new BadRequestException(error);
+      }
+    })
     return user;
   }
 
@@ -318,9 +281,9 @@ export class UserService {
     return response;
   }
 
-  async update( id: number, updateUserDto: PartialUpdateUserDto, updateType: UpdateType ): Promise<IRecourseUpdated> {
+  async update( id: number, updateUserDto: PartialUpdateUserDto, updateType: UpdateType ): Promise<IRecourseUpdated<User>> {
 
-    const userToUpdate: User = await this.findOneByParam(id.toString(), SearchParam.ID);
+    const userToUpdate: User = (await this.findOneById(id)).recourse;
 
     // -- validar que el email está en uso
 
@@ -394,7 +357,7 @@ export class UserService {
 
     const userUpdated: User = (await this.findOneById(id)).recourse;
 
-    const response: IRecourseUpdated = {
+    const response: IRecourseUpdated<User> = {
       status: true,
       message: 'The recourse was updated succesfully',
       recourse: userUpdated
@@ -405,9 +368,16 @@ export class UserService {
 
   async remove(id: number) {
 
-    const userToRemove: User = await this.findOneByParam(id.toString(), SearchParam.ID);
-    const userRemoved = await this.userRepository.remove(userToRemove);
-    const response: IRecourseDeleted = { 
+    const userToRemove: User = (await this.findOneById(id)).recourse;
+    const userRemoved = await this.userRepository.remove(userToRemove).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error in removing proccess of the user with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const response: IRecourseDeleted<User> = { 
       status: true, 
       message: 'The recourse was deleted succesfully', 
       recourse:  userRemoved
@@ -423,7 +393,7 @@ export class UserService {
   
   async resetPasswordRequest(input: string){
 
-    const user: User = await this.findOneByUsernameOrEmail(input);
+    const user: User = (await this.findOneByUsernameOrEmail(input)).recourse;
 
     const expiresIn = new Date(Date.now() + 2 * 60 * 1000); // El codigo de correo durará 2 minutos
 		const token = this.generateRandomToken();
@@ -440,7 +410,7 @@ export class UserService {
 
   async validatePasswordResetCode(code: number, email: string){
 
-    const user: User = await this.findOneByParam(email, SearchParam.EMAIL);
+    const user: User = (await this.findOneByEmail(email)).recourse
 
     if(user.passwordResetToken !== code.toString()){
       throw new BadRequestException({ status: false, description: 'The code is incorrect' });

@@ -21,6 +21,7 @@ import { TypeService } from 'src/type/type.service';
 import { ProductImage } from 'src/images/entities/image.entity';
 import { ImagesService } from 'src/images/images.service';
 import { CreateImageDto } from 'src/images/dto/create-image.dto';
+import { IBadRequestex, INotFoundEx, IRecourseFound } from 'src/global/responseInterfaces';
 
 @Injectable()
 export class ProductService {
@@ -125,15 +126,30 @@ export class ProductService {
     return products;
   }
 
-  async findOne(id: number): Promise<Product> {
-    const productFinded: Product = await this.productRepository.findOne({
-      where: { id },
-      relations: ['brand', 'supplier', 'type', 'secondariesImages'],
-    });
-    if (!productFinded) {
-      throw new NotFoundException(`The product with the id '${id}' was not founded`);
+  async findOne(id: number): Promise<IRecourseFound<Product>> {
+    const product: Product = await this.productRepository.findOne({
+      where: { id }, relations: ['brand', 'supplier', 'type', 'secondariesImages']})
+      .catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error finding the product by id"
+      };
+      throw new BadRequestException(badRequestError);
+    })
+    if (!product) {
+      const notFoundError: INotFoundEx = {
+        status: false,
+        message: `The product with id '${id}' was not found`
+      }
+      throw new NotFoundException(notFoundError);
     }
-    return productFinded;
+    const recourseFound: IRecourseFound<Product> = {
+      status: true,
+      message: "The product was found succcesfully",
+      recourse: product
+    };
+    return recourseFound;
   }
 
   async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {

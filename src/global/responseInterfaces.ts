@@ -13,26 +13,27 @@ export interface IBadRequestex {
   message: any;
 }
 
-export interface IRecourseDeleted {
+export interface IRecourseDeleted<T> {
   status: boolean;
   message: string;
-  recourse: any;
+  recourse: T;
 }
 
-export interface IRecourseFound {
+export interface IRecourseFound<T> {
   status: boolean;
   message: string;
-  recourse: any;
+  recourse: T;
 }
 
-export interface IRecourseCreated {
+export interface IRecourseCreated<T> {
   status: boolean;
   message: string;
-  recourse: any;
+  recourse: T;
 }
 
-export interface IRecourseUpdated {
+export interface IRecourseUpdated<T> {
   status: boolean;
   message: string;
-  recourse: any;
+  recourse: T;
 }
+

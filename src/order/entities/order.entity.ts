@@ -1,3 +1,4 @@
+import { Address } from 'src/address/entities/address.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
@@ -14,22 +15,22 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  destinity: string;
+  @ManyToOne(() => Address, (address) => address.id)
+  address: Address;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date_created: Date;
 
-  @Column()
+  @Column({ nullable: true })
   dev_date_estimated: Date;
 
-  @Column()
+  @Column({ nullable: true })
   dev_date: Date;
 
-  @ManyToOne(() => User, (user) => user.id, { cascade: true })
+  @ManyToOne(() => User, (user) => user.id)
   user: User;
 
-  @ManyToMany(() => Product, (product) => product.id, { cascade: true })
+  @ManyToMany(() => Product, (product) => product.id)
   @JoinTable()
   products: Product[];
 }

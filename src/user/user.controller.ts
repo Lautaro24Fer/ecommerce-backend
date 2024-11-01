@@ -43,7 +43,7 @@ export class UserController {
     description: 'Error creating the new user' 
   })
   @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<IRecourseCreated> {
+  async create(@Body() createUserDto: CreateUserDto): Promise<IRecourseCreated<User>> {
     console.log("CONTROLLER")
     const response = await this.userService.create(createUserDto);
     const userParsed: UserDto = this.userService.mapUserToUserDto(response.recourse);
@@ -64,8 +64,9 @@ export class UserController {
     description: 'Error loading all users' 
   })
   @Get()
-  async findAll(): Promise<UserDto[]> {
-    return await this.userService.findAll();
+  async findAll(): Promise<IRecourseFound<User[]>> {
+    const response: IRecourseFound<User[]> = await this.userService.findAll();
+    return response;
   }
 
 
@@ -203,7 +204,7 @@ export class UserController {
   })
   // @UseGuards(AuthGuard) -- Elimino las restricciones por testeo
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<IRecourseFound> {
+  async findOne(@Param('id') id: number): Promise<IRecourseFound<User>> {
     return await this.userService.findOneById(id);
   }
 
@@ -224,7 +225,7 @@ export class UserController {
     description: 'Bad request, error updating the user' 
   })
   @Patch(':id')
-  async patchUpdate( @Param('id') id: number, @Body() updateUserDto: PartialUpdateUserDto ): Promise<IRecourseUpdated> {
+  async patchUpdate( @Param('id') id: number, @Body() updateUserDto: PartialUpdateUserDto ): Promise<IRecourseUpdated<User>> {
     const response = await this.userService.update(id, updateUserDto, UpdateType.PARTIAL);
     const userParsed: UserDto = this.userService.mapUserToUserDto(response.recourse);
     response.recourse = userParsed;
@@ -246,7 +247,7 @@ export class UserController {
   })
   @Put(':id')
   async putUpdate( @Param('id') id: number, @Body() updateUserDto: FullUpdateUserDto ) {
-    const response: IRecourseUpdated = await this.userService.update(id, updateUserDto, UpdateType.FULL);
+    const response: IRecourseUpdated<User> = await this.userService.update(id, updateUserDto, UpdateType.FULL);
     const userParsed: UserDto = this.userService.mapUserToUserDto(response.recourse);
     response.recourse = userParsed;
     return response;

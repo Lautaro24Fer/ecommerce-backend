@@ -15,7 +15,7 @@ export class ImagesService {
   private readonly dataSource: DataSource) {}
 
   async create(createImageDto: CreateImageDto) {
-    const product: Product = await this.productService.findOne(createImageDto.productId);
+    const product: Product = (await this.productService.findOne(createImageDto.productId)).recourse;
 
     const imageCreated: ProductImage = this.imageRepository.create({ ...createImageDto, product });
 
