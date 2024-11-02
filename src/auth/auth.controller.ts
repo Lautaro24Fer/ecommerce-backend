@@ -10,13 +10,12 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { InputLoginDto } from './dto/input-login.dto';
-import { LoginResponseDto } from './dto/response-login.dto';
 import { Request, Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from './auth-google.guard';
 import { AuthGuard } from './auth.guard';
 import { Roles } from './auth.decorator';
+import { InputLoginDto, LoginResponseDto } from './dto/login.dto';
 
 @ApiTags('Auth')
 @Controller('auth')

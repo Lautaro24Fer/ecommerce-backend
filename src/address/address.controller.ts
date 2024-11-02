@@ -3,6 +3,8 @@ import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { Address } from './entities/address.entity';
 
 @ApiTags('Address')
 @Controller('address')
@@ -25,8 +27,8 @@ export class AddressController {
     description: 'Error in the creation of the new address'
   })
   @Post()
-  create(@Body() createAddressDto: CreateAddressDto) {
-    return this.addressService.create(createAddressDto);
+  async create(@Body() createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>> {
+    return await this.addressService.create(createAddressDto);
   }
 
   @ApiOperation({
@@ -49,7 +51,7 @@ export class AddressController {
     description: 'Error loading the addresses'
   })
   @Get()
-  findAll() {
+  findAll(): Promise<IRecourseFound<Address[]>> {
     return this.addressService.findAll();
   }
 
@@ -73,7 +75,7 @@ export class AddressController {
     description: 'Error loading the address'
   })
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: number): Promise<IRecourseFound<Address>> {
     return this.addressService.findOne(id);
   }
 
@@ -97,7 +99,7 @@ export class AddressController {
     description: 'Error updating the address'
   })
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateAddressDto: UpdateAddressDto) {
+  update(@Param('id') id: number, @Body() updateAddressDto: UpdateAddressDto): Promise<IRecourseUpdated<Address>> {
     return this.addressService.update(id, updateAddressDto);
   }
 
@@ -106,7 +108,7 @@ export class AddressController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Address deleted succesfully'
+    description: 'Address deleted succesfully'  
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -121,7 +123,7 @@ export class AddressController {
     description: 'Error removing the address'
   })
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number): Promise<IRecourseDeleted<Address>> {
     return this.addressService.remove(id);
   }
 }

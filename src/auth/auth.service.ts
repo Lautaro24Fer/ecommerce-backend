@@ -1,11 +1,11 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InputLoginDto } from './dto/input-login.dto';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { ConfigService } from '@nestjs/config';
-import { SessionStateDto } from './dto/session-state.dto';
+import { IAuthTokens, SessionStateDto } from './dto/session-state.dto';
 import { IBadRequestex, IUnauthorizedEx } from 'src/global/responseInterfaces';
+import { InputLoginDto } from './dto/login.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,7 +19,6 @@ export class AuthService {
     
     const user: User = (await this.userService.findOneByUsernameOrEmail(usernameOrEmail)).recourse;
     const isValidated: boolean = await this.userService.comparePasswords( password, user.password );
-    console.log(isValidated);
     if (!isValidated) {
       const unauthorizedError: IUnauthorizedEx = {
         status: false,
@@ -48,24 +47,31 @@ export class AuthService {
     }
   }
 
-  async getCookieByPassportStrategy( user: any ) {
+  async getCookieByPassportStrategy( user: any ): Promise<IAuthTokens> {
 
     const userFinded: User = (await this.userService.findOneById(user?.id)).recourse; 
     const token: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '1m');
     const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '7m');
-    return { token, refreshToken }
+    const tokens: IAuthTokens = {
+      token,
+      refreshToken
+    }
+    return tokens;
   }
 
 
   async getJwtTokenOrBadRequest( payload: any, timeToExpire: string, ): Promise<string | undefined> {
-    try {
-      const cookieCrypted = await this.jwtService.signAsync( payload, { expiresIn: timeToExpire });
-      return cookieCrypted;
-    }
-    catch {
-      throw new HttpException( 'error creating the token', HttpStatus.BAD_REQUEST );
-    }
+    const cookieCrypted = await this.jwtService.signAsync( payload, { expiresIn: timeToExpire }).catch((error) => {
+      console.error(error);
+      const response: IBadRequestex = {
+        status: false,
+        message: "Error in the creation of the token"
+      };
+      throw new BadRequestException(response);
+    })
+    return cookieCrypted;
   }
+  
   async getSessionStatue(accessToken: string, refreshToken: string): Promise<object>{
     const sessionState: SessionStateDto = new SessionStateDto();
     if(!refreshToken || refreshToken === ''){

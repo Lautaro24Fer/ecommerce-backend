@@ -10,3 +10,8 @@ export class SessionStateDto{
     message: string;
     payload?: any;
 }
+
+export interface IAuthTokens {
+    token: string;
+    refreshToken: string;
+}

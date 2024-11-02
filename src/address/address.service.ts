@@ -4,16 +4,13 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Address } from './entities/address.entity';
 import { Repository } from 'typeorm';
-import { IBadRequestex, INotFoundEx, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
-import { Exception } from 'handlebars';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class AddressService {
 
-  constructor(
-    @InjectRepository(Address) private readonly addressRepository: Repository<Address>,
-    private readonly schedulerRegistery: SchedulerRegistry) {}
+  constructor(@InjectRepository(Address) private readonly addressRepository: Repository<Address>) {}
 
   // @Cron('*/2 * * * *')  cada dos min
   @Cron('0 0 * * *') // Ejecuta la limpieza cada día a medianoche
@@ -34,41 +31,62 @@ export class AddressService {
     }
   }
 
-  async findOrCreate(createAddressDto: CreateAddressDto){
+  async findOrCreate(createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>>{
     const { postalCode, addressNumber, addressStreet } = createAddressDto;
     const address: Address = await this.findOneByAllData(postalCode, addressStreet, addressNumber)
     .then(data => data.recourse)
-    .catch((error) => {
+    .catch(async (error) => {
+      console.error(error);
       if(error instanceof NotFoundException){
-        return this.create({ postalCode, addressNumber, addressStreet });
+        const newAddress: IRecourseCreated<Address> = await this.create({ postalCode, addressNumber, addressStreet });
+        return newAddress.recourse;
       }
       else{
         throw error;
       }
     });
-    return address;
+    const recourse: IRecourseCreated<Address> = {
+      status: true,
+      message: "The address was created succesfully",
+      recourse: address
+    };
+    return recourse;
   }
 
-  async create(createAddressDto: CreateAddressDto) {
+  async create(createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>> {
     
-    const addressCreated: Address = await this.addressRepository.save(createAddressDto).catch((_) => {
+    const addressCreated: Address = await this.addressRepository.save(createAddressDto).catch((error) => {
+      console.error(error);
       const response: IBadRequestex = { status: false, message: 'Error creating the new address' };
       throw new BadRequestException(response);
     })
 
-    return addressCreated;
+    const response: IRecourseCreated<Address> = {
+      status: true,
+      message: "The address was created succesfully",
+      recourse: addressCreated
+    };
+
+    return response;
   }
 
-  async findAll() {
-    const addresses: Address[] = await this.addressRepository.find().catch((_) => {
+  async findAll(): Promise<IRecourseCreated<Address[]>> {
+    const addresses: Address[] = await this.addressRepository.find().catch((error) => {
+      console.error(error);
       const response: IBadRequestex = { status: false, message: 'Error loading the addresses saved' };
       throw new BadRequestException(response);
     })
-    return addresses;
+    const recourse: IRecourseCreated<Address[]> = {
+      status: true,
+      message: "The addresses was loaded succesfully",
+      recourse: addresses
+    };
+    return recourse;
   }
 
-  async findOne(id: number): Promise<Address> {
-    const address: Address = await this.addressRepository.findOneBy({ id }).catch((_) => {
+  async findOne(id: number): Promise<IRecourseFound<Address>> {
+    const address: Address = await this.addressRepository.findOneBy({ id }).catch((error) => {
+      console.error(error);
       const response: IBadRequestex = { status: false, message: 'Error loading the addresses saved' };
       throw new BadRequestException(response);
     })
@@ -76,35 +94,55 @@ export class AddressService {
       const response: INotFoundEx = { status: false, message: `The address with id '${id}' was not founded` }
       throw new NotFoundException(response);
     }
-    return address;
+    const recourse: IRecourseFound<Address> = {
+      status: true,
+      message: `The address with id ${id} was found succesfully`,
+      recourse: address
+    };
+    return recourse;
   }
 
-  async update(id: number, updateAddressDto: UpdateAddressDto) {
+  async update(id: number, updateAddressDto: UpdateAddressDto): Promise<IRecourseUpdated<Address>> {
 
-    const addressToUpdate: Address = await this.findOne(id);
-    if(!addressToUpdate){
-      const response: INotFoundEx = { status: false, message: `The address with id '${id}' was not founded` }
-      throw new NotFoundException(response);
-    }
+    const addressToUpdate: Address = (await this.findOne(id)).recourse;
     const updatedBody = { ...addressToUpdate, ...updateAddressDto };
-    const addressUpdated: Address = await this.addressRepository.save(updatedBody).catch((_) => {
-      const response: IBadRequestex = { status: false, message: 'Error saving the new state of the address' };
+    const addressUpdated: Address = await this.addressRepository.save(updatedBody).catch((error) => {
+      console.error(error);
+      const response: IBadRequestex = { 
+        status: false, 
+        message: 'Error saving the new state of the address' 
+      };
       throw new BadRequestException(response);
     })
 
-    return addressUpdated;
+    const response: IRecourseUpdated<Address> = {
+      status: true,
+      message: `The address with id '${id}' was updated succesfully`,
+      recourse: addressUpdated
+    }
+    return response;
   }
 
-  async remove(id: number) {
-    const address: Address = await this.findOne(id);
-    await this.addressRepository.remove(address);
-    const response: IRecourseDeleted<Address> = { status: true, message: `The address with id '${id}' was deleted succesfully`, recourse: address };
+  async remove(id: number): Promise<IRecourseDeleted<Address>> {
+    const address: Address = (await this.findOne(id)).recourse;
+    await this.addressRepository.remove(address).catch((error) => {
+      console.error(error);
+      const response: IBadRequestex = {
+        status: false,
+        message: `Error removing the address with id '${id}'`
+      };
+      throw new BadRequestException(response);
+    });
+    const response: IRecourseDeleted<Address> = { 
+      status: true, message: `The address with id '${id}' was deleted succesfully`, 
+      recourse: address 
+    };
     return response;
   }
 
   // Teniendo en cuenta que hay muchas variantes de direcciones, se busca 
   // que una dirección exacta exista previamente en la base de datos
-  async findOneByAllData(postalCode: string, addressStreet: string, addressNumber: string){
+  async findOneByAllData(postalCode: string, addressStreet: string, addressNumber: string): Promise<IRecourseFound<Address>>{
 
     const address: Address = await this.addressRepository.findOneBy({
       postalCode,
