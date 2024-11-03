@@ -5,6 +5,7 @@ import { UpdateImageDto } from './dto/update-image.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductImageResponseDto } from './dto/image-response.dto';
 import { ProductImage } from './entities/image.entity';
+import { IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 
 @ApiTags('Images of products')
 @Controller('images')
@@ -21,13 +22,14 @@ export class ImagesController {
     description: 'Error adding a new image to a product'
   })
   @Post()
-  async create(@Body() createImageDto: CreateImageDto) {
-    const imageServiceResponse: ProductImage = await this.imagesService.create(createImageDto);
+  async create(@Body() createImageDto: CreateImageDto): Promise<ProductImageResponseDto> {
+    const imageServiceResponse: ProductImage = (await this.imagesService.create(createImageDto)).recourse;
     const productImageResponse: ProductImageResponseDto = { 
       id: imageServiceResponse.id, 
       url: imageServiceResponse.url, 
-      productId: imageServiceResponse.product.id };
-      return productImageResponse
+      productId: imageServiceResponse.product.id 
+    };
+    return productImageResponse;
   }
 
   @ApiOperation({ summary: 'Get all images of all products' })
@@ -40,7 +42,7 @@ export class ImagesController {
     description: 'Error loading the images'
   })
   @Get()
-  async findAll() {
+  async findAll(): Promise<IRecourseFound<ProductImage[]>> {
     return await this.imagesService.findAll();
   }
 
@@ -58,7 +60,7 @@ export class ImagesController {
     description: 'Error loading the image'
   })
   @Get(':id')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id') id: number): Promise<IRecourseFound<ProductImage>> {
     return await this.imagesService.findOne(id);
   }
 
@@ -76,7 +78,7 @@ export class ImagesController {
   })
   @ApiOperation({ summary: 'Update image data by id' })
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() updateImageDto: UpdateImageDto) {
+  async update(@Param('id') id: number, @Body() updateImageDto: UpdateImageDto): Promise<IRecourseUpdated<ProductImage>> {
     return await this.imagesService.update(id, updateImageDto);
   }
 
@@ -94,7 +96,7 @@ export class ImagesController {
     description: 'Error deleting the image'
   })
   @Delete(':id')
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id') id: number): Promise<IRecourseDeleted<ProductImage>> {
     return await this.imagesService.remove(id);
   }
 }

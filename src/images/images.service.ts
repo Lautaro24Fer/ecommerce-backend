@@ -6,69 +6,137 @@ import { ProductImage } from './entities/image.entity';
 import { DataSource, Repository } from 'typeorm';
 import { ProductService } from 'src/product/product.service';
 import { Product } from 'src/product/entities/product.entity';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 
 @Injectable()
 export class ImagesService {
 
   constructor(@InjectRepository(ProductImage) private readonly imageRepository: Repository<ProductImage>,
-  @Inject(forwardRef(() => ProductService)) private readonly productService: ProductService,
-  private readonly dataSource: DataSource) {}
+  @Inject(forwardRef(() => ProductService)) private readonly productService: ProductService,) {}
 
-  async create(createImageDto: CreateImageDto) {
+  async create(createImageDto: CreateImageDto): Promise<IRecourseCreated<ProductImage>> {
     const product: Product = (await this.productService.findOne(createImageDto.productId)).recourse;
 
     const imageCreated: ProductImage = this.imageRepository.create({ ...createImageDto, product });
 
-    const imageSaved: ProductImage = await this.imageRepository.save(imageCreated);
-    return imageSaved;
+    const imageSaved: ProductImage = await this.imageRepository.save(imageCreated).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error in the creation of the product image"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+
+    const response: IRecourseCreated<ProductImage> = {
+      status: true,
+      message: "The product image was created succesfully",
+      recourse: imageSaved
+    }
+    return response;
   }
 
-  async findAll() {
+  async findAll(): Promise<IRecourseFound<ProductImage[]>> {
     try{
       const allImages: ProductImage[] = await this.imageRepository.createQueryBuilder('product_image')
       .leftJoin('product_image.product', 'product')
       .addSelect('product.id')
       .orderBy('product_image.id', 'ASC') 
       .getMany()
-      return allImages;
+      const recourse: IRecourseFound<ProductImage[]> = {
+        status: true,
+        message: "The product images was found succesfully",
+        recourse: allImages
+      }
+      return recourse;
     }
     catch(error){
       throw new BadRequestException({ error: 'Error exception loading all images' })
     }
   }
 
-  async findOne(id: number) {
-    const productImage: ProductImage = await this.imageRepository.findOneBy({ id });
+  async findOne(id: number): Promise<IRecourseFound<ProductImage>> {
+    const productImage: ProductImage = await this.imageRepository.findOneBy({ id }).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error loading the product with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
     if(!productImage){
-      throw new NotFoundException({ error: `The product image id '${id}' was not founded` });
+      const notFoundError: INotFoundEx = {
+        status: false,
+        message: `The image with id '${id}' was not found`
+      };
+      throw new NotFoundException(notFoundError);
     }
-    return productImage;
+    const recourse: IRecourseFound<ProductImage> = {
+      status: true,
+      message: "The product image was found succesfully",
+      recourse: productImage
+    }
+    return recourse;
   }
 
-  async findOneByIdAndUrl(productId: number, url: string){
-    const productImage = await this.imageRepository.findOneBy({ product: { id: productId }, url});
+  async findOneByIdAndUrl(productId: number, url: string): Promise<IRecourseFound<ProductImage>>{
+    const productImage = await this.imageRepository.findOneBy({ product: { id: productId }, url}).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error loading the product with id '${productId}' and url '${url}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
     if(!productImage){
-      throw new NotFoundException({ error: `The product image with id ''${productId}'' and url '${url}' was not founded` });
+      const notFoundError: INotFoundEx = {
+        status: false,
+        message: `The product image with id '${productId}' and url '${url}' was not founded`
+      }
+      throw new NotFoundException(notFoundError);
     }
-    return productImage;
+    const recourse: IRecourseFound<ProductImage> = {
+      status: true,
+      message: "The product image was found succesfully",
+      recourse: productImage
+    }
+    return recourse;
   }
 
-  async update(id: number, updateImageDto: UpdateImageDto) {
-    const productImageToUpdate: ProductImage = await this.imageRepository.findOneBy({ id });
-    if(!productImageToUpdate){
-      throw new NotFoundException({ error: `The product image id '${id}' was not founded` });
-    }
+  async update(id: number, updateImageDto: UpdateImageDto): Promise<IRecourseUpdated<ProductImage>> {
+    const productImageToUpdate: ProductImage = (await this.findOne(id)).recourse;
     const productImageUpdated: ProductImage = { ...productImageToUpdate, ...updateImageDto };
-    await this.imageRepository.save(productImageUpdated);
-    return productImageUpdated;
+    await this.imageRepository.save(productImageUpdated).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error updating the product image with id: '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const recourse: IRecourseUpdated<ProductImage> = {
+      status: true,
+      message: "The product image was updated succesfully",
+      recourse: productImageUpdated
+    };
+    return recourse;
   }
 
-  async remove(id: number) {
-    const productImage: ProductImage = await this.imageRepository.findOneBy({ id });
-    if(!productImage){
-      throw new NotFoundException({ error: `The product image id '${id}' was not founded` });
-    }
-    await this.imageRepository.delete(productImage);
-    return productImage;
+  async remove(id: number): Promise<IRecourseDeleted<ProductImage>> {
+    const productImage: ProductImage = (await this.findOne(id)).recourse;
+    const removed: ProductImage = await this.imageRepository.remove(productImage).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error removing the product image with id: '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const recourse: IRecourseDeleted<ProductImage> = {
+      status: true,
+      message: "The product image was deleted succesfully",
+      recourse: removed
+    };
+    return recourse;
   }
 }
