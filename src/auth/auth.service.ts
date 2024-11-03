@@ -72,7 +72,7 @@ export class AuthService {
     return cookieCrypted;
   }
   
-  async getSessionStatue(accessToken: string, refreshToken: string): Promise<object>{
+  async getSessionStatue(accessToken: string, refreshToken: string): Promise<SessionStateDto>{
     const sessionState: SessionStateDto = new SessionStateDto();
     if(!refreshToken || refreshToken === ''){
       sessionState.message = 'Session expired. Please login again';

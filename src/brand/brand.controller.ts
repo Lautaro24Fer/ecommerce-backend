@@ -12,6 +12,8 @@ import { BrandService } from './brand.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { Brand } from './entities/brand.entity';
 
 @ApiTags('Brands')
 @Controller('brand')
@@ -28,7 +30,7 @@ export class BrandController {
     description: 'Bad request. The new brand was not created',
   })
   @Post()
-  create(@Body() createBrandDto: CreateBrandDto) {
+  create(@Body() createBrandDto: CreateBrandDto): Promise<IRecourseCreated<Brand>> {
     return this.brandService.create(createBrandDto);
   }
 
@@ -46,7 +48,7 @@ export class BrandController {
     description: 'Brands not founded',
   })
   @Get()
-  findAll() {
+  findAll(): Promise<IRecourseFound<Brand[]>> {
     return this.brandService.findAll();
   }
 
@@ -64,7 +66,7 @@ export class BrandController {
     description: 'Brand not founded',
   })
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: number): Promise<IRecourseFound<Brand>> {
     return this.brandService.findOne(id);
   }
 
@@ -82,7 +84,7 @@ export class BrandController {
     description: 'Brand not founded',
   })
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateBrandDto: UpdateBrandDto) {
+  update(@Param('id') id: number, @Body() updateBrandDto: UpdateBrandDto): Promise<IRecourseUpdated<Brand>> {
     return this.brandService.update(id, updateBrandDto);
   }
 
@@ -100,7 +102,7 @@ export class BrandController {
     description: 'Brand not founded',
   })
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number): Promise<IRecourseDeleted<Brand>> {
     return this.brandService.remove(id);
   }
 }

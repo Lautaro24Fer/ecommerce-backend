@@ -3,6 +3,8 @@ import { IdTypeService } from './id-type.service';
 import { CreateIdTypeDto } from './dto/create-id-type.dto';
 import { UpdateIdTypeDto } from './dto/update-id-type.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IdType } from './entities/id-type.entity';
 
 @ApiTags('Identification Types')
 @Controller('id-type')
@@ -25,7 +27,7 @@ export class IdTypeController {
     description: 'Error in the creation of the identification type'
   })
   @Post()
-  create(@Body() createIdTypeDto: CreateIdTypeDto) {
+  create(@Body() createIdTypeDto: CreateIdTypeDto): Promise<IRecourseCreated<IdType>> {
     return this.idTypeService.create(createIdTypeDto);
   }
 
@@ -49,7 +51,7 @@ export class IdTypeController {
     description: 'Error in the finding of the identification types'
   })
   @Get()
-  findAll() {
+  findAll(): Promise<IRecourseFound<IdType[]>> {
     return this.idTypeService.findAll();
   }
 
@@ -73,7 +75,7 @@ export class IdTypeController {
     description: 'Error in the loading of the identification type'
   })
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: number): Promise<IRecourseFound<IdType>> {
     return this.idTypeService.findOne(id);
   }
 
@@ -97,7 +99,7 @@ export class IdTypeController {
     description: 'Error in the updating of the identification type'
   })
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateIdTypeDto: UpdateIdTypeDto) {
+  update(@Param('id') id: number, @Body() updateIdTypeDto: UpdateIdTypeDto): Promise<IRecourseUpdated<IdType>> {
     return this.idTypeService.update(id, updateIdTypeDto);
   }
 
@@ -121,8 +123,7 @@ export class IdTypeController {
     description: 'Error in the deleting of the identification type'
   })
   @Delete(':id')
-  async remove(@Param('id') id: number) {
-    await this.idTypeService.remove(id);
-    return { status: true, message: `The product with id '${id}' was deleted succesfully` }
+  async remove(@Param('id') id: number): Promise<IRecourseDeleted<IdType>> {
+    return await this.idTypeService.remove(id);
   }
 }

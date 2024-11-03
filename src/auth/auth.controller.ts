@@ -16,6 +16,7 @@ import { GoogleAuthGuard } from './auth-google.guard';
 import { AuthGuard } from './auth.guard';
 import { Roles } from './auth.decorator';
 import { InputLoginDto, LoginResponseDto } from './dto/login.dto';
+import { SessionStateDto } from './dto/session-state.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -56,7 +57,7 @@ export class AuthController {
 
   @UseGuards(GoogleAuthGuard)
   @Get('login/google/redirect')
-  async googleLoginCallback(@Req() req: Request, @Res() res: Response) {
+  async googleLoginCallback(@Req() req: Request, @Res() res: Response): Promise<void> {
 
     const error = req.query['error'];
 
@@ -83,16 +84,16 @@ export class AuthController {
   }
 
   @Get('status')
-  async isLogged(@Req() req: Request){
+  async isLogged(@Req() req: Request): Promise<SessionStateDto>{
     const refreshToken: any = req.cookies['refresh']
     const accessToken: any = req.cookies['user']
-    const response: any = await this.authService.getSessionStatue(accessToken, refreshToken)
+    const response: SessionStateDto = await this.authService.getSessionStatue(accessToken, refreshToken)
     return response;
   }
 
   
   @Post('refresh')
-  async refreshToken(@Req() req: Request, @Res() res: Response){
+  async refreshToken(@Req() req: Request, @Res() res: Response): Promise<Response>{
     const refreshToken: string = req.cookies['refresh']
     if(!refreshToken){
       throw new UnauthorizedException({ error: 'any refresh token, please login again' })
@@ -112,10 +113,10 @@ export class AuthController {
   }
 
   @Post('logout')
-  logout(@Res() res: Response) {
+  logout(@Res() res: Response): Response{
     res.cookie('user', '', { httpOnly: true, expires: new Date(0) });
     res.cookie('refresh', '', { httpOnly: true, expires: new Date(0) });
-    res.status(200).json({ message: 'Logout successful' });
+    return res.status(200).json({ message: 'Logout successful' });
   }
 
   //Endpoint de prueba para testear en swagger
