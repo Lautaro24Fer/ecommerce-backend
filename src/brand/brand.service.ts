@@ -8,6 +8,7 @@ import { UpdateBrandDto } from './dto/update-brand.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brand } from './entities/brand.entity';
 import { Repository } from 'typeorm';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 
 @Injectable()
 export class BrandService {
@@ -16,53 +17,98 @@ export class BrandService {
     private readonly brandRepository: Repository<Brand>,
   ) {}
 
-  async create(createBrandDto: CreateBrandDto): Promise<Brand> {
-    try {
-      const brandCreated: Brand =
-        await this.brandRepository.save(createBrandDto);
-      return brandCreated;
-    } catch {
-      throw new BadRequestException('Error creating the brand');
-    }
+  async create(createBrandDto: CreateBrandDto): Promise<IRecourseCreated<Brand>> {
+    const brandCreated: Brand = await this.brandRepository.save(createBrandDto).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error in the creation of the brand"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const recourse: IRecourseCreated<Brand> = {
+      status: true,
+      message: "The brand was created succesfully",
+      recourse: brandCreated
+    };
+    return recourse;
   }
 
-  async findAll(): Promise<Brand[]> {
-    const brands: Brand[] = await this.brandRepository.find();
-    if (!brands || brands.length < 1) {
-      throw new NotFoundException('Brands not founded');
-    }
-    return brands;
+  async findAll(): Promise<IRecourseCreated<Brand[]>> {
+    const brands: Brand[] = await this.brandRepository.find().catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error finding the brands"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const recourse: IRecourseCreated<Brand[]> = {
+      status: true,
+      message: "The brands was loaded succesfully",
+      recourse: brands
+    };
+    return recourse;
   }
 
-  async findOne(id: number): Promise<Brand> {
-    const brand: Brand = await this.brandRepository.findOne({
-      where: { id: id },
+  async findOne(id: number): Promise<IRecourseFound<Brand>> {
+    const brand: Brand = await this.brandRepository.findOneBy({ id }).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error finding the brand"
+      };
+      throw new BadRequestException(badRequestError);
     });
     if (!brand) {
-      throw new NotFoundException(`Brand with id '${id}' was not founed`);
+      const badRequestError: INotFoundEx = {
+        status: false,
+        message: `The brand with id: '${id}' was not found`
+      };
+      throw new NotFoundException(badRequestError);
     }
-    return brand;
+    const recourse: IRecourseFound<Brand> = {
+      status: true,
+      message: "The brands was loaded succesfully",
+      recourse: brand
+    };
+    return recourse;
   }
 
-  async update(id: number, updateBrandDto: UpdateBrandDto): Promise<Brand> {
-    const brand: Brand = await this.brandRepository.findOne({
-      where: { id: id },
-    });
-    if (!brand) {
-      throw new NotFoundException(`Brand with id '${id}' was not founed`);
-    }
+  async update(id: number, updateBrandDto: UpdateBrandDto): Promise<IRecourseUpdated<Brand>> {
+    const brand: Brand = (await this.findOne(id)).recourse;
     Object.assign(brand, updateBrandDto);
-    const brandUpdated: Brand = await this.brandRepository.save(brand);
-    return brandUpdated;
+    const brandUpdated: Brand = await this.brandRepository.save(brand).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error updating the brand with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const recourse: IRecourseUpdated<Brand> = {
+      status: true,
+      message: "The brand was updated succesfully",
+      recourse: brand
+    };
+    return recourse;
   }
 
-  async remove(id: number): Promise<void> {
-    const brand: Brand = await this.brandRepository.findOne({
-      where: { id: id },
+  async remove(id: number): Promise<IRecourseDeleted<Brand>> {
+    const brand: Brand = (await this.findOne(id)).recourse;
+    const removed: Brand = await this.brandRepository.remove(brand).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error removing the brand with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
     });
-    if (!brand) {
-      throw new NotFoundException(`Brand with id '${id}' was not founed`);
-    }
-    await this.brandRepository.remove(brand);
+    const recourse: IRecourseDeleted<Brand> = {
+      status: true,
+      message: "The brand was removed succesfully",
+      recourse: removed
+    };
+    return recourse;
   }
 }
