@@ -21,7 +21,8 @@ import { TypeService } from 'src/type/type.service';
 import { ProductImage } from 'src/images/entities/image.entity';
 import { ImagesService } from 'src/images/images.service';
 import { CreateImageDto } from 'src/images/dto/create-image.dto';
-import { IBadRequestex, INotFoundEx, IRecourseFound } from 'src/global/responseInterfaces';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { STATUS_CODES } from 'http';
 
 @Injectable()
 export class ProductService {
@@ -36,11 +37,11 @@ export class ProductService {
     private readonly typeService: TypeService,
   ) {}
 
-  async create(createProductDto: CreateProductDto): Promise<Product> {
+  async create(createProductDto: CreateProductDto): Promise<IRecourseCreated<Product>> {
 
     // Verificar que el id de supplier y brand existen. Para eso primero haremos sus respectivos repositorios primero
 
-    const brand: Brand = await this.brandService.findOne(createProductDto.brandId);
+    const brand: Brand = (await this.brandService.findOne(createProductDto.brandId)).recourse;
 
     const supplier: Supplier = await this.supplierService.findOne(createProductDto.supplierId);
 
@@ -59,22 +60,24 @@ export class ProductService {
     const { id }: Product = await this.productRepository.save(newProduct);
 
     if(createProductDto.secondariesImages){
-      const secondariesImagesMapped: any[] = await Promise.all(createProductDto.secondariesImages.map(async(image) =>{
-        return await this.productImageService.create({ productId: id, url: image });
+      const secondariesImagesMapped: ProductImage[] = await Promise.all(createProductDto.secondariesImages.map(async(image) =>{
+        return (await this.productImageService.create({ productId: id, url: image })).recourse;
       }));
 
       newProduct.secondariesImages = [ ...secondariesImagesMapped ];
       await this.productRepository.save(newProduct);
     }
 
-    const productCreated: Product = await this.productRepository.findOne({
-      where: { id },
-      relations: ['brand', 'supplier', 'secondariesImages'],
-    });
-    return productCreated;
+    const productCreated: Product = (await this.findOne(id)).recourse;
+    const response: IRecourseCreated<Product> = {
+      status: true,
+      message: "The product was created succesfully",
+      recourse: productCreated
+    }
+    return response;
   } 
 
-  async findAll(queryParams: QueryParamsDto): Promise<Product[]> {
+  async findAll(queryParams: QueryParamsDto): Promise<IRecourseFound<Product[]>> {
     const queryBuilder = this.productRepository
       .createQueryBuilder('product') 
       .innerJoinAndSelect('product.brand', 'brand')
@@ -121,9 +124,22 @@ export class ProductService {
       queryBuilder.take(queryParams.limit);
     }
 
-    const products: Product[] = await queryBuilder.getMany();
+    const products: Product[] = await queryBuilder.getMany().catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error loading all products"
+      };
+      throw new BadRequestException(badRequestError);
+    });
 
-    return products;
+    const response: IRecourseFound<Product[]> = {
+      status: true,
+      message: "The products was found succesfully",
+      recourse: products
+    }
+
+    return response;
   }
 
   async findOne(id: number): Promise<IRecourseFound<Product>> {
@@ -152,14 +168,8 @@ export class ProductService {
     return recourseFound;
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
-    const productFinded: Product = await this.productRepository.findOne({
-      where: { id },
-      relations: ['brand', 'supplier', 'secondariesImages'],
-    });
-    if (!productFinded) {
-      throw new NotFoundException(`The product with the id '${id}' was not founded`);
-    }
+  async update(id: number, updateProductDto: UpdateProductDto): Promise<IRecourseUpdated<Product>> {
+    const productFinded: Product = (await this.findOne(id)).recourse;
 
     if (updateProductDto.name) {
       productFinded.name = updateProductDto.name;
@@ -174,7 +184,7 @@ export class ProductService {
     }
 
     if (updateProductDto.brandId) {
-      const brand: Brand = await this.brandService.findOne(updateProductDto?.brandId);
+      const brand: Brand = (await this.brandService.findOne(updateProductDto?.brandId)).recourse;
       productFinded.brand = brand;
     }
 
@@ -188,17 +198,39 @@ export class ProductService {
       productFinded.type = type;
     }
 
-    const productUpdated: Product = await this.productRepository.save(productFinded);
-    return productUpdated;
+    const productUpdated: Product = await this.productRepository.save(productFinded).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error updating the product"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const recourse: IRecourseUpdated<Product> = {
+      status: true,
+      message: "The product was updated succesfully",
+      recourse: productUpdated
+    };
 
+    return recourse;
   }
 
-  async remove(id: number): Promise<void> {
-    const product: Product = await this.productRepository.findOneBy({ id });
-    if (!product) {
-      throw new NotFoundException(`The product with the id '${id}' was not founded`);
-    }
-    await this.productRepository.remove(product);
+  async remove(id: number): Promise<IRecourseDeleted<Product>> {
+    const product: Product = (await this.findOne(id)).recourse;
+    const removed: Product = await this.productRepository.remove(product).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error removing the product with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const response: IRecourseDeleted<Product> = {
+      status: true,
+      message: "The product was deleted succesfully",
+      recourse: removed
+    };
+    return response;
   }
 
   mapUrlToProductImage(url: string, id: number){

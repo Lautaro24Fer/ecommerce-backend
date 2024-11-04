@@ -88,7 +88,7 @@ export class ImagesController {
     description: 'Image deleted succesfully'
   })
   @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
+    status: HttpStatus.NOT_FOUND, 
     description: 'Image not founded'
   })
   @ApiResponse({

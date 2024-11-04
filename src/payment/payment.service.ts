@@ -7,7 +7,7 @@ import { UserService } from 'src/user/user.service';
 import { UserDto } from 'src/user/dto/user.dto';
 import { User } from 'src/user/entities/user.entity';
 import { Address } from 'src/address/entities/address.entity';
-import { IBadRequestex, INotFoundEx } from 'src/global/responseInterfaces';
+import { IBadRequestex, INotFoundEx, IRecourseCreated } from 'src/global/responseInterfaces';
 
 @Injectable()
 export class PaymentService {
@@ -91,9 +91,21 @@ export class PaymentService {
 			body: { ...preferenceBody }
 		})
 			.then(data => {
-				res.json({ status: 201, description: 'The form was created succesfully', url: data.init_point })
+				const response: IRecourseCreated<string> = {
+					status: true,
+					message: "The embeded form was created succesfully",
+					recourse: data.init_point
+				}
+				res.json(response);
 			})
-			.catch(console.error)
+			.catch(error => {
+				console.error(error);
+				const badRequestError: IBadRequestex = {
+					status: false,
+					message: "Error in the creation of the embeded form"
+				}
+				throw new BadRequestException(badRequestError);
+			});
 
 	}
 }

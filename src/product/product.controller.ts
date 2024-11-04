@@ -17,6 +17,7 @@ import { Product } from './entities/product.entity';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { ProductImageResponseDto } from 'src/images/dto/image-response.dto';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 
 @ApiTags('Products')
 @Controller('product')
@@ -33,7 +34,7 @@ export class ProductController {
     description: 'Bad request, the product was not created',
   })
   @Post()
-  async create(@Body() createProductDto: CreateProductDto) {
+  async create(@Body() createProductDto: CreateProductDto): Promise<IRecourseCreated<Product>> {
     return await this.productService.create(createProductDto);
   }
 
@@ -87,7 +88,7 @@ export class ProductController {
     description: 'type of the product',
   })
   @Get()
-  async findAll(@Query() queryParams: QueryParamsDto): Promise<Product[]> {
+  async findAll(@Query() queryParams: QueryParamsDto): Promise<IRecourseFound<Product[]>> {
     return await this.productService.findAll(queryParams);
   }
 
@@ -123,15 +124,15 @@ export class ProductController {
     description: 'Error updating the product',
   })
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
-    const responseService: Product = await this.productService.update(id, updateProductDto);
-    if(responseService?.secondariesImages[0]?.product?.id){
-      const imagesMapped:  ProductImageResponseDto[] = responseService.secondariesImages.map(image => {
-        return { id: image.id, url: image.url, productId: image.product.id };
-      });
-      const responseUpdate = { ...responseService, secondariesImages: [...imagesMapped] };
-      return responseUpdate;
-    }
+  async update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto): Promise<IRecourseUpdated<Product>> {
+    const responseService: IRecourseUpdated<Product> = (await this.productService.update(id, updateProductDto));
+    // if(responseService?.secondariesImages[0]?.product?.id){
+    //   const imagesMapped:  ProductImageResponseDto[] = responseService.secondariesImages.map(image => {
+    //     return { id: image.id, url: image.url, productId: image.product.id };
+    //   });
+    //   const responseUpdate = { ...responseService, secondariesImages: [...imagesMapped] };
+    //   return responseUpdate;
+    // }
     return responseService;
   }
 
@@ -149,7 +150,7 @@ export class ProductController {
     description: 'Error deliting the product',
   })
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number): Promise<IRecourseDeleted<Product>> {
     return this.productService.remove(id);
   }
 }

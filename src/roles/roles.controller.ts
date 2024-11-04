@@ -3,6 +3,8 @@ import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { Role } from './entities/role.entity';
 
 @ApiTags('Roles')
 @Controller('roles')
@@ -24,7 +26,7 @@ export class RolesController {
     description: 'Can not create a role, unauthorized request'
   })
   @Post()
-  create(@Body() createRoleDto: CreateRoleDto) {
+  create(@Body() createRoleDto: CreateRoleDto): Promise<IRecourseCreated<Role>> {
     return this.rolesService.create(createRoleDto);
   }
 
@@ -38,7 +40,7 @@ export class RolesController {
     description: 'Error roles all products'
   })
   @Get()
-  findAll() {
+  findAll(): Promise<IRecourseFound<Role[]>> {
     return this.rolesService.findAll();
   }
 
@@ -60,7 +62,7 @@ export class RolesController {
     description: 'Can not get this role, unauthorized request'
   })
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: number): Promise<IRecourseFound<Role>> {
     return this.rolesService.findOne(id);
   }
 
@@ -86,7 +88,7 @@ export class RolesController {
     description: 'Can not update this role, unauthorized request'
   })
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateRoleDto: UpdateRoleDto) {
+  update(@Param('id') id: number, @Body() updateRoleDto: UpdateRoleDto): Promise<IRecourseUpdated<Role>> {
     return this.rolesService.update(id, updateRoleDto);
   }
 
@@ -108,7 +110,7 @@ export class RolesController {
     description: 'Can not delete this role, unauthorized request'
   })
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number): Promise<IRecourseDeleted<Role>> {
     return this.rolesService.remove(id);
   }
 }

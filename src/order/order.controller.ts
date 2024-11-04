@@ -10,8 +10,9 @@ import {
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
+import { Order } from './entities/order.entity';
 
 @ApiTags('Orders')
 @Controller('order')
@@ -34,7 +35,7 @@ export class OrderController {
     description: "Error in the creation of the order"
   })
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
+  create(@Body() createOrderDto: CreateOrderDto): Promise<IRecourseCreated<Order>> {
     return this.orderService.create(createOrderDto);
   }
 
@@ -54,7 +55,7 @@ export class OrderController {
     description: "Error finding the ordersr"
   })
   @Get()
-  findAll() {
+  findAll(): Promise<IRecourseFound<Order[]>> {
     return this.orderService.findAll();
   }
 
@@ -78,8 +79,8 @@ export class OrderController {
     description: "Error finding the order"
   })
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.orderService.findOneById(+id);
+  findOne(@Param('id') id: number): Promise<IRecourseFound<Order>> {
+    return this.orderService.findOneById(id);
   }
 
   // @Patch(':id')
@@ -107,7 +108,7 @@ export class OrderController {
     description: "Error deleting the order"
   })
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number): Promise<IRecourseDeleted<Order>> {
     return this.orderService.remove(id);
   }
 }

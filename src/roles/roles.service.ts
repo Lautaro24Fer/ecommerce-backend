@@ -4,78 +4,141 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from './entities/role.entity';
 import { Repository } from 'typeorm';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 
 @Injectable()
 export class RolesService {
 
   constructor(@InjectRepository(Role) private readonly roleRepository: Repository<Role>){}
 
-  async create(createRoleDto: CreateRoleDto) {
-    try{
-      const roleCreated: Role = await this.roleRepository.save(createRoleDto);
-      return roleCreated;
-    }
-    catch{
-      throw new BadRequestException({ error: 'Error in the creation of the role' });
-    }
+  async create(createRoleDto: CreateRoleDto): Promise<IRecourseCreated<Role>> {
+    const roleCreated: Role = await this.roleRepository.save(createRoleDto).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error in the creation of the role"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const response: IRecourseCreated<Role> = {
+      status: true,
+      message: "The role was created succesfully",
+      recourse: roleCreated
+    };
+
+    return response;
   }
 
-  async findAll() {
-   try{
-    const rolesFinded: Role[] = await this.roleRepository.find();
-    return rolesFinded;
-   }
-   catch{
-    throw new BadRequestException({ error: 'Error finding all roles' });
-   }
+  async findAll(): Promise<IRecourseFound<Role[]>> {
+    const rolesFinded: Role[] = await this.roleRepository.find().catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error in the loading of the role"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const response: IRecourseFound<Role[]> = {
+      status: true,
+      message: "The role was created succesfully",
+      recourse: rolesFinded
+    };
+    return response;
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<IRecourseFound<Role>>{
     
-    const roleFinded: Role = await this.roleRepository.findOneBy({ id });
-    if(!roleFinded){
-      throw new NotFoundException({error: `role id '${id}' was not founded`});
+    const roleFinded: Role = await this.roleRepository.findOneBy({ id }).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error in the loading of the role"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    if(!roleFinded) {
+      const notFoundError: INotFoundEx = {
+      status: false,
+      message: `The role with id '${id}' was not found`
+    };
+      throw new NotFoundException(notFoundError);
     }
-    return roleFinded;
+    const response: IRecourseFound<Role> = {
+      status: true,
+      message: "The role was found succesfully",
+      recourse: roleFinded
+    };
+    return response;
   }
 
-  async findOneByName(name: string){
-    const role: Role = await this.roleRepository.findOneBy({ name });
-    if(!role){
-      throw new NotFoundException({error: `role name '${name}' was not founded`});
+  async findOneByName(name: string): Promise<IRecourseFound<Role>>{
+    const role: Role = await this.roleRepository.findOneBy({ name }).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error in the load of the role"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    if(!role) {
+      const notFoundError: INotFoundEx = {
+      status: false,
+      message: `The role with name '${name}' was not found`
+    };
+      throw new NotFoundException(notFoundError);
     }
-    return role;
+    const response: IRecourseFound<Role> = {
+      status: true,
+      message: "The role was found succesfully",
+      recourse: role
+    };
+    return response;
   }
 
-  async update(id: number, updateRoleDto: UpdateRoleDto) {
-    let roleFinded: Role = await this.roleRepository.findOneBy({ id });
-    if(!roleFinded){
-      throw new NotFoundException({error: `role id '${id}' was not founded`});
-    }
-    try{
-      roleFinded = { ...roleFinded, ...updateRoleDto };
-      await this.roleRepository.save(roleFinded);
-      return roleFinded;
-    }
-    catch{
-      throw new BadRequestException({ error: 'Error updating role' });
-    }
+  async update(id: number, updateRoleDto: UpdateRoleDto): Promise<IRecourseUpdated<Role>> {
+    const roleFinded: Role = (await this.findOne(id)).recourse;
+    const roleBody: Role = { ...roleFinded, ...updateRoleDto };
+    const updated: Role = await this.roleRepository.save(roleBody).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error updating the role with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const response: IRecourseUpdated<Role> = {
+      status: true,
+      message: "Role uptaded succesfully",
+      recourse: updated
+    };
+    return response;
   }
 
-  async remove(id: number) {
-    const roleFinded: Role = await this.roleRepository.findOneBy({ id });
-    if(!roleFinded){
-      throw new NotFoundException({error: `role id '${id}' was not founded`});
+  async remove(id: number): Promise<IRecourseDeleted<Role>> {
+    const role: Role = (await this.findOne(id)).recourse;
+    // Sería interesante aplicar una logica de NO eliminación del rol de usuarios o administrador
+    // para evitar problemas con los usuarios existentes, entonces solo podrías borrar aquellos 
+    // roles secundarios como moderadores, que generarían menos problemas
+    if(role.name === "user" || role.name === "admin") {
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Cant delete user or admin role"
+      };
+      throw new BadRequestException(badRequestError);
     }
-    try{
-      // Sería interesante aplicar una logica de NO eliminación del rol de usuarios o administrador
-      // para evitar problemas con los usuarios existentes, entonces solo podrías borrar aquellos 
-      // roles secundarios como moderadores, que generarían menos problemas
-      await this.roleRepository.delete(roleFinded);
-      return { ...roleFinded, deleted: true };
-    }
-    catch{
-      throw new BadRequestException({ error: 'Error updating role' });
-    }
+    const removed: Role = await this.roleRepository.remove(role).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error removing the role with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const response: IRecourseDeleted<Role> = {
+      status: true,
+      message: "The role was deleted succesfully",
+      recourse: removed
+    };
+    return response;
   }
 }

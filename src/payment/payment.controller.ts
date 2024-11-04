@@ -28,7 +28,7 @@ export class PaymentController {
   // @UseGuards(PaymentGuard)
   // TODO: La id no debería llegar desde el body, sino desde la cookie ya que es un recurso protegido
   @Post('mp/preference')
-  async createPaymentPreference(@Body() paymentPreference: IPaymentPreferenceReq,  @Res() res: Response ){
+  async createPaymentPreference(@Body() paymentPreference: IPaymentPreferenceReq,  @Res() res: Response ): Promise<void>{
     await this.paymentService.createPaymentPreference(paymentPreference, res);
   }
 
