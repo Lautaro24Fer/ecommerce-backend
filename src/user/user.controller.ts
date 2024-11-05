@@ -25,7 +25,7 @@ import { UserDto } from './dto/user.dto';
 import { ResetUserPasswordGuard } from './user.guard';
 import { AuthUserResponseDto } from './dto/oauth-data';
 import { RequestUpdatePasswordCodeDto, ResponsetUpdatePasswordCodeDto, UpdateUserPasswordDto, ValidateUpdateUserPasswordCodeDto } from './dto/password-change';
-import { IRecourseCreated, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from 'src/global/responseInterfaces';
 
 @ApiTags('Users')
 @Controller('user')
@@ -116,10 +116,14 @@ export class UserController {
 		description: 'Mail was not sended succesfully'
 	})
   @Post('/reset-pass-code')
-  async getResetPasswordCode(@Body() updateUserPassword: RequestUpdatePasswordCodeDto){
-    const user: User = await this.userService.resetPasswordRequest(updateUserPassword.usernameOrEmail);
-    const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Code sended succesfully', user}
-    return responseDto;  
+  async getResetPasswordCode(@Body() updateUserPassword: RequestUpdatePasswordCodeDto): Promise<IRecourseCreated<UserDto>>{
+    const user: IRecourseCreated<User> = await this.userService.resetPasswordRequest(updateUserPassword.usernameOrEmail);
+    const userParsed: UserDto = this.userService.mapUserToUserDto(user.recourse);
+    const response: IRecourseCreated<UserDto> = {
+      ...user,
+      recourse: userParsed
+    };
+    return response;
   }
 
 
@@ -136,7 +140,7 @@ export class UserController {
 		description: 'Error validating code'
 	})
   @Post('/reset-pass-validate-code')
-  async validateResetPasswordCode(@Body() updateUserPasswordValidate: ValidateUpdateUserPasswordCodeDto, @Res() res: Response){
+  async validateResetPasswordCode(@Body() updateUserPasswordValidate: ValidateUpdateUserPasswordCodeDto, @Res() res: Response): Promise<Response> {
 
     const jwt: string = await this.userService.validatePasswordResetCode(updateUserPasswordValidate.code, updateUserPasswordValidate.email);
     res.cookie('password-reset', jwt, {
@@ -168,18 +172,21 @@ export class UserController {
   })
   @UseGuards(ResetUserPasswordGuard)
   @Patch('/reset-pass')
-  async resetPassword(@Req() req: Request , @Res() res: Response, @Body() updateUserPasswordDto: UpdateUserPasswordDto){
+  async resetPassword(@Req() req: Request , @Res() res: Response, @Body() updateUserPasswordDto: UpdateUserPasswordDto): Promise<Response>{
 
     const jwt: string = req.cookies['password-reset'];
 
     if(!jwt){
-      throw new UnauthorizedException({ error: 'No jwt in request' });
+      const unauthError: IUnauthorizedEx = {
+        status: false,
+        message: "No jwt in the request"
+      }
+      throw new UnauthorizedException(unauthError);
     }
 
-    const userUpdated = await this.userService.resetPassword(jwt, updateUserPasswordDto.newPassword);
+    const userUpdated: IRecourseUpdated<User> = await this.userService.resetPassword(jwt, updateUserPasswordDto.newPassword);
     res.cookie('password-reset', '', { httpOnly: true, expires: new Date(0) });
-    const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Password updated succesfully', user: userUpdated };
-    return res.status(201).json(responseDto);
+    return res.status(201).json(userUpdated);
   }
 
 
@@ -246,10 +253,13 @@ export class UserController {
     description: 'Bad request, error updating the user' 
   })
   @Put(':id')
-  async putUpdate( @Param('id') id: number, @Body() updateUserDto: FullUpdateUserDto ) {
-    const response: IRecourseUpdated<User> = await this.userService.update(id, updateUserDto, UpdateType.FULL);
-    const userParsed: UserDto = this.userService.mapUserToUserDto(response.recourse);
-    response.recourse = userParsed;
+  async putUpdate( @Param('id') id: number, @Body() updateUserDto: FullUpdateUserDto ): Promise<IRecourseUpdated<UserDto>> {
+    const userUpdated: IRecourseUpdated<User> = await this.userService.update(id, updateUserDto, UpdateType.FULL);
+    const userParsed: UserDto = this.userService.mapUserToUserDto(userUpdated.recourse);
+    const response: IRecourseUpdated<UserDto> = {
+      ...userUpdated,
+      recourse: userParsed
+    };
     return response;
   }
 
@@ -276,8 +286,14 @@ export class UserController {
     description: 'Bad request, error deleting the user' })
   @UseGuards(AuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: number) {
-    return await this.userService.remove(id);
+  async remove(@Param('id') id: number): Promise<IRecourseDeleted<UserDto>> {
+    const userRemoved: IRecourseDeleted<User> = await this.userService.remove(id);
+    const userParsed: UserDto = this.userService.mapUserToUserDto(userRemoved.recourse);
+    const response: IRecourseDeleted<UserDto> = {
+      ...userRemoved,
+      recourse: userParsed
+    };
+    return response;
   }
 
 }

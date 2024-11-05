@@ -12,6 +12,8 @@ import { SupplierService } from './supplier.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { Supplier } from './entities/supplier.entity';
 
 @ApiTags('Suppliers')
 @Controller('supplier')
@@ -28,7 +30,7 @@ export class SupplierController {
     description: 'Bad request. The supplier was not created',
   })
   @Post()
-  create(@Body() createSupplierDto: CreateSupplierDto) {
+  create(@Body() createSupplierDto: CreateSupplierDto): Promise<IRecourseCreated<Supplier>> {
     return this.supplierService.create(createSupplierDto);
   }
 
@@ -46,7 +48,7 @@ export class SupplierController {
     description: 'Suppliers not founded',
   })
   @Get()
-  findAll() {
+  findAll(): Promise<IRecourseFound<Supplier[]>> {
     return this.supplierService.findAll();
   }
 
@@ -64,7 +66,7 @@ export class SupplierController {
     description: 'Supplier not founded',
   })
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: number): Promise<IRecourseFound<Supplier>> {
     return this.supplierService.findOne(id);
   }
 
@@ -82,7 +84,7 @@ export class SupplierController {
     description: 'Supplier not founded',
   })
   @Patch(':id')
-  update( @Param('id') id: number, @Body() updateSupplierDto: UpdateSupplierDto ) {
+  update( @Param('id') id: number, @Body() updateSupplierDto: UpdateSupplierDto ): Promise<IRecourseUpdated<Supplier>> {
     return this.supplierService.update(id, updateSupplierDto);
   }
 
@@ -100,7 +102,7 @@ export class SupplierController {
     description: 'Supplier not founded',
   })
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number): Promise<IRecourseDeleted<Supplier>> {
     return this.supplierService.remove(id);
   }
 }

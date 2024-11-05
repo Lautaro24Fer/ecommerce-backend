@@ -18,7 +18,6 @@ import { AddressService } from 'src/address/address.service';
 import { Address } from 'src/address/entities/address.entity';
 
 enum UniqueUserRecourse { USERNAME = 'username', EMAIL = 'email'  };
-enum SearchParam { ID, USERNAME, EMAIL };
 export enum UpdateType { PARTIAL, FULL };
 
 @Injectable()
@@ -68,18 +67,22 @@ export class UserService {
     createUserDto.password = await this.hashPassword(createUserDto.password);
     createUserDto.username = createUserDto.username.toLocaleLowerCase();
 
-    const idTypeOfUser: IdType = await this.idTypeService.findOne(createUserDto.idType);
+    const idTypeOfUser: IdType = (await this.idTypeService.findOne(createUserDto.idType)).recourse; 
     
     const createUser: User = this.userRepository.create({...createUserDto, roles: [], idType: idTypeOfUser, idNumber: createUserDto.idNumber.toString() });
-    const role: Role = await this.roleService.findOneByName('user');
+    const role: Role = (await this.roleService.findOneByName('user')).recourse;
     createUser.roles.push(role);
 
-    const userSaved: User = await this.userRepository.save(createUser);
-
-    const userCreated: User = await this.userRepository.findOne({
-      where: { id: userSaved.id},
-      relations: ['roles', 'idType', 'address']
+    const userSaved: User = await this.userRepository.save(createUser).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error saving the user created"
+      };
+      throw new BadRequestException(badRequestError);
     });
+
+    const userCreated: User = (await this.findOneById(userSaved.id)).recourse;
 
     const response: IRecourseCreated<User> = {
       status: true,
@@ -110,7 +113,6 @@ export class UserService {
     };
     return response;
   }
-
 
   async findOneById(id: number): Promise<IRecourseFound<User>> {
     console.log("findOneByid)) Entrada al metodo")
@@ -195,22 +197,15 @@ export class UserService {
     return emailRegex.test(input);
   }
 
-  async findOneByCookie(cookieOnRequest: string) {
-    
+   async findOneByCookie(cookieOnRequest: string): Promise<IRecourseFound<User>> {
     const userDecoded: any = await this.jwtService.decode(cookieOnRequest);
-    const userOnDB: User = await this.userRepository.findOne({
-      where: { id: userDecoded.id },
-      relations: ['roles', 'idType', 'address']
-    });
-    if (!userOnDB) {
-      throw new NotFoundException({ error: `Error extraing the user with id '${userDecoded.id}', not founded` });
-    }
+    const userOnDB: IRecourseFound<User> = await this.findOneById(userDecoded.id);
     return userOnDB;
   }
 
   async responseByAuthStrategy( cookie: string ): Promise<AuthUserResponseDto | undefined> {
 
-    const user: User = await this.findOneByCookie(cookie);
+    const user: User = (await this.findOneByCookie(cookie)).recourse;
     const userDto: UserDto = this.mapUserToUserDto(user);
     const responseUser: AuthUserResponseDto = { user: userDto, isNewUser: false };
     if (user.username.includes('null')) {
@@ -218,13 +213,13 @@ export class UserService {
     }
     return responseUser;
   }
-  async validateUserWithStrategy(payload: CreateUserStrategyDto) {
+  async validateUserWithStrategy(payload: CreateUserStrategyDto): Promise<User> {
 
     const user: User = await this.findOneByEmail(payload.email).then(data => data.recourse)
     .catch(async (error) => {
       if (error instanceof NotFoundException) {
-        const role: Role = await this.roleService.findOneByName('user');
-        const idType: IdType = await this.idTypeService.findOne(payload.idType);
+        const role: Role = (await this.roleService.findOneByName('user')).recourse;
+        const idType: IdType = (await this.idTypeService.findOne(payload.idType)).recourse;
         const createUser = {
           name: payload.name,
           surname: payload.surname,
@@ -315,7 +310,7 @@ export class UserService {
     console.log(userToUpdate);
   
     if(updateUserDto?.idType) {
-      const idTypeArrived: IdType = await this.idTypeService.findOne(updateUserDto.idType);
+      const idTypeArrived: IdType = (await this.idTypeService.findOne(updateUserDto.idType)).recourse;
       userToUpdate.idType = idTypeArrived;
     }
 
@@ -325,13 +320,13 @@ export class UserService {
           // Se sobrescribe todo el array existente
           userToUpdate.address = [];
           updateUserDto?.address.forEach(async ad => {
-            const address: Address = await this.addressService.findOrCreate(ad);
+            const address: Address = (await this.addressService.findOrCreate(ad)).recourse;
             userToUpdate.address.push(address);
           });
         break;
         case UpdateType.PARTIAL:
           updateUserDto?.address.forEach(async ad => {
-            const address: Address = await this.addressService.findOrCreate(ad);
+            const address: Address = (await this.addressService.findOrCreate(ad)).recourse;
             userToUpdate.address.push(address);
           });
         break;
@@ -366,7 +361,7 @@ export class UserService {
     return response;
   }
 
-  async remove(id: number) {
+  async remove(id: number): Promise<IRecourseDeleted<User>> {
 
     const userToRemove: User = (await this.findOneById(id)).recourse;
     const userRemoved = await this.userRepository.remove(userToRemove).catch((error) => {
@@ -391,7 +386,7 @@ export class UserService {
     return Math.floor(100000 + Math.random() * 900000);
 	}
   
-  async resetPasswordRequest(input: string){
+  async resetPasswordRequest(input: string): Promise<IRecourseCreated<User>>{
 
     const user: User = (await this.findOneByUsernameOrEmail(input)).recourse;
 
@@ -401,58 +396,79 @@ export class UserService {
     user.passwordResetToken = token.toString(); // el codigo podría hashearse con bcrypt
     user.passwordResetTokenExpiresIn = expiresIn;
 
-    await this.userRepository.save(user);
+    await this.userRepository.save(user).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error saving the reset password tokens"
+      };
+      throw new BadRequestException(badRequestError);
+    });
 
     await this.emailService.sendEmailForResetPassword(token, user.email); // Envío del correo al usuario con el codigo de cambio de contraseña
 
-    return this.mapUserToUserDto(user);
+    const response: IRecourseCreated<User> = {
+      status: true,
+      message: "The tokens was created and the email was sended succesfully",
+      recourse: user
+    };
+
+    return response;
   }
 
-  async validatePasswordResetCode(code: number, email: string){
+  async validatePasswordResetCode(code: number, email: string): Promise<string>{
 
     const user: User = (await this.findOneByEmail(email)).recourse
 
     if(user.passwordResetToken !== code.toString()){
-      throw new BadRequestException({ status: false, description: 'The code is incorrect' });
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "The code is incorrect"
+      };
+      throw new BadRequestException(badRequestError);
     }
 
     if(user.passwordResetTokenExpiresIn < new Date()){
-      throw new BadRequestException({ status: false, description: 'The code is expired' });
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "The code is expired"
+      };
+      throw new BadRequestException(badRequestError);
     }
 
     const jwt: string = await this.jwtService.signAsync({ userId: user.id, isValidOperation: true });
     return jwt;
   }
 
-  async resetPassword(jwt: string, newPassword: string){
+  async resetPassword(jwt: string, newPassword: string): Promise<IRecourseUpdated<User>>{
 
     const decoded = await this.jwtService.decode(jwt);
-    const user: User = await this.userRepository.findOne({
-      where: { id: decoded.userId },
-      relations: ['roles']
+    const user: User = (await this.findOneById(decoded?.userId)).recourse;
+
+    const newPasswordCrypted: string = await this.hashPassword(newPassword);
+
+    user.password = newPasswordCrypted;
+
+    user.passwordResetToken = null;
+
+    user.passwordResetTokenExpiresIn = null;
+
+    const userUpdated = await this.userRepository.save(user).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error in the reset of the password"
+      };
+      throw new BadRequestException(badRequestError);
     });
 
-    if(!user){
-      throw new NotFoundException({ message: `The user with the id '${decoded.id}' was not founded` });
-    }
-    try{
+    const response: IRecourseUpdated<User> = {
+      status: true,
+      message: "The password was updated succesfully",
+      recourse: userUpdated
+    };
 
-      const newPasswordCrypted: string = await this.hashPassword(newPassword);
-
-      user.password = newPasswordCrypted;
-
-      user.passwordResetToken = null;
-
-      user.passwordResetTokenExpiresIn = null;
-
-      await this.userRepository.save(user);
-
-      return this.mapUserToUserDto(user);
-    }
-    catch(error){
-      console.error(error);
-      throw new BadRequestException({ error: 'Error saving the new password' });
-    }
+    return response;
   }
 
   mapUserToUserDto(user: User): UserDto {

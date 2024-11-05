@@ -43,9 +43,9 @@ export class ProductService {
 
     const brand: Brand = (await this.brandService.findOne(createProductDto.brandId)).recourse;
 
-    const supplier: Supplier = await this.supplierService.findOne(createProductDto.supplierId);
+    const supplier: Supplier = (await this.supplierService.findOne(createProductDto.supplierId)).recourse;
 
-    const type: ProductType = await this.typeService.findOne(createProductDto.typeId);
+    const type: ProductType = (await this.typeService.findOne(createProductDto.typeId)).recourse;
 
     const newProduct: Product = this.productRepository.create({  
       name: createProductDto.name,
@@ -189,12 +189,12 @@ export class ProductService {
     }
 
     if (updateProductDto.supplierId) {
-      const supplier: Supplier = await this.supplierService.findOne(updateProductDto?.supplierId);
+      const supplier: Supplier = (await this.supplierService.findOne(updateProductDto?.supplierId)).recourse;
       productFinded.supplier = supplier;
     }
 
     if(updateProductDto.typeId){
-      const type: ProductType = await this.typeService.findOne(updateProductDto?.typeId);
+      const type: ProductType = (await this.typeService.findOne(updateProductDto?.typeId)).recourse;
       productFinded.type = type;
     }
 
