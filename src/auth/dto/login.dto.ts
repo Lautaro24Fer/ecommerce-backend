@@ -5,7 +5,7 @@ export class InputLoginDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  input: string;
+  usernameOrEmail: string;
 
   @ApiProperty()
   @IsNotEmpty()

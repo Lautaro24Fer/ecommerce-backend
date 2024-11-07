@@ -8,10 +8,11 @@ import {
   UseGuards,
   UnauthorizedException,
   BadRequestException,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from './auth-google.guard';
 import { AuthGuard } from './auth.guard';
 import { Roles } from './auth.decorator';
@@ -23,8 +24,26 @@ import { SessionStateDto } from './dto/session-state.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({
+    summary: "User login by local way. With username or email and password"
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "The login was accepted succesfully"
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "The credentials not match"
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "Error in loggin"
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "The user was not found"
+  })
   @Post('login/local')
-
   async login( @Body() login: InputLoginDto, @Res() res: Response ): Promise<void> {
 
     const { token, refreshToken } = await this.authService.getCookieByLocalAuth(login);
@@ -42,13 +61,16 @@ export class AuthController {
         secure: process.env.NODE_ENV === 'production',
       });
 
-      const responseLogin = new LoginResponseDto(true, 'login succesfully', { token });
+      const responseLogin = new LoginResponseDto(true, 'login succesfully');
 
       console.log("Response Login");
       console.log(responseLogin);
       res.status(201).json(responseLogin);
   }
 
+  @ApiOperation({
+    summary: "Login the session with google oauth. Not testeable in swagger"
+  })
   @UseGuards(GoogleAuthGuard)
   @Get('login/google')
   async googleLogin() {
@@ -83,6 +105,17 @@ export class AuthController {
     return res.redirect('http://localhost:8080'); // Esta es la pagina a donde va a redirigir una vez logeado o no
   }
 
+  @ApiOperation({
+    summary: "Get the session status"
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "Session returned succesfully"
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "Error getting the session state"
+  })
   @Get('status')
   async isLogged(@Req() req: Request): Promise<SessionStateDto>{
     const refreshToken: any = req.cookies['refresh']
@@ -92,6 +125,25 @@ export class AuthController {
   }
 
   
+  @ApiOperation({
+    summary: "Refresh of the token for extend the session"
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "The token was refreshed succesfully"
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "The refreshing process was not validate for this user"
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "Error in the refresh of the token"
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "The user in the token was not finded"
+  })
   @Post('refresh')
   async refreshToken(@Req() req: Request, @Res() res: Response): Promise<Response>{
     const refreshToken: string = req.cookies['refresh']
@@ -112,6 +164,21 @@ export class AuthController {
     return res.status(201).json({  essage: 'token refreshed succesfully', token: accessToken })
   }
 
+  @ApiOperation({
+    summary: "Close the current session"
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "The session was closed succesfully"
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "The logout process was not validate for this user"
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "Error in the logout of the session"
+  })
   @Post('logout')
   logout(@Res() res: Response): Response{
     res.cookie('user', '', { httpOnly: true, expires: new Date(0) });
@@ -119,11 +186,4 @@ export class AuthController {
     return res.status(200).json({ message: 'Logout successful' });
   }
 
-  //Endpoint de prueba para testear en swagger
-  @UseGuards(AuthGuard)
-  @Roles(['user'])
-  @Get('test')
-  test(){
-    return { message: 'this is a authenticated recurse' }
-  }
 }

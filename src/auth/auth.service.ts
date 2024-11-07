@@ -18,6 +18,13 @@ export class AuthService {
   async validateCredentials( usernameOrEmail: string, password: string ): Promise<User | undefined> {
     
     const user: User = (await this.userService.findOneByUsernameOrEmail(usernameOrEmail)).recourse;
+    if(user.method === 'google'){
+      const unauthorizedError: IUnauthorizedEx = {
+        status: false,
+        message: "This user can not inicialize by local login. Google OAuth login needed"
+      }
+      throw new UnauthorizedException(unauthorizedError);
+    }
     const isValidated: boolean = await this.userService.comparePasswords( password, user.password );
     if (!isValidated) {
       const unauthorizedError: IUnauthorizedEx = {
@@ -32,13 +39,14 @@ export class AuthService {
 
   async getCookieByLocalAuth(login: InputLoginDto){
 
-    const userLogin: User = await this.validateCredentials( login.input, login.password);
+    const userLogin: User = await this.validateCredentials( login.usernameOrEmail, login.password);
     try {
       const token: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: userLogin.roles }, '1m');
       const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: userLogin.roles }, '7m');
       return { token, refreshToken }
     } 
-    catch {
+    catch(error) {
+      console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
         message: "Error in the creation of the token by local auth"

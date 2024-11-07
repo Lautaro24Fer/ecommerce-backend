@@ -35,7 +35,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       password: '', // Invesigar si se pueden almacenar contraseñas vacías
       surname: profile.name.familyName,
       postalCode: '',
-      idNumber: ''
+      idNumber: '',
+      idType: 1
     });
     return user || null;
   }
