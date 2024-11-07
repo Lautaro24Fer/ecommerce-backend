@@ -21,6 +21,16 @@ export class Order {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date_created: Date;
 
+  // @Column()
+  // method: string;
+
+  // Method: [ TRANSACTION - EFECTIVO ]
+  // Verifica si fue hecho con mercado pago o si quiere abonar en efectivo
+
+  // @Column()
+  // isPayed: boolean;
+  // Verifica si la orden fue abonada o no (Pensando en que pueda pagar en efectivo con rapipago)
+
   @Column({ nullable: true })
   dev_date_estimated: Date;
 

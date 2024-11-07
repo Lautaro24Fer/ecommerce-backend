@@ -156,7 +156,7 @@ export class UserController {
 
 
   @ApiOperation({
-    summary: 'Once validate, update password by temporally jwt'
+    summary: 'Once validated, update password by temporally jwt'
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -171,7 +171,7 @@ export class UserController {
     description: 'Time expired to update password'
   })
   @UseGuards(ResetUserPasswordGuard)
-  @Patch('/reset-pass')
+  @Put('/reset-pass')
   async resetPassword(@Req() req: Request , @Res() res: Response, @Body() updateUserPasswordDto: UpdateUserPasswordDto): Promise<Response>{
 
     const jwt: string = req.cookies['password-reset'];
@@ -211,8 +211,14 @@ export class UserController {
   })
   // @UseGuards(AuthGuard) -- Elimino las restricciones por testeo
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<IRecourseFound<User>> {
-    return await this.userService.findOneById(id);
+  async findOne(@Param('id') id: number): Promise<IRecourseFound<UserDto>> {
+    const user: IRecourseFound<User> = await this.userService.findOneById(id);
+    const userParsed: UserDto = this.userService.mapUserToUserDto(user.recourse);
+    const response: IRecourseFound<UserDto> = {
+      ...user,
+      recourse: userParsed
+    };
+    return response;
   }
 
 
@@ -284,7 +290,7 @@ export class UserController {
   @ApiResponse({ 
     status: HttpStatus.BAD_REQUEST, 
     description: 'Bad request, error deleting the user' })
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: number): Promise<IRecourseDeleted<UserDto>> {
     const userRemoved: IRecourseDeleted<User> = await this.userService.remove(id);

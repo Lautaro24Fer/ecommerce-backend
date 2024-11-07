@@ -38,7 +38,7 @@ export class FullUpdateUserDto {
 
   @ApiProperty()
   @IsPositive()
-  idNumber: string;
+  idNumber: number;
 
   @ApiProperty({ type: () => [AddressDto] })
   @ValidateNested({ each: true })  // Valida cada objeto dentro del array
@@ -81,7 +81,7 @@ export class PartialUpdateUserDto {
   @ApiProperty()
   @IsOptional()
   @IsPositive()
-  idNumber?: string;
+  idNumber?: number;
 
   @ApiProperty({ type: () => [AddressDto] })
   @IsOptional()
@@ -94,16 +94,16 @@ class AddressDto {
 
   @ApiProperty()
   @IsString()
-  @Length(4, 8)
+  @Length(4, 10)
   postalCode: string;
 
   @ApiProperty()
   @IsString()
-  @Length(1, 50)
+  @Length(1, 30)
   addressStreet: string;
 
   @ApiProperty()
   @IsString()
-  @Length(1, 8)
+  @Length(1, 10)
   addressNumber: string;
 }

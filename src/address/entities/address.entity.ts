@@ -13,7 +13,7 @@ export class Address {
   @Column({ length: 30 })
   addressStreet: string;
 
-  @Column({ length: 6 })
+  @Column({ length: 10 })
   addressNumber: string;
 
   @ManyToMany(() => User, (user) => user.address)

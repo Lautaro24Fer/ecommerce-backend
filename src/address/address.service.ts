@@ -12,14 +12,19 @@ export class AddressService {
 
   constructor(@InjectRepository(Address) private readonly addressRepository: Repository<Address>) {}
 
-  // @Cron('*/2 * * * *')  cada dos min
-  @Cron('0 0 * * *') // Ejecuta la limpieza cada día a medianoche
 
-  async handleCron() {
-    await this.removeOrphanedAddresses();
-  }
+  // Ejecuta la limpieza cada día a medianoche
+  @Cron('0 0 * * *')
+
+  // cada dos min
+  // @Cron('*/2 * * * *') 
+
+  // async handleCron() {
+  //   await this.removeOrphanedAddresses();
+  // }
 
   async removeOrphanedAddresses(): Promise<void> {
+    console.log("SE EJECUTO LA FUNCION DE LIMPIEZA DE DIRECCIONES NO USADAS")
     const orphanedAddresses = await this.addressRepository
       .createQueryBuilder('address')
       .leftJoin('address.user', 'user')
@@ -27,8 +32,12 @@ export class AddressService {
       .getMany();
 
     if (orphanedAddresses.length > 0) {
+      console.log("RESULTADO: HAY DIRECCIONES QUE NO ESTEN EN USO")
+      console.log(orphanedAddresses)
       await this.addressRepository.remove(orphanedAddresses);
     }
+    console.log("RESULTADO: NO HAY DIRECCIONES QUE NO ESTEN EN USO")
+    console.log(orphanedAddresses)
   }
 
   async findOrCreate(createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>>{
@@ -36,12 +45,12 @@ export class AddressService {
     const address: Address = await this.findOneByAllData(postalCode, addressStreet, addressNumber)
     .then(data => data.recourse)
     .catch(async (error) => {
-      console.error(error);
       if(error instanceof NotFoundException){
         const newAddress: IRecourseCreated<Address> = await this.create({ postalCode, addressNumber, addressStreet });
         return newAddress.recourse;
       }
       else{
+        console.error(error);
         throw error;
       }
     });

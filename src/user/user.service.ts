@@ -17,7 +17,7 @@ import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecour
 import { AddressService } from 'src/address/address.service';
 import { Address } from 'src/address/entities/address.entity';
 
-enum UniqueUserRecourse { USERNAME = 'username', EMAIL = 'email'  };
+enum UniqueUserRecourse { USERNAME = 'username', EMAIL = 'email', ID_NUMBER = ""  };
 export enum UpdateType { PARTIAL, FULL };
 
 @Injectable()
@@ -44,23 +44,21 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<IRecourseCreated<User>> {
 
-    const emailExists = await this.userRepository.existsBy({ email: createUserDto.email }).catch((error) => {
-      const response: IBadRequestex = { status: false, message: 'Error in verification if email exists in create user process' };
-      console.error(error);
-      throw new BadRequestException(response);
-    });
+    const emailExists: boolean = await this.recourseInUse(createUserDto.email, UniqueUserRecourse.EMAIL);
     if(emailExists){
       const response: IBadRequestex = { status: false, message: `User with '${createUserDto.email}' already exists` };
       throw new BadRequestException(response);
     }
 
-    const usernameExists = await this.userRepository.existsBy({ username: createUserDto.username.toLowerCase() }).catch((error) => {
-      const response: IBadRequestex = { status: false, message: 'Error in verification if username exists un create user process' };
-      console.error(error);
-      throw new BadRequestException(response);
-    });
+    const usernameExists = await this.recourseInUse(createUserDto.username, UniqueUserRecourse.USERNAME);
     if(usernameExists){
-      const response: IBadRequestex = { status: false, message: `User with '${createUserDto.username}' already exists` };
+      const response: IBadRequestex = { status: false, message: `User with username '${createUserDto.username}' already exists` };
+      throw new BadRequestException(response);
+    }
+
+    const identificationNumber: boolean = await this.recourseInUse(createUserDto.idNumber.toString(), UniqueUserRecourse.ID_NUMBER);
+    if(identificationNumber){
+      const response: IBadRequestex = { status: false, message: `User with identification number '${createUserDto.idNumber}' already exists` };
       throw new BadRequestException(response);
     }
 
@@ -68,8 +66,23 @@ export class UserService {
     createUserDto.username = createUserDto.username.toLocaleLowerCase();
 
     const idTypeOfUser: IdType = (await this.idTypeService.findOne(createUserDto.idType)).recourse; 
+
+    let addressCreated: Address[] = [];
+
+    if(createUserDto.address) {
+      addressCreated = await Promise.all(createUserDto.address.map(async (add) =>{
+        const addressCreatedOrFinded: Address = (await this.addressService.findOrCreate(add)).recourse;
+        return addressCreatedOrFinded;
+      }));
+    }
     
-    const createUser: User = this.userRepository.create({...createUserDto, roles: [], idType: idTypeOfUser, idNumber: createUserDto.idNumber.toString() });
+    const createUser: User = this.userRepository.create({
+      ...createUserDto, 
+      roles: [], 
+      idType: idTypeOfUser, 
+      idNumber: createUserDto.idNumber.toString(), 
+      address: [...addressCreated]
+    });
     const role: Role = (await this.roleService.findOneByName('user')).recourse;
     createUser.roles.push(role);
 
@@ -137,7 +150,11 @@ export class UserService {
 
   async findOneByUserName(username: string): Promise<IRecourseFound<User>> {
 
-    const user: User = await this.userRepository.findOne({ where: { username }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
+    console.log("FIND ONE BY USERNAME");
+    console.log("username:")
+    console.log(username)
+
+    const user: User = await this.userRepository.findOne({ where: { username: username.toLowerCase() }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with username '${username}'` };
       console.error(error);
       throw new BadRequestException(response)
@@ -262,8 +279,20 @@ export class UserService {
         });
       break;
       case (UniqueUserRecourse.USERNAME):
+        console.log("recourseInUse) -- VERIFIACION DE USERNAME --")
+        console.log("Este es el input")
+        console.log(input)
         response = await this.userRepository.existsBy({ username: input }).catch((error) => {
           const catchErrorResponse: IBadRequestex = { status: false, message: 'Error in the verification if username exists' };
+          console.error(error);
+          throw new BadRequestException(catchErrorResponse);
+        });
+        console.log("\n\nLa repuesta es la siguiente")
+        console.log(response)
+      break;
+      case (UniqueUserRecourse.ID_NUMBER): 
+        response = await this.userRepository.existsBy({ idNumber: input }).catch((error) => {
+          const catchErrorResponse: IBadRequestex = { status: false, message: 'Error in the verification if identification number exists' };
           console.error(error);
           throw new BadRequestException(catchErrorResponse);
         });
@@ -282,12 +311,12 @@ export class UserService {
 
     // -- validar que el email está en uso
 
-    if((updateUserDto.email) && (updateUserDto.email !== userToUpdate.email)){
-      const userWithSameEmail: boolean = await this.recourseInUse(updateUserDto.email, UniqueUserRecourse.EMAIL);
-      if(userWithSameEmail){
+    if((updateUserDto?.email) && (updateUserDto?.email !== userToUpdate.email)){
+      const emailExists: boolean = await this.recourseInUse(updateUserDto?.email, UniqueUserRecourse.EMAIL);
+      if(emailExists){
         const badRequestError: IBadRequestex = {
           status: false,
-          message: `The email '${updateUserDto.email}' is currently in use`,
+          message: `The email '${updateUserDto?.email}' is currently in use`,
         }
         throw new BadRequestException(badRequestError);
       }
@@ -295,20 +324,34 @@ export class UserService {
 
     // -- validar que el username está en uso
 
-    if((updateUserDto.username) && (updateUserDto.username !== userToUpdate.username)){
-      const userWithSameUsername: boolean = await this.recourseInUse(updateUserDto.email, UniqueUserRecourse.USERNAME);
+    if((updateUserDto?.username) && (updateUserDto?.username !== userToUpdate.username)){
+      const usernameExists: boolean = await this.recourseInUse(updateUserDto?.username, UniqueUserRecourse.USERNAME);
   
-      if(userWithSameUsername){
-        throw new BadRequestException({ error: `The username '${updateUserDto.username}' is currently in use`});
+      if(usernameExists){
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: `The username '${updateUserDto?.username}' is currently in use`,
+        }
+        throw new BadRequestException(badRequestError);
         
+      }
+    }
+
+    // -- validar que el numero de identificación no está en uso
+
+    if((updateUserDto?.idNumber) && (updateUserDto?.idNumber.toString() !== userToUpdate.idNumber)) {
+      const idNumberExists: boolean = await this.recourseInUse(updateUserDto?.idNumber.toString(), UniqueUserRecourse.ID_NUMBER);
+      if(idNumberExists) {
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: `The idNumber '${updateUserDto?.idNumber}' is currently in use`,
+        }
+        throw new BadRequestException(badRequestError);
       }
     }
 
     Object.assign(userToUpdate, updateUserDto);
 
-    console.log("===BODY UPDATE===");
-    console.log(userToUpdate);
-  
     if(updateUserDto?.idType) {
       const idTypeArrived: IdType = (await this.idTypeService.findOne(updateUserDto.idType)).recourse;
       userToUpdate.idType = idTypeArrived;
@@ -320,13 +363,13 @@ export class UserService {
           // Se sobrescribe todo el array existente
           userToUpdate.address = [];
           updateUserDto?.address.forEach(async ad => {
-            const address: Address = (await this.addressService.findOrCreate(ad)).recourse;
+            const address: Address = (await this.addressService.findOrCreate({ ...ad, addressNumber: ad.addressNumber.toString() })).recourse;
             userToUpdate.address.push(address);
           });
         break;
         case UpdateType.PARTIAL:
           updateUserDto?.address.forEach(async ad => {
-            const address: Address = (await this.addressService.findOrCreate(ad)).recourse;
+            const address: Address = (await this.addressService.findOrCreate({ ...ad, addressNumber: ad.addressNumber.toString() })).recourse;
             userToUpdate.address.push(address);
           });
         break;
@@ -352,9 +395,12 @@ export class UserService {
 
     const userUpdated: User = (await this.findOneById(id)).recourse;
 
+    console.log(" -- this is the total user updated --  ")
+    console.log(userUpdated);
+
     const response: IRecourseUpdated<User> = {
       status: true,
-      message: 'The recourse was updated succesfully',
+      message: 'The recourse was updated succesfully', 
       recourse: userUpdated
     };
 

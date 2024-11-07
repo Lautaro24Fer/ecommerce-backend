@@ -22,6 +22,13 @@ export class EmailService {
 			to: [toUser], // Estos serían los receptores, si es uno no es necesario ponerlo dentro de un array
 			subject: "Padel point - Reset password code", // Este sería el 'asunto'
 			html: layout, // Correo en html
+		}).then((data) => {
+			console.log("El correo fue enviado con éxito")
+			console.log("Esta es la data:")
+			console.log(data)
+		})
+		.catch((error) => {
+			console.error(error);
 		})
 	}
 }
