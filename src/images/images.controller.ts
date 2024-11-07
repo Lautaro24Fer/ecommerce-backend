@@ -5,7 +5,7 @@ import { UpdateImageDto } from './dto/update-image.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductImageResponseDto } from './dto/image-response.dto';
 import { ProductImage } from './entities/image.entity';
-import { IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 
 @ApiTags('Images of products')
 @Controller('images')
@@ -22,14 +22,9 @@ export class ImagesController {
     description: 'Error adding a new image to a product'
   })
   @Post()
-  async create(@Body() createImageDto: CreateImageDto): Promise<ProductImageResponseDto> {
-    const imageServiceResponse: ProductImage = (await this.imagesService.create(createImageDto)).recourse;
-    const productImageResponse: ProductImageResponseDto = { 
-      id: imageServiceResponse.id, 
-      url: imageServiceResponse.url, 
-      productId: imageServiceResponse.product.id 
-    };
-    return productImageResponse;
+  async create(@Body() createImageDto: CreateImageDto): Promise<IRecourseCreated<ProductImage>> {
+    const imageServiceResponse: IRecourseCreated<ProductImage> = await this.imagesService.create(createImageDto);
+    return imageServiceResponse;
   }
 
   @ApiOperation({ summary: 'Get all images of all products' })

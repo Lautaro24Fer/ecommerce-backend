@@ -56,7 +56,7 @@ export class ImagesService {
   }
 
   async findOne(id: number): Promise<IRecourseFound<ProductImage>> {
-    const productImage: ProductImage = await this.imageRepository.findOneBy({ id }).catch((error) => {
+    const productImage: ProductImage = await this.imageRepository.findOne({ where: { id }, relations: ['product'] }).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
@@ -104,9 +104,17 @@ export class ImagesService {
   }
 
   async update(id: number, updateImageDto: UpdateImageDto): Promise<IRecourseUpdated<ProductImage>> {
+    console.log("UPDATE IMAGE DTO")
+    console.log(updateImageDto)
     const productImageToUpdate: ProductImage = (await this.findOne(id)).recourse;
-    const productImageUpdated: ProductImage = { ...productImageToUpdate, ...updateImageDto };
-    await this.imageRepository.save(productImageUpdated).catch((error) => {
+    const imageBody: ProductImage = { ...productImageToUpdate, ...updateImageDto };
+    if((updateImageDto.productId) && (updateImageDto.productId !== productImageToUpdate.product.id) ){
+      const newProduct: Product = (await this.productService.findOne(updateImageDto.productId)).recourse;
+      imageBody.product = newProduct;
+    }
+    console.log("\n\n IMAGE BODY")
+    console.log(imageBody)
+    const productImageUpdated = await this.imageRepository.save(imageBody).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
