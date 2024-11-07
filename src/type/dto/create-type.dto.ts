@@ -5,6 +5,6 @@ export class CreateTypeDto {
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    @Length(1, 25)
+    @Length(1, 50)
     name: string;
 }

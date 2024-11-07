@@ -7,8 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import {DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
@@ -22,7 +21,8 @@ import { ProductImage } from 'src/images/entities/image.entity';
 import { ImagesService } from 'src/images/images.service';
 import { CreateImageDto } from 'src/images/dto/create-image.dto';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
-import { STATUS_CODES } from 'http';
+import { UpdateType } from 'src/global/enum';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductService {

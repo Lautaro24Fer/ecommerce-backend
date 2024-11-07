@@ -6,6 +6,6 @@ export class IdType {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column({ unique: true, length: 20 })
   name: string;
 }

@@ -19,6 +19,6 @@ export class UpdateAddressDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  @Length(1, 6)
+  @Length(1, 10)
   addressNumber: string;
 }

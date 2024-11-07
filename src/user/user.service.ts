@@ -16,9 +16,9 @@ import { AuthUserResponseDto, CreateUserStrategyDto } from './dto/oauth-data';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 import { AddressService } from 'src/address/address.service';
 import { Address } from 'src/address/entities/address.entity';
+import { UpdateType } from 'src/global/enum';
 
-enum UniqueUserRecourse { USERNAME = 'username', EMAIL = 'email', ID_NUMBER = ""  };
-export enum UpdateType { PARTIAL, FULL };
+enum UniqueUserRecourse { USERNAME, EMAIL, ID_NUMBER };
 
 @Injectable()
 export class UserService {

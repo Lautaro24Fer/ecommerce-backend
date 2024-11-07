@@ -8,16 +8,16 @@ import {
   Delete,
   HttpStatus,
   Query,
+  Put,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Product } from './entities/product.entity';
 import { QueryParamsDto } from './dto/query-params.dto';
-import { ProductResponseDto } from './dto/product-response.dto';
-import { ProductImageResponseDto } from 'src/images/dto/image-response.dto';
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { UpdateType } from 'src/global/enum';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @ApiTags('Products')
 @Controller('product')
@@ -110,7 +110,7 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Update the data of one product by id' })
+  @ApiOperation({ summary: 'Update a product partially by id' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The product was updated succesfully',
@@ -124,15 +124,8 @@ export class ProductController {
     description: 'Error updating the product',
   })
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto): Promise<IRecourseUpdated<Product>> {
+  async partialUpdate(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto): Promise<IRecourseUpdated<Product>> {
     const responseService: IRecourseUpdated<Product> = (await this.productService.update(id, updateProductDto));
-    // if(responseService?.secondariesImages[0]?.product?.id){
-    //   const imagesMapped:  ProductImageResponseDto[] = responseService.secondariesImages.map(image => {
-    //     return { id: image.id, url: image.url, productId: image.product.id };
-    //   });
-    //   const responseUpdate = { ...responseService, secondariesImages: [...imagesMapped] };
-    //   return responseUpdate;
-    // }
     return responseService;
   }
 

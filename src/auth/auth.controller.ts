@@ -14,8 +14,6 @@ import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from './auth-google.guard';
-import { AuthGuard } from './auth.guard';
-import { Roles } from './auth.decorator';
 import { InputLoginDto, LoginResponseDto } from './dto/login.dto';
 import { SessionStateDto } from './dto/session-state.dto';
 

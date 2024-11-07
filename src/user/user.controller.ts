@@ -14,7 +14,7 @@ import {
   UnauthorizedException,
   Put,
 } from '@nestjs/common';
-import { UpdateType, UserService } from './user.service';
+import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { FullUpdateUserDto, PartialUpdateUserDto  } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -26,6 +26,7 @@ import { ResetUserPasswordGuard } from './user.guard';
 import { AuthUserResponseDto } from './dto/oauth-data';
 import { RequestUpdatePasswordCodeDto, ResponsetUpdatePasswordCodeDto, UpdateUserPasswordDto, ValidateUpdateUserPasswordCodeDto } from './dto/password-change';
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from 'src/global/responseInterfaces';
+import { UpdateType } from 'src/global/enum';
 
 @ApiTags('Users')
 @Controller('user')

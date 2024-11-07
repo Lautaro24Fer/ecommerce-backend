@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   HttpStatus,
+  Put,
 } from '@nestjs/common';
 import { SupplierService } from './supplier.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
@@ -83,7 +84,7 @@ export class SupplierController {
     status: HttpStatus.NOT_FOUND,
     description: 'Supplier not founded',
   })
-  @Patch(':id')
+  @Put(':id')
   update( @Param('id') id: number, @Body() updateSupplierDto: UpdateSupplierDto ): Promise<IRecourseUpdated<Supplier>> {
     return this.supplierService.update(id, updateSupplierDto);
   }

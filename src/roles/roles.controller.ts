@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Put } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -87,7 +87,7 @@ export class RolesController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Can not update this role, unauthorized request'
   })
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: number, @Body() updateRoleDto: UpdateRoleDto): Promise<IRecourseUpdated<Role>> {
     return this.rolesService.update(id, updateRoleDto);
   }

@@ -4,7 +4,6 @@ import {
   IsEmail,
   IsOptional,
   IsPositive,
-  IsPostalCode,
   IsString,
   Length,
   ValidateNested,

@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
 
 export class UpdateTypeDto{
     @ApiProperty()
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
-    @Length(1, 25)
-    name?: string;
+    @Length(1, 50)
+    name: string;
 }

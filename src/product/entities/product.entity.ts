@@ -24,12 +24,12 @@ export class Product {
   @OneToMany(() => ProductImage, (image) => image.product, { onDelete: 'CASCADE' })
   secondariesImages: ProductImage[]
 
-  @ManyToOne(() => ProductType, (type) => type.id, { cascade: true })
+  @ManyToOne(() => ProductType, (type) => type.id)
   type: ProductType;
 
-  @ManyToOne(() => Brand, (brand) => brand.id, { cascade: true })
+  @ManyToOne(() => Brand, (brand) => brand.id)
   brand: Brand;
 
-  @ManyToOne(() => Supplier, (supplier) => supplier.id, { cascade: true })
+  @ManyToOne(() => Supplier, (supplier) => supplier.id)
   supplier: Supplier;
 }

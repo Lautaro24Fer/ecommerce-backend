@@ -10,22 +10,25 @@ export class CreateUserDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
+  @Length(1, 20)
   name: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
+  @Length(4, 20)
   surname: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
+  @Length(5, 20)
   username: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  @MinLength(8)
+  @Length(8, 50)
   password: string;
 
   @ApiProperty()
@@ -51,16 +54,16 @@ class AddressDto {
 
   @ApiProperty()
   @IsString()
-  @Length(4, 8)
+  @Length(1, 10)
   postalCode: string;
 
   @ApiProperty()
   @IsString()
-  @Length(1, 50)
+  @Length(1, 30)
   addressStreet: string;
 
   @ApiProperty()
   @IsString()
-  @Length(1, 8)
+  @Length(1, 10)
   addressNumber: string;
 }

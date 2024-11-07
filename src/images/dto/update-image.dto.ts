@@ -5,7 +5,6 @@ export class UpdateImageDto {
   @ApiProperty()
 	@IsOptional()
 	@IsString()
-	@Length(1, 80)
   @IsUrl()
 	url?: string;
 

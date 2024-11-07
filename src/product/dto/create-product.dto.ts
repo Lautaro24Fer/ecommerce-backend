@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsNotEmpty,
+  IsOptional,
   IsPositive,
   IsString,
   IsUrl,
@@ -19,7 +20,7 @@ export class CreateProductDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  @Length(1, 200)
+  @IsUrl()
   image: string;
 
   @ApiProperty()
@@ -28,7 +29,8 @@ export class CreateProductDto {
   @Length(1, 1024)
   description: string;
 
-  @ApiPropertyOptional()
+  @ApiProperty()
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @IsUrl({}, { each: true })
