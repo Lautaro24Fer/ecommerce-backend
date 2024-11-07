@@ -65,7 +65,7 @@ export class SupplierService {
         status: false,
         message: `Supplier with id '${id}' not found`
       };
-      throw new BadRequestException(badRequestError);
+      throw new NotFoundException(badRequestError);
     }
     const response: IRecourseFound<Supplier> = {
       status: true,
