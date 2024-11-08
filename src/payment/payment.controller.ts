@@ -1,9 +1,17 @@
-import { Controller, Get, Post, Body, HttpStatus, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpStatus, Req, Res, UseGuards, BadRequestException } from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { PaymentGuard } from './payment.guard';
 import { IPaymentPreferenceReq } from './dto/preference-payment';
+import { IBadRequestex } from 'src/global/responseInterfaces';
+import { IsPositive } from 'class-validator';
+
+class PaymentStatusDto{
+  @ApiProperty()
+  @IsPositive()
+  paymentId: number;
+}
 
 @ApiTags('Payments')
 @Controller('payment')
@@ -32,24 +40,29 @@ export class PaymentController {
     await this.paymentService.createPaymentPreference(paymentPreference, res);
   }
 
-
-  @Get("mp/preference/success")
-  async successRedirect() {
-    return { status: "El pago se hizo correctamente :D" }
-  }
-
-  @Get("mp/preference/failure")
-  async failureRedirect() {
-    return { status: "Error volviendo al sitio :(" }
-  }
-
-  @Get("mp/preference/pending")
-  async pendingRedirect() {
-    return { status: "EL pag esta pendiente :/" }
-  }
-
   @Post("mp/preference/webhook")
-  async notificationWehbook(){
-    
+  async notificationWehbook(@Body() payload: any) {
+      console.log(" |== MERCADO PAGO WEBHOOK PREFERENCE ==| ")
+      const paymentId = payload?.data?.id;
+      if (!paymentId) {
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: "Payment ID not found"
+        }
+        throw new BadRequestException(badRequestError);
+      }
+      // Procesar el pago y actualizar el estado de la orden
+      await this.paymentService.updateOrderStatusByPaymentId(paymentId);
+      
+      return { status: 'success' };
+  }
+
+  // Testeo para conocer el estado del payment
+  @Post("mp/preference/status")
+  async knowStatus(@Body() paymentStatusDto: PaymentStatusDto){
+
+    await this.paymentService.knowStatus(paymentStatusDto.paymentId);
   }
 }
+
+

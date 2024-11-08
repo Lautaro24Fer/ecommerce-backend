@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class First1731079921487 implements MigrationInterface {
-    name = 'First1731079921487'
+export class First1731087850296 implements MigrationInterface {
+    name = 'First1731087850296'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE \`address\` (\`id\` int NOT NULL AUTO_INCREMENT, \`postalCode\` varchar(10) NOT NULL, \`addressStreet\` varchar(30) NOT NULL, \`addressNumber\` varchar(10) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
@@ -13,7 +13,7 @@ export class First1731079921487 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE \`product_type\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, UNIQUE INDEX \`IDX_8978484a9cee7a0c780cd259b8\` (\`name\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`product_image\` (\`id\` int NOT NULL AUTO_INCREMENT, \`url\` text NOT NULL, \`productId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`product\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(255) NOT NULL, \`price\` int NOT NULL, \`description\` text NOT NULL, \`image\` text NOT NULL, \`typeId\` int NULL, \`brandId\` int NULL, \`supplierId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`order\` (\`id\` int NOT NULL AUTO_INCREMENT, \`date_created\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, \`dev_date_estimated\` datetime NULL, \`dev_date\` datetime NULL, \`paymentMethod\` enum ('MERCADO_PAGO') NOT NULL DEFAULT 'MERCADO_PAGO', \`isPayed\` tinyint NOT NULL DEFAULT 0, \`date_payed\` timestamp NULL, \`installments\` int NULL, \`addressId\` int NULL, \`userId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`order\` (\`id\` int NOT NULL AUTO_INCREMENT, \`paymentId\` varchar(255) NOT NULL, \`dateCreated\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, \`devDateEstimated\` datetime NULL, \`devDate\` datetime NULL, \`paymentMethod\` enum ('MERCADO_PAGO') NOT NULL DEFAULT 'MERCADO_PAGO', \`isPayed\` tinyint NOT NULL DEFAULT 0, \`datePayed\` timestamp NULL, \`installments\` int NULL, \`addressId\` int NULL, \`userId\` int NULL, UNIQUE INDEX \`IDX_9ad13532f48db4ac5a3b3dd70e\` (\`paymentId\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`user_address_address\` (\`userId\` int NOT NULL, \`addressId\` int NOT NULL, INDEX \`IDX_b3641446351e94089ba80de503\` (\`userId\`), INDEX \`IDX_c3ca130325607a626583e7e9c4\` (\`addressId\`), PRIMARY KEY (\`userId\`, \`addressId\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`user_roles_roles\` (\`userId\` int NOT NULL, \`rolesId\` int NOT NULL, INDEX \`IDX_0d0cc409255467b0ac4fe6b169\` (\`userId\`), INDEX \`IDX_7521d8491e7c51f885e9f861e0\` (\`rolesId\`), PRIMARY KEY (\`userId\`, \`rolesId\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`order_products_product\` (\`orderId\` int NOT NULL, \`productId\` int NOT NULL, INDEX \`IDX_1f9ea0b0e59e0d98ade4f2d5e9\` (\`orderId\`), INDEX \`IDX_d6c66c08b9c7e84a1b657797df\` (\`productId\`), PRIMARY KEY (\`orderId\`, \`productId\`)) ENGINE=InnoDB`);
@@ -31,7 +31,7 @@ export class First1731079921487 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`order_products_product\` ADD CONSTRAINT \`FK_1f9ea0b0e59e0d98ade4f2d5e99\` FOREIGN KEY (\`orderId\`) REFERENCES \`order\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`ALTER TABLE \`order_products_product\` ADD CONSTRAINT \`FK_d6c66c08b9c7e84a1b657797dff\` FOREIGN KEY (\`productId\`) REFERENCES \`product\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
     
-                        // INSERTS
+                       // INSERTS
         
         // MARCAS
         await queryRunner.query(`insert into brand (name) values ('ADIDAS'),('BABOLAT'),('BULLPADEL'),('NOX'),('SIUX'),('ROYAL'),('COAST'),('TOP FORCE'),('BLACK CROWN'),('FELINA PADEL'),('HEAD')`);
@@ -102,6 +102,7 @@ export class First1731079921487 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX \`IDX_c3ca130325607a626583e7e9c4\` ON \`user_address_address\``);
         await queryRunner.query(`DROP INDEX \`IDX_b3641446351e94089ba80de503\` ON \`user_address_address\``);
         await queryRunner.query(`DROP TABLE \`user_address_address\``);
+        await queryRunner.query(`DROP INDEX \`IDX_9ad13532f48db4ac5a3b3dd70e\` ON \`order\``);
         await queryRunner.query(`DROP TABLE \`order\``);
         await queryRunner.query(`DROP TABLE \`product\``);
         await queryRunner.query(`DROP TABLE \`product_image\``);

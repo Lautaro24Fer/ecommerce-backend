@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsPositive, ValidateNested } from "class-validator";
+import { IsArray, IsNumber, IsPositive, ValidateNested } from "class-validator";
 import { Product } from "src/product/entities/product.entity";
 
 export class CreateOrderDto {
@@ -11,6 +11,10 @@ export class CreateOrderDto {
   @ApiProperty()
   @IsPositive()
   addressId: number;
+
+  @ApiProperty()
+  @IsPositive()
+  paymentId: number;
 
   @ApiProperty()
   @IsArray()

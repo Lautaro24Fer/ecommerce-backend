@@ -16,17 +16,20 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ unique: true })
+  paymentId: string;
+
   @ManyToOne(() => Address, (address) => address.id)
   address: Address;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  date_created: Date;
+  dateCreated: Date;
 
   @Column({ nullable: true })
-  dev_date_estimated: Date;
+  devDateEstimated: Date;
 
   @Column({ nullable: true })
-  dev_date: Date;
+  devDate: Date;
 
   @ManyToOne(() => User, (user) => user.id)
   user: User;
@@ -44,7 +47,7 @@ export class Order {
   isPayed: boolean; 
 
   @Column({ type: 'timestamp', nullable: true })
-  date_payed: Date;
+  datePayed: Date;
 
   @Column({ nullable: true })
   installments: number;

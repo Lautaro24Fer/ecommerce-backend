@@ -37,7 +37,7 @@ export class OrderService {
       throw new BadRequestException(badRequestError);
     }
 
-    const bodyOrder: Order = this.orderRepository.create({ ...createOrderDto, user, products, address });
+    const bodyOrder: Order = this.orderRepository.create({ ...createOrderDto, user, products, address, paymentId: createOrderDto.paymentId.toString() });
 
     const order: Order = await this.orderRepository.save(bodyOrder).catch((error) => {
       console.error(error);
