@@ -9,7 +9,6 @@ import { ProductImage } from 'src/images/entities/image.entity';
 import { Role } from 'src/roles/entities/role.entity';
 import { ConfigService } from '@nestjs/config';
 import * as dotenv from 'dotenv';
-import { Payment } from 'src/payment/entities/payment.entity';
 import { IdType } from 'src/id-type/entities/id-type.entity';
 import { Address } from 'src/address/entities/address.entity';
 dotenv.config();
