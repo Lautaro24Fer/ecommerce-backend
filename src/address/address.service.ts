@@ -63,7 +63,7 @@ export class AddressService {
   }
 
   async create(createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>> {
-    
+
     const addressCreated: Address = await this.addressRepository.save(createAddressDto).catch((error) => {
       console.error(error);
       const response: IBadRequestex = { status: false, message: 'Error creating the new address' };

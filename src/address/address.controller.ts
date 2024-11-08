@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, NotFoundException, BadRequestException } from '@nestjs/common';
 import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 import { Address } from './entities/address.entity';
 
 @ApiTags('Address')
@@ -15,7 +15,7 @@ export class AddressController {
     summary: 'Create a new address'
   })
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.CREATED,
     description: 'Address created succesfully'
   })
   @ApiResponse({
@@ -28,7 +28,24 @@ export class AddressController {
   })
   @Post()
   async create(@Body() createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>> {
-    return await this.addressService.create(createAddressDto);
+    const { postalCode, addressNumber, addressStreet } = createAddressDto;
+    const addressExists: boolean = await this.addressService.findOneByAllData(postalCode, addressStreet, addressNumber)
+    .then(_ => true)
+    .catch(async (error) => {
+      if(error instanceof NotFoundException){
+        return false
+      }
+      throw new BadRequestException(error);
+    });
+    if(addressExists){
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `The address with postal code '${postalCode}', address street '${addressStreet}' and address number '${addressNumber}' already exists`
+      };
+      throw new BadRequestException(badRequestError);
+    }
+    const addressCreated: IRecourseCreated<Address> = await this.addressService.create(createAddressDto);
+    return addressCreated;
   }
 
   @ApiOperation({
