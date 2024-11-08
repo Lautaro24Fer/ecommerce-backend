@@ -1,3 +1,4 @@
+import { LoginMethodType, MethodPaymentType } from "src/global/enum";
 
 // DATA QUE LLEGA DESDE EL LOGGEO DE OAUTH MEDIANTE PASSPORT A LA API
 export interface CreateUserStrategyDto {
@@ -9,7 +10,7 @@ export interface CreateUserStrategyDto {
   password?: string;
   name: string;
   email: string;
-  method: string;
+  method: LoginMethodType;
   surname: string;
   postalCode?: string;
   idType?: number;

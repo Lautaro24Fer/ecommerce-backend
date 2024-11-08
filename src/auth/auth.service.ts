@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { IAuthTokens, SessionStateDto } from './dto/session-state.dto';
 import { IBadRequestex, IUnauthorizedEx } from 'src/global/responseInterfaces';
 import { InputLoginDto } from './dto/login.dto';
+import { LoginMethodType } from 'src/global/enum';
 @Injectable()
 export class AuthService {
   constructor(
@@ -18,7 +19,7 @@ export class AuthService {
   async validateCredentials( usernameOrEmail: string, password: string ): Promise<User | undefined> {
     
     const user: User = (await this.userService.findOneByUsernameOrEmail(usernameOrEmail)).recourse;
-    if(user.method === 'google'){
+    if(user.method === LoginMethodType.GOOGLE){
       const unauthorizedError: IUnauthorizedEx = {
         status: false,
         message: "This user can not inicialize by local login. Google OAuth login needed"

@@ -44,11 +44,13 @@ export class UserController {
     description: 'Error creating the new user' 
   })
   @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<IRecourseCreated<User>> {
-    console.log("CONTROLLER")
-    const response = await this.userService.create(createUserDto);
-    const userParsed: UserDto = this.userService.mapUserToUserDto(response.recourse);
-    response.recourse = userParsed;
+  async create(@Body() createUserDto: CreateUserDto): Promise<IRecourseCreated<UserDto>> {
+    const userCreated: IRecourseCreated<User> = await this.userService.create(createUserDto);
+    const userParsed: UserDto = this.userService.mapUserToUserDto(userCreated.recourse);
+    const response: IRecourseCreated<UserDto> = {
+      ...userCreated,
+      recourse: userParsed
+    }
     return response;
   }
   
@@ -65,8 +67,8 @@ export class UserController {
     description: 'Error loading all users' 
   })
   @Get()
-  async findAll(): Promise<IRecourseFound<User[]>> {
-    const response: IRecourseFound<User[]> = await this.userService.findAll();
+  async findAll(): Promise<IRecourseFound<UserDto[]>> {
+    const response: IRecourseFound<UserDto[]> = await this.userService.findAll();
     return response;
   }
 
@@ -239,10 +241,13 @@ export class UserController {
     description: 'Bad request, error updating the user' 
   })
   @Patch(':id')
-  async patchUpdate( @Param('id') id: number, @Body() updateUserDto: PartialUpdateUserDto ): Promise<IRecourseUpdated<User>> {
-    const response = await this.userService.update(id, updateUserDto, UpdateType.PARTIAL);
-    const userParsed: UserDto = this.userService.mapUserToUserDto(response.recourse);
-    response.recourse = userParsed;
+  async patchUpdate( @Param('id') id: number, @Body() updateUserDto: PartialUpdateUserDto ): Promise<IRecourseUpdated<UserDto>> {
+    const userUpdated: IRecourseUpdated<User> = await this.userService.update(id, updateUserDto, UpdateType.PARTIAL);
+    const userParsed: UserDto = this.userService.mapUserToUserDto(userUpdated.recourse);
+    const response: IRecourseUpdated<UserDto> = {
+      ...userUpdated,
+      recourse: userParsed
+    };
     return response;
   }
 

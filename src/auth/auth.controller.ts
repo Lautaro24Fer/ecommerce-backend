@@ -16,6 +16,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from './auth-google.guard';
 import { InputLoginDto, LoginResponseDto } from './dto/login.dto';
 import { SessionStateDto } from './dto/session-state.dto';
+import { IUnauthorizedEx } from 'src/global/responseInterfaces';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -43,6 +44,14 @@ export class AuthController {
   })
   @Post('login/local')
   async login( @Body() login: InputLoginDto, @Res() res: Response ): Promise<void> {
+
+    if((login.password.trim()).length < 8){
+      const unauthError: IUnauthorizedEx = {
+        status: false,
+        message: "The password with no-empty spaces must be equal or more than 8 characters"
+      };
+      throw new UnauthorizedException(unauthError);
+    }
 
     const { token, refreshToken } = await this.authService.getCookieByLocalAuth(login);
 

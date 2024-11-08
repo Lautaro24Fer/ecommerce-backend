@@ -4,6 +4,7 @@ import { Profile, Strategy } from 'passport-google-oauth20';
 import { User } from 'src/user/entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
+import { LoginMethodType, MethodPaymentType } from 'src/global/enum';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
@@ -30,7 +31,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     const user: User = await this.userService.validateUserWithStrategy({
       name: profile.displayName,
       username: profile.username ?? usernameNull,
-      method: 'google',
+      method: LoginMethodType.GOOGLE,
       email: profile.emails[0].value,
       password: '', // Invesigar si se pueden almacenar contraseñas vacías
       surname: profile.name.familyName,

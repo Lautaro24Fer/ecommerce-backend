@@ -1,4 +1,5 @@
 import { Address } from 'src/address/entities/address.entity';
+import { LoginMethodType } from 'src/global/enum';
 import { IdType } from 'src/id-type/entities/id-type.entity';
 import { Role } from 'src/roles/entities/role.entity';
 import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
@@ -26,8 +27,8 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ default: 'local' })
-  method: string;
+  @Column({ type: 'enum', enum: LoginMethodType, default: LoginMethodType.LOCAL })
+  method: LoginMethodType;
 
   @ManyToMany(() => Address, (m) => m.user)
   @JoinTable()

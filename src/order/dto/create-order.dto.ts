@@ -14,5 +14,6 @@ export class CreateOrderDto {
 
   @ApiProperty()
   @IsArray()
+  @IsPositive({ each: true })
   productId: number[];
 }

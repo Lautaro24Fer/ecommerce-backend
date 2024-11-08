@@ -1,4 +1,5 @@
 import { Address } from 'src/address/entities/address.entity';
+import { MethodPaymentType } from 'src/global/enum';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
@@ -21,16 +22,6 @@ export class Order {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date_created: Date;
 
-  // @Column()
-  // method: string;
-
-  // Method: [ TRANSACTION - EFECTIVO ]
-  // Verifica si fue hecho con mercado pago o si quiere abonar en efectivo
-
-  // @Column()
-  // isPayed: boolean;
-  // Verifica si la orden fue abonada o no (Pensando en que pueda pagar en efectivo con rapipago)
-
   @Column({ nullable: true })
   dev_date_estimated: Date;
 
@@ -43,4 +34,18 @@ export class Order {
   @ManyToMany(() => Product, (product) => product.id)
   @JoinTable()
   products: Product[];
+
+  // Informacion del pago
+
+  @Column({ type: 'enum', enum: MethodPaymentType, default: MethodPaymentType.MERCADO_PAGO })
+  paymentMethod: MethodPaymentType;
+
+  @Column({ type: 'boolean', default: false })
+  isPayed: boolean; 
+
+  @Column({ type: 'timestamp', nullable: true })
+  date_payed: Date;
+
+  @Column({ nullable: true })
+  installments: number;
 }

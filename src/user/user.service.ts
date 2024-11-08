@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { FullUpdateUserDto, PartialUpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -13,10 +13,10 @@ import { EmailService } from 'src/email/email.service';
 import { IdTypeService } from 'src/id-type/id-type.service';
 import { IdType } from 'src/id-type/entities/id-type.entity';
 import { AuthUserResponseDto, CreateUserStrategyDto } from './dto/oauth-data';
-import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from 'src/global/responseInterfaces';
 import { AddressService } from 'src/address/address.service';
 import { Address } from 'src/address/entities/address.entity';
-import { UpdateType } from 'src/global/enum';
+import { MethodPaymentType, UpdateType } from 'src/global/enum';
 
 enum UniqueUserRecourse { USERNAME, EMAIL, ID_NUMBER };
 
@@ -38,7 +38,13 @@ export class UserService {
   }
 
   async comparePasswords(password: string, hash: string): Promise<boolean> {
-
+    if((!password) || (password === "")) {
+      const unauthorizedError: IUnauthorizedEx = {
+        status: false,
+        message: "The password can not be a empty string"
+      };
+      throw new UnauthorizedException(unauthorizedError);
+    }
     return await bcrypt.compare(password, hash);
   }
 
@@ -106,7 +112,7 @@ export class UserService {
     return response;
   }
 
-  async findAll(): Promise<IRecourseFound<User[]>> {
+  async findAll(): Promise<IRecourseFound<UserDto[]>> {
 
     const users: User[] = await this.userRepository.find({ relations: ['roles', 'idType', 'address'] }).catch((error) => {
       console.error(error);
@@ -119,7 +125,7 @@ export class UserService {
     const usersParsed: UserDto[] = users.map((user) => {
       return this.mapUserToUserDto(user);
     })
-    const response: IRecourseFound<User[]> = {
+    const response: IRecourseFound<UserDto[]> = {
       status: true,
       message: 'The users was loaded succesfully',
       recourse: usersParsed
@@ -237,6 +243,7 @@ export class UserService {
       if (error instanceof NotFoundException) {
         const role: Role = (await this.roleService.findOneByName('user')).recourse;
         const idType: IdType = (await this.idTypeService.findOne(payload.idType)).recourse;
+        
         const createUser = {
           name: payload.name,
           surname: payload.surname,
