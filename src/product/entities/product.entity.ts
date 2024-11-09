@@ -15,6 +15,12 @@ export class Product {
   @Column()
   price: number;
 
+  @Column({ type: 'float' })
+  shippingCost: number;
+
+  @Column({ type: 'int', default: 0 })
+  quantity: number;
+
   @Column({ type: 'text' })
   description: string;
 

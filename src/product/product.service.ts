@@ -233,11 +233,7 @@ export class ProductService {
     return response;
   }
 
-  mapUrlToProductImage(url: string, id: number){
-    const productImage: CreateImageDto = {
-      url,
-      productId: id 
-    };
-    return productImage;
+  async validateOperation(){
+    
   }
 }
