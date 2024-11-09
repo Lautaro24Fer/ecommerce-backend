@@ -1,7 +1,8 @@
 // Payment preference respo
 
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsPositive } from "class-validator";
+import { Type } from "class-transformer";
+import { IsArray, IsPositive, ValidateNested } from "class-validator";
 
 
 
@@ -18,7 +19,7 @@ export class IPaymentPreferenceReq {
 
     @ApiProperty()
     @IsArray()
-    items: Item[];
+    items: ItemDto[];
 }
 
 // Preference payment
@@ -37,21 +38,52 @@ export interface IPaymentPreference {
     expiration_date_to:   string;
 }
 
+
 export interface BackUrls {
     success: string;
     failure: string;
     pending: string;
 }
 
+export class ItemDto {
+
+    @ApiProperty()
+    @IsPositive()
+    id: number;
+
+    @ApiProperty()
+    title: string;
+
+    @ApiProperty()
+    currency_id: string;
+
+    @ApiProperty()
+    picture_url?: string | null;
+
+    @ApiProperty()
+    description: string;
+
+    @ApiProperty()
+    category_id: string;
+
+    @ApiProperty()
+    @IsPositive()
+    quantity: number;
+
+    @ApiProperty()
+    @IsPositive()
+    unit_price: number;
+}
+
 export interface Item {
-    id:          string;
-    title:       string;
+    id: string;
+    title: string;
     currency_id: string;
     picture_url?: string | null;
     description: string;
     category_id: string;
-    quantity:    number;
-    unit_price:  number;
+    quantity: number;
+    unit_price: number;
 }
 
 export interface Payer {

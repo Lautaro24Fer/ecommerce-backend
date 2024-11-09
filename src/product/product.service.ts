@@ -23,14 +23,13 @@ import { CreateImageDto } from 'src/images/dto/create-image.dto';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 import { UpdateType } from 'src/global/enum';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { Item, ItemDto } from 'src/payment/dto/preference-payment';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    //@InjectRepository(ImagesService)
-    //private readonly productImagesRepository: Repository<ImagesService>
     @Inject(forwardRef(() => ImagesService)) private readonly productImageService: ImagesService,
     private readonly brandService: BrandService,
     private readonly supplierService: SupplierService,
@@ -233,7 +232,24 @@ export class ProductService {
     return response;
   }
 
-  async validateOperation(){
-    
+  async validateOperation(items: ItemDto[]): Promise<IRecourseFound<any>>{
+    for(const item of items) {
+      const product: Product = (await this.findOne(item.id)).recourse;
+      if(product.quantity < item.quantity) {
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: `There is not enough stock of the product with id '${item.id}' to carry out the operation`
+        }
+        throw new BadRequestException(badRequestError);
+      }
+      product.quantity = product.quantity - item.quantity
+      await this.productRepository.save(product);
+    }
+    const response: IRecourseFound<any> = {
+      status: true,
+      message: "The operation vas validated succesfully. Valid order",
+      recourse: null
+    };
+    return response;
   }
 }

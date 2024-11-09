@@ -7,12 +7,17 @@ import { UserService } from 'src/user/user.service';
 import { UserDto } from 'src/user/dto/user.dto';
 import { User } from 'src/user/entities/user.entity';
 import { Address } from 'src/address/entities/address.entity';
-import { IBadRequestex, INotFoundEx, IRecourseCreated } from 'src/global/responseInterfaces';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseFound } from 'src/global/responseInterfaces';
+import { ProductService } from 'src/product/product.service';
 
 @Injectable()
 export class PaymentService {
 
-	constructor(private readonly configService: ConfigService, private readonly userService: UserService) { }
+	constructor(
+		private readonly configService: ConfigService, 
+		private readonly userService: UserService,
+		private readonly productService: ProductService	
+	) { }
 
 	CLIENT_DOMAIN = this.configService.get<string>('DEV_CLIENT_DOMAIN');
 	ACCESS_TOKEN = this.configService.get<string>('MP_ACCESS_TOKEN');
@@ -22,16 +27,16 @@ export class PaymentService {
 
 	client = new MercadoPagoConfig({ accessToken: this.ACCESS_TOKEN })
 
+	async generatePaymentOrException(preferenceData: IPaymentPreferenceReq, res: Response): Promise<void> {
+		const response: IRecourseFound<any> = await this.productService.validateOperation(preferenceData.items);
+		if(response.status){
+			await this.createPaymentPreference(preferenceData, res);
+		}
+	}
+
 
 	async createPaymentPreference(preferenceData: IPaymentPreferenceReq, res: Response) {
 
-		console.log("\n\n")
-		console.log("_______________________________________________________________________")
-		console.log("\n\n")
-
-		console.log(" ===== ENTRA SERVICIO PAYMENT =====")
-		console.log("preference data (datos que llegan desde el clente)")
-		console.log(preferenceData	)
 		const preference = new Preference(this.client)
 		const expDataFrom = new Date;
 		const expDataTo = new Date(Date.now() + (1000 * 60 * 15));
@@ -46,12 +51,11 @@ export class PaymentService {
 			throw new NotFoundException(badRequestError);
 		}
 
-		console.log(" ===== SERVICIO PAYMENT=====")
-		console.log("payer (usuario recuperado desde la db con la id del preference data)")
-		console.log(payer)
-
 		const preferenceBody: IPaymentPreference = {
-				items: [...preferenceData.items], 
+				items: preferenceData.items.map((item) => ({
+					...item,
+					id: item.id.toString()
+				})), 
 				back_urls: {
 					success: `${this.CLIENT_DOMAIN}/success`,
 					failure: `${this.CLIENT_DOMAIN}/failure`,
@@ -88,7 +92,7 @@ export class PaymentService {
 		}
 
 		preference.create({
-			body: { ...preferenceBody }
+			body: { ...preferenceBody, }
 		})
 			.then(data => {
 				const response: IRecourseCreated<string> = {
