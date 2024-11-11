@@ -1,7 +1,7 @@
 export enum UpdateType { PARTIAL, FULL };
 export enum MethodPaymentType {
-  MERCADO_PAGO = "MERCADO_PAGO",
-  // CASH = "CASH"
+  MP_TRANSFER = "MP_TRANSFER",
+  // MP_CASH = "MP_CASH"
 }
 export enum LoginMethodType {
   LOCAL = "LOCAL",

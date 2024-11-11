@@ -9,7 +9,7 @@ import { BrandModule } from './brand/brand.module';
 import { SupplierModule } from './supplier/supplier.module';
 import { OrderModule } from './order/order.module';
 import { Brand } from './brand/entities/brand.entity';
-import { Order } from './order/entities/order.entity';
+import { Order, ProductOrder } from './order/entities/order.entity';
 import { Product } from './product/entities/product.entity';
 import { Supplier } from './supplier/entities/supplier.entity';
 import { User } from './user/entities/user.entity';
@@ -46,7 +46,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         username: configService.get<string>('TYPEORM_DATABASE_USERNAME'),
         password: configService.get<string>('TYPEORM_DATABASE_PASSWORD'),
         database: configService.get<string>('TYPEORM_DATABASE_NAME'),
-        entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, Role, IdType, Address],
+        entities: [Brand, Order, Product, Supplier, User, ProductImage, ProductType, ProductOrder, Role, IdType, Address],
         synchronize: false,
       }),
       dataSourceFactory: async (options) => {

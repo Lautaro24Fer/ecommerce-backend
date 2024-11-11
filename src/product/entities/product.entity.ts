@@ -19,7 +19,7 @@ export class Product {
   shippingCost: number;
 
   @Column({ type: 'int', default: 0 })
-  quantity: number;
+  stock: number;
 
   @Column({ type: 'text' })
   description: string;

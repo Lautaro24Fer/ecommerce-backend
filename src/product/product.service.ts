@@ -232,18 +232,22 @@ export class ProductService {
     return response;
   }
 
-  async validateOperation(items: ItemDto[]): Promise<IRecourseFound<any>>{
+  async validateOperation(items: ItemDto[]): Promise<IRecourseFound<any>> {
+    console.log("--THIS IS THE VALIDATION OF THE PAYMENT OPERATION--")
     for(const item of items) {
       const product: Product = (await this.findOne(item.id)).recourse;
-      if(product.quantity < item.quantity) {
+      console.log("product: \n" + product);
+      if(product.stock < item.quantity) {
+        console.log("The product have not many stock. \n product stock: " + product.stock + "\nproduct quantity in order: " + item.quantity + "\n\n")
         const badRequestError: IBadRequestex = {
           status: false,
           message: `There is not enough stock of the product with id '${item.id}' to carry out the operation`
         }
         throw new BadRequestException(badRequestError);
       }
-      product.quantity = product.quantity - item.quantity
-      await this.productRepository.save(product);
+      // product.quantity = product.quantity - item.quantity
+      // console.log("The operation is valid. \n new stock of the product: " + product.quantity + "\n\n")
+      // await this.productRepository.save(product);
     }
     const response: IRecourseFound<any> = {
       status: true,

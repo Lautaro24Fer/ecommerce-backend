@@ -42,6 +42,8 @@ export class PaymentController {
     await this.paymentService.generatePaymentOrException(paymentPreference, res);
   }
 
+  // TODO: Hay que decirle a nacho que debe configurar la ruta para webhooks
+  // desde la integración
   @Post("mp/preference/webhook")
   async notificationWehbook(@Body() payload: any) {
       console.log(" |== MERCADO PAGO WEBHOOK PREFERENCE ==| ")

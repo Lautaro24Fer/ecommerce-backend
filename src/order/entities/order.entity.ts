@@ -26,29 +26,45 @@ export class Order {
   dateCreated: Date;
 
   @Column({ nullable: true })
-  devDateEstimated: Date;
+  devDateEstimated: Date; // Se actualiza manualmente
 
   @Column({ nullable: true })
-  devDate: Date;
+  devDate: Date; // Se actualiza manualmente
 
   @ManyToOne(() => User, (user) => user.id)
   user: User;
 
-  @ManyToMany(() => Product, (product) => product.id)
+  @ManyToMany(() => Product, (product) => product.id, { cascade: true, onDelete: 'CASCADE' })
   @JoinTable()
-  products: Product[];
+  productOrder: ProductOrder[];
 
   // Informacion del pago
 
-  @Column({ type: 'enum', enum: MethodPaymentType, default: MethodPaymentType.MERCADO_PAGO })
-  paymentMethod: MethodPaymentType;
+  @Column({ type: 'varchar', default: "mercadopago" })
+  paymentMethod: string;
 
   @Column({ type: 'boolean', default: false })
-  isPayed: boolean; 
+  isPayed: boolean; // Se actualiza mediante webhook
 
   @Column({ type: 'timestamp', nullable: true })
-  datePayed: Date;
+  datePayed: Date; // Se actualiza mediante webhook
 
   @Column({ nullable: true })
   installments: number;
+}
+
+@Entity('product-order')
+export class ProductOrder {
+
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @ManyToOne(() => Order, (order) => order.productOrder)
+  order: Order;
+
+  @ManyToOne(() => Product, (product) => product.id)
+  product: Product;
+
+  @Column({ type: 'int', default: 1 })
+  quantity: number;
 }

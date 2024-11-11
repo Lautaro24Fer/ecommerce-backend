@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsNumber, IsPositive, ValidateNested } from "class-validator";
-import { Product } from "src/product/entities/product.entity";
+import { IsArray, IsEnum, IsNumber, IsOptional, IsPositive, ValidateNested } from "class-validator";
+import { MethodPaymentType } from "src/global/enum";
 
 export class CreateOrderDto {
   @ApiProperty()
@@ -16,8 +16,29 @@ export class CreateOrderDto {
   @IsPositive()
   paymentId: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: () => [ProductQuantity] })
   @IsArray()
-  @IsPositive({ each: true })
-  productId: number[];
+  @ValidateNested({ each: true })
+  @Type(() => ProductQuantity)
+  products: ProductQuantity[];
+
+  @ApiProperty()
+  @IsOptional()
+  @IsPositive()
+  installments?: number;
+
+  @ApiProperty({ enum: MethodPaymentType, default: MethodPaymentType.MP_TRANSFER })
+  @IsEnum(MethodPaymentType)
+  paymentMethod: MethodPaymentType;
+}
+
+export class ProductQuantity {
+
+  @ApiProperty()
+  @IsPositive()
+  productId: number;
+
+  @ApiProperty()
+  @IsPositive()
+  quantity: number;
 }

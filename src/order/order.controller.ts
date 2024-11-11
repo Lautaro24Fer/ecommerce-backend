@@ -13,11 +13,16 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
 import { Order } from './entities/order.entity';
+import { OrderDto } from './dto/order.dto';
+import { UserService } from 'src/user/user.service';
+import { UserDto } from 'src/user/dto/user.dto';
 
 @ApiTags('Orders')
 @Controller('order')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly userService: UserService) {}
 
   @ApiOperation({
     summary: "Create a new order"
@@ -35,7 +40,7 @@ export class OrderController {
     description: "Error in the creation of the order"
   })
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto): Promise<IRecourseCreated<Order>> {
+  create(@Body() createOrderDto: CreateOrderDto): Promise<IRecourseCreated<OrderDto>> {
     return this.orderService.create(createOrderDto);
   }
 
@@ -55,7 +60,7 @@ export class OrderController {
     description: "Error finding the ordersr"
   })
   @Get()
-  findAll(): Promise<IRecourseFound<Order[]>> {
+  findAll(): Promise<IRecourseFound<OrderDto[]>> {
     return this.orderService.findAll();
   }
 
@@ -79,8 +84,19 @@ export class OrderController {
     description: "Error finding the order"
   })
   @Get(':id')
-  findOne(@Param('id') id: number): Promise<IRecourseFound<Order>> {
-    return this.orderService.findOneById(id);
+  async findOne(@Param('id') id: number): Promise<IRecourseFound<OrderDto>> {
+    const recourseFound: IRecourseFound<Order> = await this.orderService.findOneById(id);
+    const userDto: UserDto = this.userService.mapUserToUserDto(recourseFound.recourse.user);
+    const response: IRecourseFound<OrderDto> = {
+      ...recourseFound,
+      recourse: {
+        ...recourseFound.recourse, user: userDto,
+        items: [
+          ...recourseFound.recourse.productOrder
+        ]
+      }
+    };
+    return response;
   }
 
   // @Patch(':id')

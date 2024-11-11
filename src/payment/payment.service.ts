@@ -9,6 +9,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Address } from 'src/address/entities/address.entity';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseFound } from 'src/global/responseInterfaces';
 import { ProductService } from 'src/product/product.service';
+import { OrderService } from 'src/order/order.service';
 
 @Injectable()
 export class PaymentService {
@@ -16,7 +17,7 @@ export class PaymentService {
 	constructor(
 		private readonly configService: ConfigService, 
 		private readonly userService: UserService,
-		private readonly productService: ProductService	
+		private readonly productService: ProductService,
 	) { }
 
 	CLIENT_DOMAIN = this.configService.get<string>('DEV_CLIENT_DOMAIN');
@@ -94,7 +95,9 @@ export class PaymentService {
 		preference.create({
 			body: { ...preferenceBody, }
 		})
-			.then(data => {
+			.then(async data => {
+				console.log("ESTA ES LA DATA")
+				console.log(JSON.stringify(data, null, 2))
 				const response: IRecourseCreated<string> = {
 					status: true,
 					message: "The embeded form was created succesfully",
@@ -170,6 +173,9 @@ export class PaymentService {
     }
   }
 
+	// Este metodo era unicamente para testear 
+	// el estado de la orden por id. Se debe 
+	// eliminar al igual que su endpoint
 	async knowStatus(paymentId: number){
 		const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
     const response = await fetch(url, {

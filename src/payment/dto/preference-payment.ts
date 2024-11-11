@@ -2,7 +2,7 @@
 
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsPositive, ValidateNested } from "class-validator";
+import { IsArray, IsPositive, IsString, ValidateNested } from "class-validator";
 
 
 
@@ -52,18 +52,23 @@ export class ItemDto {
     id: number;
 
     @ApiProperty()
+    @IsString()
     title: string;
 
     @ApiProperty()
+    @IsString()
     currency_id: string;
 
     @ApiProperty()
+    @IsString()
     picture_url?: string | null;
 
     @ApiProperty()
+    @IsString()
     description: string;
 
     @ApiProperty()
+    @IsString()
     category_id: string;
 
     @ApiProperty()

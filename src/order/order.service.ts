@@ -1,64 +1,138 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Order } from './entities/order.entity';
-import { Repository } from 'typeorm';
+import { Order, ProductOrder } from './entities/order.entity';
+import { Repository, TreeRepositoryNotSupportedError } from 'typeorm';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
 import { ProductService } from 'src/product/product.service';
 import { Product } from 'src/product/entities/product.entity';
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { Address } from 'src/address/entities/address.entity';
+import { ConfigService } from '@nestjs/config';
+import { UserDto } from 'src/user/dto/user.dto';
+import { OrderDto } from './dto/order.dto';
+import { MethodPaymentType } from 'src/global/enum';
 
 @Injectable()
 export class OrderService {
 
   constructor( 
     @InjectRepository(Order) private readonly orderRepository: Repository<Order>, 
+    @InjectRepository(ProductOrder) private readonly productOrderRepository: Repository<ProductOrder>,
     private readonly productService: ProductService,
-    private readonly userService: UserService) {}
+    private readonly userService: UserService,
+    private readonly configService: ConfigService) {}
 
-  async create(createOrderDto: CreateOrderDto): Promise<IRecourseCreated<Order>> {
+    ACCESS_TOKEN = this.configService.get<string>('MP_ACCESS_TOKEN');
 
-    const products: Product[] = await Promise.all(createOrderDto.productId.map(async (productId) => {
-      const product: IRecourseFound<Product> = await this.productService.findOne(productId);
-      return product.recourse;
-    }));
+    async verifyStatus(paymentId: number){
+      if(paymentId === 12345 ){ // Codigo de prueba
+        return true;
+      }
+      const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${this.ACCESS_TOKEN}`,
+        },
+      })
+      .then(data => data.json())
+      .catch((error) => {
+        console.error(error);
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: "Error fetching the payment status by payment id"
+        };
+        throw new BadRequestException(badRequestError);
+      });
+      if(response?.status === 404) {
+        const badRequestError: INotFoundEx = {
+          status: false,
+          message: `The payment order with id '${paymentId}' was not founded in marcado pago server`
+        }
+        throw new NotFoundException(badRequestError);
+      }
+      return response;
+    }
+
+  async create(createOrderDto: CreateOrderDto): Promise<IRecourseCreated<OrderDto>> {
+
+    // Verificar si el paymentId existe en el servidor de mercado pago
+    const mpApiResponse = await this.verifyStatus(createOrderDto.paymentId);
 
     const user: User = (await this.userService.findOneById(createOrderDto.userId)).recourse;
 
-    const address: Address = user.address.find((ad) => ad.id === createOrderDto.addressId);
+    const address: Address = user.address.find((add) => add.id === createOrderDto.addressId);
 
-    if(!address){
-      const badRequestError: IBadRequestex = {
+    if(!address) {
+      const badRequestError: INotFoundEx = {
         status: false,
-        message: "The address arrived is not a valid address for this user"
+        message: `The address with id '${createOrderDto.addressId}' was not register with the user or not exists`
       };
-      throw new BadRequestException(badRequestError);
-    }
+      throw new NotFoundException(badRequestError);
+    };
 
-    const bodyOrder: Order = this.orderRepository.create({ ...createOrderDto, user, products, address, paymentId: createOrderDto.paymentId.toString() });
+    const products = await Promise.all(createOrderDto.products.map(async (productInstance) => {
+      const productFound: Product = (await this.productService.findOne(productInstance.productId)).recourse;
+      return {
+        product: productFound,
+        quantity: productInstance.quantity
+      }
+    }));
 
-    const order: Order = await this.orderRepository.save(bodyOrder).catch((error) => {
+    const orderInstance = this.orderRepository.create({
+      ...createOrderDto,
+      address,
+      user,
+      paymentId: createOrderDto.paymentId.toString(),
+      productOrder: products,
+    })
+
+    const orderCreated: Order = await this.orderRepository.save(orderInstance).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
-        message: "Error in the creation of the new order"
+        message: "Error in the creation of a new order"
       };
       throw new BadRequestException(badRequestError);
     });
 
-    const recourseCreated: IRecourseCreated<Order> = {
+    console.log(" --- CREATION OF THE NEW ORDER ---- ");
+    console.log("order created: (no parsed or formatted)")
+    console.log(JSON.stringify(orderCreated, null, 2));
+
+    const userParsed: UserDto = this.userService.mapUserToUserDto(orderCreated.user);
+
+    const orderParsed: OrderDto = {
+      ...orderCreated,
+      user: userParsed,
+      items: [...orderCreated.productOrder]
+    };
+
+    const recourseCreated: IRecourseCreated<OrderDto> = {
       status: true,
       message: "The order was created succesfully",
-      recourse: order
+      recourse: orderParsed
     };
 
     return recourseCreated;
   }
 
-  async findAll(): Promise<IRecourseFound<Order[]>> {
-    const orders: Order[] = await this.orderRepository.find().catch((error) => {
+  async findAll(): Promise<IRecourseFound<OrderDto[]>> {
+    const orders: OrderDto[] = await this.orderRepository.find().then((orders) => {
+      const ordersDto: OrderDto[] = orders.map((order) => {
+        const userDto: UserDto = this.userService.mapUserToUserDto(order.user);
+        const orderDto: OrderDto = {
+          ...order,
+          user: userDto,
+          items: [...order.productOrder]
+        };
+        return orderDto;
+      });
+      return ordersDto;
+    }).
+    catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
@@ -66,7 +140,8 @@ export class OrderService {
       };
       throw new BadRequestException(badRequestError);
     });
-    const response: IRecourseFound<Order[]> = {
+
+    const response: IRecourseFound<OrderDto[]> = {
       status: true,
       message: "The orders was found succesfully",
       recourse: orders
@@ -76,7 +151,8 @@ export class OrderService {
 
   async findOneById(id: number): Promise<IRecourseFound<Order>> {
     
-    const order: Order = await this.orderRepository.findOneBy({ id }).catch((error) => {
+    const order: Order = await this.orderRepository.findOneBy({ id })
+    .catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,

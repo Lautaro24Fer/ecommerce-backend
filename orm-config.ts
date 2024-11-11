@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { User } from './src/user/entities/user.entity';
 import { Brand } from 'src/brand/entities/brand.entity';
-import { Order } from 'src/order/entities/order.entity';
+import { Order, ProductOrder } from 'src/order/entities/order.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
 import { ProductType } from 'src/type/entities/type.entity';
@@ -24,7 +24,7 @@ export const AppDataSource = new DataSource({
   database: configService.get<string>('TYPEORM_DATABASE_NAME'),
   synchronize: false,
   logging: false,
-  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role, IdType, Address], // Ajusta según tus entidades
+  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role, IdType, Address, ProductOrder], // Ajusta según tus entidades
   migrations: ['src/migrations/*.ts'],
   subscribers: [],
 });
