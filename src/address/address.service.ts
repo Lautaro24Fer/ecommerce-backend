@@ -64,7 +64,13 @@ export class AddressService {
 
   async create(createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>> {
 
-    const addressCreated: Address = await this.addressRepository.save(createAddressDto).catch((error) => {
+    const body: Address = this.addressRepository.create({
+      postalCode: createAddressDto.postalCode.toUpperCase(),
+      addressNumber: createAddressDto.addressNumber.toLowerCase(),
+      addressStreet: createAddressDto.addressStreet.toLowerCase()
+    });
+
+    const addressCreated: Address = await this.addressRepository.save(body).catch((error) => {
       console.error(error);
       const response: IBadRequestex = { status: false, message: 'Error creating the new address' };
       throw new BadRequestException(response);
@@ -154,9 +160,9 @@ export class AddressService {
   async findOneByAllData(postalCode: string, addressStreet: string, addressNumber: string): Promise<IRecourseFound<Address>>{
 
     const address: Address = await this.addressRepository.findOneBy({
-      postalCode,
-      addressStreet,
-      addressNumber
+      postalCode: postalCode.toUpperCase(),
+      addressStreet: addressStreet.toLowerCase(),
+      addressNumber: addressNumber.toLowerCase()
     }).catch((error) => {
       console.error(error);
       const response: IBadRequestex = { status: false, message: 'Error finding the address by all data of the entity' };

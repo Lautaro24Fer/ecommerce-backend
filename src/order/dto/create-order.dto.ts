@@ -22,7 +22,7 @@ export class CreateOrderDto {
   @Type(() => ProductQuantity)
   products: ProductQuantity[];
 
-  @ApiProperty()
+  @ApiProperty({ default: 1 })
   @IsOptional()
   @IsPositive()
   installments?: number;

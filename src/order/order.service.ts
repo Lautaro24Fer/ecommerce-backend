@@ -59,7 +59,7 @@ export class OrderService {
   async create(createOrderDto: CreateOrderDto): Promise<IRecourseCreated<OrderDto>> {
 
     // Verificar si el paymentId existe en el servidor de mercado pago
-    const mpApiResponse = await this.verifyStatus(createOrderDto.paymentId);
+    // const mpApiResponse = await this.verifyStatus(createOrderDto.paymentId);
 
     const user: User = (await this.userService.findOneById(createOrderDto.userId)).recourse;
 
@@ -73,21 +73,30 @@ export class OrderService {
       throw new NotFoundException(badRequestError);
     };
 
-    const products = await Promise.all(createOrderDto.products.map(async (productInstance) => {
+    const products: ProductOrder[] = await Promise.all(createOrderDto.products.map(async (productInstance) => {
       const productFound: Product = (await this.productService.findOne(productInstance.productId)).recourse;
-      return {
+      const productOrder: ProductOrder = this.productOrderRepository.create({
         product: productFound,
         quantity: productInstance.quantity
-      }
+      });
+      const productOrderCreated: ProductOrder = await this.productOrderRepository.save(productOrder).catch((error) => {
+        console.error(error);
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: `Error in the creation of the productOrder in the order service`
+        };
+        throw new BadRequestException(badRequestError);
+      })
+      return productOrderCreated;
     }));
 
     const orderInstance = this.orderRepository.create({
       ...createOrderDto,
       address,
       user,
-      paymentId: createOrderDto.paymentId.toString(),
-      productOrder: products,
-    })
+      paymentId: createOrderDto.addressId.toString(),
+      productOrder: [...products],
+    });
 
     const orderCreated: Order = await this.orderRepository.save(orderInstance).catch((error) => {
       console.error(error);
@@ -98,16 +107,19 @@ export class OrderService {
       throw new BadRequestException(badRequestError);
     });
 
+    const orderFound: Order = (await this.findOneById(orderCreated.id)).recourse;
+
     console.log(" --- CREATION OF THE NEW ORDER ---- ");
-    console.log("order created: (no parsed or formatted)")
-    console.log(JSON.stringify(orderCreated, null, 2));
+    console.log("order created: (no parsed or formatted) __________________")
+    console.log(JSON.stringify(orderFound, null, 2));
+    console.log("______________________________")
 
-    const userParsed: UserDto = this.userService.mapUserToUserDto(orderCreated.user);
-
+    const userParsed: UserDto = this.userService.mapUserToUserDto(orderFound.user);
+  
     const orderParsed: OrderDto = {
-      ...orderCreated,
+      ...orderFound,
       user: userParsed,
-      items: [...orderCreated.productOrder]
+      items: [...orderFound.productOrder]
     };
 
     const recourseCreated: IRecourseCreated<OrderDto> = {
@@ -151,7 +163,7 @@ export class OrderService {
 
   async findOneById(id: number): Promise<IRecourseFound<Order>> {
     
-    const order: Order = await this.orderRepository.findOneBy({ id })
+    const order: Order = await this.orderRepository.findOne({ where:  { id }, relations: ['product-order']})
     .catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
