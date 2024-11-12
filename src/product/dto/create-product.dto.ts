@@ -55,4 +55,9 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsPositive()
   typeId: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsPositive()
+  stock: number;
 }

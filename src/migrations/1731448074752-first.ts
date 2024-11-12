@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class First1731354576887 implements MigrationInterface {
-    name = 'First1731354576887'
+export class First1731448074752 implements MigrationInterface {
+    name = 'First1731448074752'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE \`address\` (\`id\` int NOT NULL AUTO_INCREMENT, \`postalCode\` varchar(10) NOT NULL, \`addressStreet\` varchar(30) NOT NULL, \`addressNumber\` varchar(10) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
@@ -34,7 +34,7 @@ export class First1731354576887 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`order_product_order_product\` ADD CONSTRAINT \`FK_5497920a11e3e210b397937352d\` FOREIGN KEY (\`orderId\`) REFERENCES \`order\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`ALTER TABLE \`order_product_order_product\` ADD CONSTRAINT \`FK_abdd4cff087f33261dcfe9ebc4b\` FOREIGN KEY (\`productId\`) REFERENCES \`product\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
     
-                        // INSERTS
+        // INSERTS
         
         // MARCAS
         await queryRunner.query(`insert into brand (name) values ('ADIDAS'),('BABOLAT'),('BULLPADEL'),('NOX'),('SIUX'),('ROYAL'),('COAST'),('TOP FORCE'),('BLACK CROWN'),('FELINA PADEL'),('HEAD')`);

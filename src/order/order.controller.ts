@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -40,8 +41,14 @@ export class OrderController {
     description: "Error in the creation of the order"
   })
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto): Promise<IRecourseCreated<OrderDto>> {
-    return this.orderService.create(createOrderDto);
+  async create(@Body() createOrderDto: CreateOrderDto): Promise<IRecourseCreated<OrderDto>> {
+    const response: IRecourseCreated<Order> = await this.orderService.create(createOrderDto);
+    const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(response.recourse);
+    const recourse: IRecourseCreated<OrderDto> = {
+      ...response,
+      recourse: orderDto
+    };
+    return recourse;
   }
 
   @ApiOperation({
@@ -60,7 +67,7 @@ export class OrderController {
     description: "Error finding the ordersr"
   })
   @Get()
-  findAll(): Promise<IRecourseFound<OrderDto[]>> {
+  findAll(): Promise<IRecourseFound<Order[]>> {
     return this.orderService.findAll();
   }
 
@@ -86,17 +93,25 @@ export class OrderController {
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<IRecourseFound<OrderDto>> {
     const recourseFound: IRecourseFound<Order> = await this.orderService.findOneById(id);
-    const userDto: UserDto = this.userService.mapUserToUserDto(recourseFound.recourse.user);
-    const response: IRecourseFound<OrderDto> = {
-      ...recourseFound,
-      recourse: {
-        ...recourseFound.recourse, user: userDto,
-        items: [
-          ...recourseFound.recourse.productOrder
-        ]
+    
+    try{
+
+      console.log("RECOURSE FOUND");
+      console.log(JSON.stringify(recourseFound, null, 2));
+
+      const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(recourseFound.recourse);
+
+      const response: IRecourseFound<OrderDto> = {
+        ...recourseFound,
+        recourse: orderDto
       }
-    };
-    return response;
+
+      return response;
+    }
+    catch(error){
+      console.error(error)
+      throw new BadRequestException({ error: "asndjkasdnjasdnjakdn" })
+    }
   }
 
   // @Patch(':id')

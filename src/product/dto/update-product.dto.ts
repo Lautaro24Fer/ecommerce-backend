@@ -40,4 +40,9 @@ export class UpdateProductDto {
   @IsOptional()
   @IsPositive()
   typeId?: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsPositive()
+  stock?: number;
 }

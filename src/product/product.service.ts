@@ -170,34 +170,27 @@ export class ProductService {
   async update(id: number, updateProductDto: UpdateProductDto): Promise<IRecourseUpdated<Product>> {
     const productFinded: Product = (await this.findOne(id)).recourse;
 
-    if (updateProductDto.name) {
-      productFinded.name = updateProductDto.name;
-    }
-
-    if(updateProductDto.description){
-      productFinded.description = updateProductDto.description;
-    }
-
-    if (updateProductDto.price) {
-      productFinded.price = updateProductDto.price;
+    const body: Product = {
+      ...productFinded,
+      ...updateProductDto
     }
 
     if (updateProductDto.brandId) {
       const brand: Brand = (await this.brandService.findOne(updateProductDto?.brandId)).recourse;
-      productFinded.brand = brand;
+     body.brand = brand;
     }
 
     if (updateProductDto.supplierId) {
       const supplier: Supplier = (await this.supplierService.findOne(updateProductDto?.supplierId)).recourse;
-      productFinded.supplier = supplier;
+     body.supplier = supplier;
     }
 
     if(updateProductDto.typeId){
       const type: ProductType = (await this.typeService.findOne(updateProductDto?.typeId)).recourse;
-      productFinded.type = type;
+     body.type = type;
     }
 
-    const productUpdated: Product = await this.productRepository.save(productFinded).catch((error) => {
+    const productUpdated: Product = await this.productRepository.save(body).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,

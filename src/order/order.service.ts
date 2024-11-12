@@ -3,7 +3,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order, ProductOrder } from './entities/order.entity';
 import { Repository, TreeRepositoryNotSupportedError } from 'typeorm';
-import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 import { ProductService } from 'src/product/product.service';
 import { Product } from 'src/product/entities/product.entity';
 import { UserService } from 'src/user/user.service';
@@ -13,6 +13,8 @@ import { ConfigService } from '@nestjs/config';
 import { UserDto } from 'src/user/dto/user.dto';
 import { OrderDto } from './dto/order.dto';
 import { MethodPaymentType } from 'src/global/enum';
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { ProductOrderDto } from './dto/product-order.dto';
 
 @Injectable()
 export class OrderService {
@@ -56,7 +58,7 @@ export class OrderService {
       return response;
     }
 
-  async create(createOrderDto: CreateOrderDto): Promise<IRecourseCreated<OrderDto>> {
+  async create(createOrderDto: CreateOrderDto): Promise<IRecourseCreated<Order>> {
 
     // Verificar si el paymentId existe en el servidor de mercado pago
     // const mpApiResponse = await this.verifyStatus(createOrderDto.paymentId);
@@ -73,11 +75,41 @@ export class OrderService {
       throw new NotFoundException(badRequestError);
     };
 
+    const orderInstance = this.orderRepository.create({
+      ...createOrderDto,
+      address,
+      user,
+      paymentId: createOrderDto.paymentId.toString(),
+      productOrder: [],
+    });
+
+    await Promise.all(createOrderDto.products.map(async (productInstance) => {
+      const product: Product = (await this.productService.findOne(productInstance.productId)).recourse;
+      if(product.stock < productInstance.quantity){
+        throw new BadRequestException({ error: "NO STOCK OF THE PRODUCT" })
+      }
+    }));
+
+    const orderCreated: Order = await this.orderRepository.save(orderInstance).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error in the creation of a new order"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+
     const products: ProductOrder[] = await Promise.all(createOrderDto.products.map(async (productInstance) => {
       const productFound: Product = (await this.productService.findOne(productInstance.productId)).recourse;
+
+      productFound.stock = productFound.stock - productInstance.quantity;
+
+      const productUpdated: Product = (await this.productService.update(productFound.id, { stock: productFound.stock })).recourse;
+
       const productOrder: ProductOrder = this.productOrderRepository.create({
-        product: productFound,
-        quantity: productInstance.quantity
+        product: productUpdated,
+        quantity: productInstance.quantity,
+        order: orderCreated,
       });
       const productOrderCreated: ProductOrder = await this.productOrderRepository.save(productOrder).catch((error) => {
         console.error(error);
@@ -90,60 +122,35 @@ export class OrderService {
       return productOrderCreated;
     }));
 
-    const orderInstance = this.orderRepository.create({
-      ...createOrderDto,
-      address,
-      user,
-      paymentId: createOrderDto.addressId.toString(),
-      productOrder: [...products],
-    });
+    orderCreated.productOrder = [...products]; 
 
-    const orderCreated: Order = await this.orderRepository.save(orderInstance).catch((error) => {
+    const orderUpdated: Order = await this.orderRepository.save(orderCreated).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
-        message: "Error in the creation of a new order"
+        message: "Error adding the products in the order"
       };
       throw new BadRequestException(badRequestError);
     });
 
-    const orderFound: Order = (await this.findOneById(orderCreated.id)).recourse;
-
-    console.log(" --- CREATION OF THE NEW ORDER ---- ");
-    console.log("order created: (no parsed or formatted) __________________")
-    console.log(JSON.stringify(orderFound, null, 2));
-    console.log("______________________________")
-
-    const userParsed: UserDto = this.userService.mapUserToUserDto(orderFound.user);
-  
-    const orderParsed: OrderDto = {
-      ...orderFound,
-      user: userParsed,
-      items: [...orderFound.productOrder]
-    };
-
-    const recourseCreated: IRecourseCreated<OrderDto> = {
+    const recourse: IRecourseCreated<Order> = {
       status: true,
       message: "The order was created succesfully",
-      recourse: orderParsed
+      recourse: orderUpdated
     };
 
-    return recourseCreated;
+  
+    return recourse;
   }
 
-  async findAll(): Promise<IRecourseFound<OrderDto[]>> {
-    const orders: OrderDto[] = await this.orderRepository.find().then((orders) => {
-      const ordersDto: OrderDto[] = orders.map((order) => {
-        const userDto: UserDto = this.userService.mapUserToUserDto(order.user);
-        const orderDto: OrderDto = {
-          ...order,
-          user: userDto,
-          items: [...order.productOrder]
-        };
-        return orderDto;
-      });
-      return ordersDto;
-    }).
+  async update(updateOrderDto: UpdateOrderDto): Promise<IRecourseUpdated<OrderDto>> {
+    // Actualizacion de fechas de entrega estimadas, finales, y fechas de pago
+
+    return
+  }
+
+  async findAll(): Promise<IRecourseFound<Order[]>> {
+    const orders: Order[] = await this.orderRepository.find().
     catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -153,7 +160,7 @@ export class OrderService {
       throw new BadRequestException(badRequestError);
     });
 
-    const response: IRecourseFound<OrderDto[]> = {
+    const response: IRecourseFound<Order[]> = {
       status: true,
       message: "The orders was found succesfully",
       recourse: orders
@@ -163,7 +170,7 @@ export class OrderService {
 
   async findOneById(id: number): Promise<IRecourseFound<Order>> {
     
-    const order: Order = await this.orderRepository.findOne({ where:  { id }, relations: ['product-order']})
+    const order: Order = await this.orderRepository.findOne({ where:  { id }, relations: ['productOrder', 'user']})
     .catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -204,5 +211,29 @@ export class OrderService {
       recourse: orderDeleted
     };
     return recourseDeleted;
+  }
+
+  mapOrderToOrderDto(order: Order): OrderDto{
+
+    const userDto: UserDto = this.userService.mapUserToUserDto(order.user);
+
+    const productOrdersDto: ProductOrderDto[] = order.productOrder.map((po) => {
+      const productOrderDto: ProductOrderDto = {
+        id: po.id,
+        orderId: po.order.id,
+        product: po.product,
+        quantity: po.quantity
+      }
+      return productOrderDto;
+    })
+
+    const orderDto: OrderDto = {
+      user: userDto,
+      address: order.address,
+      paymentId: order.paymentId,
+      items: productOrdersDto
+    };
+
+    return orderDto;
   }
 }

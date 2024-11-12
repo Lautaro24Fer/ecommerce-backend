@@ -3,6 +3,7 @@ import { Address } from "src/address/entities/address.entity";
 import { Product } from "src/product/entities/product.entity";
 import { UserDto } from "src/user/dto/user.dto";
 import { ProductOrder } from "../entities/order.entity";
+import { ProductOrderDto } from "./product-order.dto";
 
 export class OrderDto{
 
@@ -12,5 +13,5 @@ export class OrderDto{
 
   paymentId: string;
 
-  items: ProductOrder[];
+  items: ProductOrderDto[];
 }

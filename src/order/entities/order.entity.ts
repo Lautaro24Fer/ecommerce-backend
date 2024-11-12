@@ -34,7 +34,7 @@ export class Order {
   @ManyToOne(() => User, (user) => user.id)
   user: User;
 
-  @ManyToMany(() => Product, (product) => product.id, { cascade: true, onDelete: 'CASCADE' })
+  @ManyToMany(() => Product, (product) => product.id, { onDelete: 'CASCADE' })
   @JoinTable()
   productOrder: ProductOrder[];
 
