@@ -124,6 +124,9 @@ export class OrderService {
 
     orderCreated.productOrder = [...products]; 
 
+    console.log(" ==== ORDER CREATED === ");
+    console.log(JSON.stringify(orderCreated, null, 2));
+
     const orderUpdated: Order = await this.orderRepository.save(orderCreated).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {

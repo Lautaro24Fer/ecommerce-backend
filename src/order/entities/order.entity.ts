@@ -8,6 +8,7 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -34,13 +35,13 @@ export class Order {
   @ManyToOne(() => User, (user) => user.id)
   user: User;
 
-  @ManyToMany(() => Product, (product) => product.id, { onDelete: 'CASCADE' })
+  @OneToMany(() => Product, (product) => product.id)
   @JoinTable()
   productOrder: ProductOrder[];
 
   // Informacion del pago
 
-  @Column({ type: 'varchar', default: "mercadopago" })
+  @Column({ type: 'varchar', default: "MP_TRANSFER" })
   paymentMethod: string;
 
   @Column({ type: 'boolean', default: false })
@@ -59,7 +60,7 @@ export class ProductOrder {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Order, (order) => order.productOrder)
+  @ManyToOne(() => Order, (order) => order.productOrder, { onDelete: 'CASCADE' })
   order: Order;
 
   @ManyToOne(() => Product, (product) => product.id)
