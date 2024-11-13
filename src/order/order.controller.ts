@@ -12,7 +12,7 @@ import {
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IRecourseCreated, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
+import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
 import { Order } from './entities/order.entity';
 import { OrderDto } from './dto/order.dto';
 import { UserService } from 'src/user/user.service';
@@ -93,14 +93,8 @@ export class OrderController {
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<IRecourseFound<OrderDto>> {
     const recourseFound: IRecourseFound<Order> = await this.orderService.findOneById(id);
-    
     try{
-
-      console.log("RECOURSE FOUND");
-      console.log(JSON.stringify(recourseFound, null, 2));
-
       const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(recourseFound.recourse);
-
       const response: IRecourseFound<OrderDto> = {
         ...recourseFound,
         recourse: orderDto
@@ -110,7 +104,11 @@ export class OrderController {
     }
     catch(error){
       console.error(error)
-      throw new BadRequestException({ error: "asndjkasdnjasdnjakdn" })
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error in controller instance. Can not load order with id: '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
     }
   }
 

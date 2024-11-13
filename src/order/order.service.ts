@@ -168,9 +168,28 @@ export class OrderService {
     return response;
   }
 
+  async findProductOrderById(id: number) {
+    const productOrder: ProductOrder = await this.productOrderRepository.findOne({ where: { id }, relations: ['product'] }).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error finding the productOrder with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    if(!productOrder){
+      const badRequestError: INotFoundEx = {
+        status: false,
+        message: `Order product with id '${id}' was not found`
+      };
+      throw new NotFoundException(badRequestError);
+    }
+    return productOrder;
+  }
+
   async findOneById(id: number): Promise<IRecourseFound<Order>> {
     
-    const order: Order = await this.orderRepository.findOne({ where:  { id }, relations: ['productOrder', 'user']})
+    const order: Order = await this.orderRepository.findOne({ where:  { id }, relations: ['user', 'productOrder']})
     .catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -186,6 +205,20 @@ export class OrderService {
       };
       throw new NotFoundException(notFoundError);
     }
+
+    const user: User = (await this.userService.findOneById(order.user.id)).recourse;
+    order.user = user;
+
+    const productOrders: ProductOrder[] = await Promise.all(order.productOrder.map(async (po) => {
+      const productOrder: ProductOrder = await this.findProductOrderById(po.id);
+      console.log("======== product order ========")
+      console.log(JSON.stringify(productOrder, null, 2));
+      console.log("\n\n");
+      return productOrder;
+    }));
+
+    order.productOrder = [...productOrders];
+
     const response: IRecourseFound<Order> = {
       status: true,
       message: "The order was found succesfully",
@@ -197,6 +230,9 @@ export class OrderService {
   async remove(id: number): Promise<IRecourseDeleted<Order>> {
     
     const order: Order = (await this.findOneById(id)).recourse;
+    console.log("\n\n\n ==== REMOVE ==== ")
+    console.log("order")
+    console.log(order)
     const orderDeleted: Order = await this.orderRepository.remove(order).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -217,10 +253,12 @@ export class OrderService {
 
     const userDto: UserDto = this.userService.mapUserToUserDto(order.user);
 
+
     const productOrdersDto: ProductOrderDto[] = order.productOrder.map((po) => {
+
       const productOrderDto: ProductOrderDto = {
         id: po.id,
-        orderId: po.order.id,
+        orderId: order.id,
         product: po.product,
         quantity: po.quantity
       }
