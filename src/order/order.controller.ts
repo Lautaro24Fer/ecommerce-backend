@@ -137,7 +137,13 @@ export class OrderController {
     description: "Error deleting the order"
   })
   @Delete(':id')
-  remove(@Param('id') id: number): Promise<IRecourseDeleted<Order>> {
-    return this.orderService.remove(id);
+  async remove(@Param('id') id: number): Promise<IRecourseDeleted<OrderDto>> {
+    const recourseDeleted: IRecourseDeleted<Order> = await this.orderService.remove(id);
+    const orderParsed: OrderDto = this.orderService.mapOrderToOrderDto(recourseDeleted.recourse);
+    const response: IRecourseDeleted<OrderDto> = {
+      ...recourseDeleted,
+      recourse: orderParsed
+    };
+    return response;
   }
 }

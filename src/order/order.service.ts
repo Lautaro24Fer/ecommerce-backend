@@ -67,6 +67,16 @@ export class OrderService {
 
     const address: Address = user.address.find((add) => add.id === createOrderDto.addressId);
 
+    const paymentIdExists: boolean = await this.orderRepository.existsBy({ paymentId:createOrderDto.paymentId.toString() });
+
+    if(paymentIdExists) {
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `The payment id '${createOrderDto.paymentId}' already exists`
+      };
+      throw new BadRequestException(badRequestError);
+    }
+
     if(!address) {
       const badRequestError: INotFoundEx = {
         status: false,
@@ -86,7 +96,11 @@ export class OrderService {
     await Promise.all(createOrderDto.products.map(async (productInstance) => {
       const product: Product = (await this.productService.findOne(productInstance.productId)).recourse;
       if(product.stock < productInstance.quantity){
-        throw new BadRequestException({ error: "NO STOCK OF THE PRODUCT" })
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: `The product with id '${product.id}' not have many stock`
+        };
+        throw new BadRequestException(badRequestError);
       }
     }));
 
@@ -237,7 +251,7 @@ export class OrderService {
     console.log("\n\n\n ==== REMOVE ==== ")
     console.log("order")
     console.log(order)
-    const orderDeleted: Order = await this.orderRepository.remove(order).catch((error) => {
+    await this.orderRepository.delete(order.id).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
@@ -248,7 +262,7 @@ export class OrderService {
     const recourseDeleted: IRecourseDeleted<Order> = {
       status: true,
       message: `The recourse was deleted succesfully`,
-      recourse: orderDeleted
+      recourse: order
     };
     return recourseDeleted;
   }
