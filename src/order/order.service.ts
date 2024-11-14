@@ -102,6 +102,7 @@ export class OrderService {
     const products: ProductOrder[] = await Promise.all(createOrderDto.products.map(async (productInstance) => {
       const productFound: Product = (await this.productService.findOne(productInstance.productId)).recourse;
 
+      // TODO: ESTO DEBE HACERSE AL FINAL UNA VEZ NO HAYA EXCEPCIONES AL CREAR LA ORDEN
       productFound.stock = productFound.stock - productInstance.quantity;
 
       const productUpdated: Product = (await this.productService.update(productFound.id, { stock: productFound.stock })).recourse;
@@ -192,7 +193,7 @@ export class OrderService {
 
   async findOneById(id: number): Promise<IRecourseFound<Order>> {
     
-    const order: Order = await this.orderRepository.findOne({ where:  { id }, relations: ['user', 'productOrder']})
+    const order: Order = await this.orderRepository.findOne({ where: { id }, relations: { productOrder: true, user: true }})
     .catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {

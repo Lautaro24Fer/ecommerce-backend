@@ -35,8 +35,7 @@ export class Order {
   @ManyToOne(() => User, (user) => user.id)
   user: User;
 
-  @OneToMany(() => Product, (product) => product.id)
-  @JoinTable()
+  @OneToMany(() => ProductOrder, (po) => po.order, { onDelete: 'CASCADE' })
   productOrder: ProductOrder[];
 
   // Informacion del pago
@@ -60,7 +59,7 @@ export class ProductOrder {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Order, (order) => order.productOrder, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Order, (order) => order.productOrder)
   order: Order;
 
   @ManyToOne(() => Product, (product) => product.id)
