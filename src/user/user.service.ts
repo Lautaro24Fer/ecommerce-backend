@@ -16,7 +16,7 @@ import { AuthUserResponseDto, CreateUserStrategyDto } from './dto/oauth-data';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from 'src/global/responseInterfaces';
 import { AddressService } from 'src/address/address.service';
 import { Address } from 'src/address/entities/address.entity';
-import { MethodPaymentType, UpdateType } from 'src/global/enum';
+import { LoginMethodType, MethodPaymentType, UpdateType } from 'src/global/enum';
 
 enum UniqueUserRecourse { USERNAME, EMAIL, ID_NUMBER };
 
@@ -236,6 +236,7 @@ export class UserService {
     }
     return responseUser;
   }
+
   async validateUserWithStrategy(payload: CreateUserStrategyDto): Promise<User> {
 
     const user: User = await this.findOneByEmail(payload.email).then(data => data.recourse)
@@ -269,7 +270,6 @@ export class UserService {
     })
     return user;
   }
-
   // Verifica si datos unicos como el username o el correo están en uso
   async recourseInUse( input: string, recourseName: UniqueUserRecourse ): Promise<boolean>{
 
@@ -357,41 +357,46 @@ export class UserService {
       }
     }
 
-    Object.assign(userToUpdate, updateUserDto);
+    const body: User = {
+      id: userToUpdate.id,
+      name: updateUserDto?.name ?? userToUpdate.name,
+      surname: updateUserDto?.surname ?? userToUpdate.surname,
+      username: updateUserDto?.username ?? userToUpdate.username,
+      idType: userToUpdate.idType,
+      idNumber: updateUserDto?.idNumber?.toString() ?? userToUpdate.idNumber,
+      email: userToUpdate.email,
+      method: userToUpdate.method,
+      address: [...userToUpdate.address],
+      roles: [...userToUpdate.roles]
+    }
 
     if(updateUserDto?.idType) {
-      const idTypeArrived: IdType = (await this.idTypeService.findOne(updateUserDto.idType)).recourse;
-      userToUpdate.idType = idTypeArrived;
+      const idTypeArrived: IdType = (await this.idTypeService.findOne(updateUserDto?.idType)).recourse;
+      body.idType = idTypeArrived;
     }
 
-    if((updateUserDto?.address) && (updateUserDto?.address.length > 0)){
-      switch(updateType){
-        case UpdateType.FULL:
-          // Se sobrescribe todo el array existente
-          userToUpdate.address = [];
-          updateUserDto?.address.forEach(async ad => {
-            const address: Address = (await this.addressService.findOrCreate({ ...ad, addressNumber: ad.addressNumber.toString() })).recourse;
-            userToUpdate.address.push(address);
-          });
-        break;
-        case UpdateType.PARTIAL:
-          updateUserDto?.address.forEach(async ad => {
-            const address: Address = (await this.addressService.findOrCreate({ ...ad, addressNumber: ad.addressNumber.toString() })).recourse;
-            userToUpdate.address.push(address);
-          });
-        break;
-        default:
-          const badRequestError: IBadRequestex = {
-            status: false,
-            message: 'The update type is invalid'
-          };
-          throw new BadRequestException(badRequestError);
-        break;
+    if((updateUserDto?.address)){
+      console.log(" == *********** ADDRESS  ********* ==")
+      if(updateType === UpdateType.FULL){
+        console.log(" __la actualización es completa o tipo FULL__ ")
+        body.address = [];
       }
+      else{
+        console.log(" __la actualizacion es parcial o tipo PARTIAL __ ")
+      }
+      const addresses = await Promise.all(
+        updateUserDto.address.map(async (ad) => {
+          const address: Address = (await this.addressService.findOrCreate({ ...ad, addressNumber: ad.addressNumber.toString() })).recourse;
+          console.log(" ___ address encontrada dentro del servicio de usuario ___");
+          console.log(address);
+          return address;
+        })
+      );
+    
+      body.address.push(...addresses);
     }
 
-
-    await this.userRepository.save(userToUpdate).catch((error) => {
+    await this.userRepository.save(body).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,

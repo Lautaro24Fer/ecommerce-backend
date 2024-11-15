@@ -27,6 +27,7 @@ import { AuthUserResponseDto } from './dto/oauth-data';
 import { RequestUpdatePasswordCodeDto, ResponsetUpdatePasswordCodeDto, UpdateUserPasswordDto, ValidateUpdateUserPasswordCodeDto } from './dto/password-change';
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from 'src/global/responseInterfaces';
 import { UpdateType } from 'src/global/enum';
+import { Address } from 'src/address/entities/address.entity';
 
 @ApiTags('Users')
 @Controller('user')
@@ -53,8 +54,6 @@ export class UserController {
     }
     return response;
   }
-  
-
 
   @ApiOperation({ summary: 'Find all users' })
   @ApiResponse({
@@ -71,8 +70,6 @@ export class UserController {
     const response: IRecourseFound<UserDto[]> = await this.userService.findAll();
     return response;
   }
-
-
 
   @ApiOperation({ summary: 'Get user authenticated by the cookie' })
   @ApiResponse({
@@ -103,10 +100,7 @@ export class UserController {
     }
   }
 
-
   // CAMBIO DE CONTRASEÑA
-
-
   @ApiOperation({
 		summary: 'Send a email code for validate the identity of the user'
 	})
@@ -128,8 +122,6 @@ export class UserController {
     };
     return response;
   }
-
-
 
   @ApiOperation({
     summary: 'Validation of the code passed by email for update password'
@@ -155,8 +147,6 @@ export class UserController {
     const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Code verified succesfully' };
     return res.status(201).json(responseDto);
   }
-
-
 
   @ApiOperation({
     summary: 'Once validated, update password by temporally jwt'
@@ -192,7 +182,34 @@ export class UserController {
     return res.status(201).json(userUpdated);
   }
 
-
+  @ApiOperation({ summary: "Get all addresses asociated an a user" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "The addresses was loaded succesfully"
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "Error loading the user addresses"
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "Not authorized to load all addresses of a user"
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "The id user was not found in database"
+  })
+  @Get('address/:id')
+  async getUserAddresses(@Param('id') id: number): Promise<IRecourseFound<Address[]>>{
+    const recourseFound: IRecourseFound<User> = await this.userService.findOneById(id);
+    const addresses: Address[] = [...recourseFound.recourse.address];
+    const response: IRecourseFound<Address[]> = {
+      status: true,
+      message: "All addresses was found succesfully",
+      recourse: addresses
+    };
+    return response;
+  }
 
   @ApiOperation({ summary: 'Find one user by id' })
   @ApiResponse({
@@ -223,8 +240,6 @@ export class UserController {
     };
     return response;
   }
-
-
 
   @ApiOperation({ summary: 'Update partially one user by id' })
   @ApiResponse({
@@ -274,7 +289,6 @@ export class UserController {
     };
     return response;
   }
-
 
   @ApiOperation({ summary: 'Delete a user by id' })
   @ApiResponse({

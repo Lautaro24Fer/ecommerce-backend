@@ -42,18 +42,25 @@ export class AddressService {
 
   async findOrCreate(createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>>{
     const { postalCode, addressNumber, addressStreet } = createAddressDto;
+    let estado = ""
     const address: Address = await this.findOneByAllData(postalCode, addressStreet, addressNumber)
-    .then(data => data.recourse)
+    .then(data => {
+      estado = "ENCONTRADO EN LA BASE DE DATOS"
+      return data.recourse
+    })
     .catch(async (error) => {
       if(error instanceof NotFoundException){
+        console.log(" ============ la direccion no fue encontrada asi que debe crearse")
         const newAddress: IRecourseCreated<Address> = await this.create({ postalCode, addressNumber, addressStreet });
+        console.log(" ____ esta es la nueva direccion!!!")
+        console.log(newAddress);
+        estado = "NO ENCONTRADO EN LA BASE DE DATOS ASI QUE FUE CREADO"
         return newAddress.recourse;
       }
-      else{
-        console.error(error);
-        throw error;
-      }
     });
+    console.log(" ______ este es el address con la direccion cargada")
+    console.log(address)
+    console.log(estado);  
     const recourse: IRecourseCreated<Address> = {
       status: true,
       message: "The address was created succesfully",

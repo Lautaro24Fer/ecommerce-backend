@@ -102,7 +102,6 @@ class AddressDto {
   addressStreet: string;
 
   @ApiProperty()
-  @IsString()
-  @Length(1, 10)
+  @IsPositive()
   addressNumber: string;
 }
