@@ -1,36 +1,70 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResendService } from 'nestjs-resend';
 import { Resend } from 'resend';
 import { resetPasswordLayout } from './layouts/change-password-code';
+import * as nodemailer from 'nodemailer';
+import { IBadRequestex, IRecourseCreated } from 'src/global/responseInterfaces';
 
 @Injectable()
 export class EmailService {
 
-	private readonly resend: Resend;
+	transporter: nodemailer.Transporter;
+	NODEMAILER_HOST: string;
+	NODEMAILER_PORT: number;
+	NODEMAILER_USER: string;
+	NODEMAILER_PASSWORD: string;
 
   constructor(private readonly configService: ConfigService) {
-		this.resend = new Resend(configService.get<string>('RESEND_API_KEY'))
+
+		this.NODEMAILER_HOST = configService.get<string>('NM_HOST');
+		this.NODEMAILER_PORT = configService.get<number>('NM_PORT');
+		this.NODEMAILER_USER = configService.get<string>('NM_USER');
+		this.NODEMAILER_PASSWORD = configService.get<string>('NM_PASSWORD');
+
+		console.log(" ____ constructor _____")
+		console.log("nodemailer_host: " + this.NODEMAILER_HOST);
+		console.log("nodemailer_port: " + this.NODEMAILER_PORT);
+		console.log("nodemailer_user: " + this.NODEMAILER_USER);
+		console.log("nodemailer_password: " + this.NODEMAILER_PASSWORD);
+
+		this.transporter = nodemailer.createTransport({
+			host: this.NODEMAILER_HOST,
+			port: this.NODEMAILER_PORT, 
+			secure: false, 
+			auth: {
+				user: this.NODEMAILER_USER, 
+				pass: this.NODEMAILER_PASSWORD,
+			},
+		});
 	}
 
-  async sendEmailForResetPassword(token: number, toUser: string){
+	async sendEmailForResetPassword(token: number, toUser: string){
 
 		const layout: string = resetPasswordLayout(token);
 
-		await this.resend.emails.send({
-			from: `no reply <${this.configService.get<string>('RESEND_FROM_EMAIL')}>`, // Acá iría el correo que está verificado con el dominio en resend
-			to: [toUser], // Estos serían los receptores, si es uno no es necesario ponerlo dentro de un array
-			subject: "Padel point - Reset password code", // Este sería el 'asunto'
-			html: layout, // Correo en html
+		const info: IRecourseCreated<any> = await this.transporter.sendMail({
+			to: [toUser],
+			subject: "Padel point - Reset password code", // Asunto
+			html: layout
 		}).then((data) => {
-			console.log("El correo fue enviado con éxito")
-			console.log("Esta es la data:")
-			console.log(data)
-		})
-		.catch((error) => {
+			const recourseCreated: IRecourseCreated<any> = {
+				status: true,
+				message: "The reset password mail was sended succesfully",
+				recourse: data
+			};
+			return recourseCreated;
+		}).catch((error) => {
 			console.error(error);
-		})
+			const badRequestError: IBadRequestex = {
+				status: false,
+				message: "The reset password mail was not sended. An error ocurred"
+			};
+			throw new BadRequestException(badRequestError);
+		});
+		return info;
 	}
+
 }
 
 

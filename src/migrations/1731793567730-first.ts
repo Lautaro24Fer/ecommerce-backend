@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class First1731624859236 implements MigrationInterface {
-    name = 'First1731624859236'
+export class First1731793567730 implements MigrationInterface {
+    name = 'First1731793567730'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE \`address\` (\`id\` int NOT NULL AUTO_INCREMENT, \`postalCode\` varchar(10) NOT NULL, \`addressStreet\` varchar(30) NOT NULL, \`addressNumber\` varchar(10) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`identification_type\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(20) NOT NULL, UNIQUE INDEX \`IDX_1bddbdc00ecfb061c6b81a3cc8\` (\`name\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`roles\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`user\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(255) NOT NULL, \`surname\` varchar(255) NOT NULL, \`username\` varchar(255) NOT NULL, \`idNumber\` varchar(255) NOT NULL, \`email\` varchar(255) NOT NULL, \`method\` enum ('LOCAL', 'GOOGLE') NOT NULL DEFAULT 'LOCAL', \`password\` varchar(255) NULL, \`passwordResetToken\` varchar(255) NULL, \`passwordResetTokenExpiresIn\` timestamp NULL, \`idTypeId\` int NULL, UNIQUE INDEX \`IDX_78a916df40e02a9deb1c4b75ed\` (\`username\`), UNIQUE INDEX \`IDX_849533092cc235bba49e04f770\` (\`idNumber\`), UNIQUE INDEX \`IDX_e12875dfb3b1d92d7d7c5377e2\` (\`email\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`user\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(255) NOT NULL, \`surname\` varchar(255) NOT NULL, \`username\` varchar(255) NOT NULL, \`isActive\` tinyint NOT NULL DEFAULT 1, \`idNumber\` varchar(255) NOT NULL, \`email\` varchar(255) NOT NULL, \`method\` enum ('LOCAL', 'GOOGLE') NOT NULL DEFAULT 'LOCAL', \`password\` varchar(255) NULL, \`passwordResetToken\` varchar(255) NULL, \`passwordResetTokenExpiresIn\` timestamp NULL, \`idTypeId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`brand\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`supplier\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`product_type\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, UNIQUE INDEX \`IDX_8978484a9cee7a0c780cd259b8\` (\`name\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
@@ -108,9 +108,6 @@ export class First1731624859236 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE \`product_type\``);
         await queryRunner.query(`DROP TABLE \`supplier\``);
         await queryRunner.query(`DROP TABLE \`brand\``);
-        await queryRunner.query(`DROP INDEX \`IDX_e12875dfb3b1d92d7d7c5377e2\` ON \`user\``);
-        await queryRunner.query(`DROP INDEX \`IDX_849533092cc235bba49e04f770\` ON \`user\``);
-        await queryRunner.query(`DROP INDEX \`IDX_78a916df40e02a9deb1c4b75ed\` ON \`user\``);
         await queryRunner.query(`DROP TABLE \`user\``);
         await queryRunner.query(`DROP TABLE \`roles\``);
         await queryRunner.query(`DROP INDEX \`IDX_1bddbdc00ecfb061c6b81a3cc8\` ON \`identification_type\``);

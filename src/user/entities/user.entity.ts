@@ -15,16 +15,19 @@ export class User {
   @Column()
   surname: string;
 
-  @Column({ unique: true })
+  @Column()
   username: string;
+
+  @Column({ default: true })
+  isActive: boolean;
 
   @ManyToOne(() => IdType, (m) => m.id)
   idType: IdType;
 
-  @Column({ unique: true })
+  @Column()
   idNumber: string;
 
-  @Column({ unique: true })
+  @Column()
   email: string;
 
   @Column({ type: 'enum', enum: LoginMethodType, default: LoginMethodType.LOCAL })

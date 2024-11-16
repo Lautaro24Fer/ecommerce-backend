@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { FullUpdateUserDto, PartialUpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { RolesService } from 'src/roles/roles.service';
@@ -50,7 +50,7 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<IRecourseCreated<User>> {
 
-    const emailExists: boolean = await this.recourseInUse(createUserDto.email, UniqueUserRecourse.EMAIL);
+    const emailExists: boolean = await this.recourseInUse(createUserDto.email.toLowerCase(), UniqueUserRecourse.EMAIL);
     if(emailExists){
       const response: IBadRequestex = { status: false, message: `User with '${createUserDto.email}' already exists` };
       throw new BadRequestException(response);
@@ -84,6 +84,7 @@ export class UserService {
     
     const createUser: User = this.userRepository.create({
       ...createUserDto, 
+      email: createUserDto.email.toLowerCase(),
       roles: [], 
       idType: idTypeOfUser, 
       idNumber: createUserDto.idNumber.toString(), 
@@ -114,7 +115,7 @@ export class UserService {
 
   async findAll(): Promise<IRecourseFound<UserDto[]>> {
 
-    const users: User[] = await this.userRepository.find({ relations: ['roles', 'idType', 'address'] }).catch((error) => {
+    const users: User[] = await this.userRepository.find({ where: { isActive: true }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
@@ -135,7 +136,7 @@ export class UserService {
 
   async findOneById(id: number): Promise<IRecourseFound<User>> {
     console.log("findOneByid)) Entrada al metodo")
-    const user: User = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'idType', 'address']}).catch((error) => {
+    const user: User = await this.userRepository.findOne({ where: { id, isActive: true }, relations: ['roles', 'idType', 'address']}).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with id '${id}'` };
       console.error(error);
       throw new BadRequestException(response);
@@ -160,7 +161,7 @@ export class UserService {
     console.log("username:")
     console.log(username)
 
-    const user: User = await this.userRepository.findOne({ where: { username: username.toLowerCase() }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
+    const user: User = await this.userRepository.findOne({ where: { username: username.toLowerCase(), isActive: true }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with username '${username}'` };
       console.error(error);
       throw new BadRequestException(response)
@@ -186,7 +187,7 @@ export class UserService {
       };
       throw new BadRequestException(badRequestError);
     }
-    const user: User = await this.userRepository.findOne({ where: { email }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
+    const user: User = await this.userRepository.findOne({ where: { email, isActive: true }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with email '${email}'` };
       console.error(error);
       throw new BadRequestException(response)
@@ -279,7 +280,7 @@ export class UserService {
     let response: boolean;
     switch(recourseName){
       case (UniqueUserRecourse.EMAIL):
-        response = await this.userRepository.existsBy({ email: input }).catch((error) => {
+        response = await this.userRepository.existsBy({ email: input, isActive: true }).catch((error) => {
           const catchErrorResponse: IBadRequestex = { status: false, message: 'Error in the verification if email exists' };
           console.error(error);
           throw new BadRequestException(catchErrorResponse);
@@ -289,7 +290,7 @@ export class UserService {
         console.log("recourseInUse) -- VERIFIACION DE USERNAME --")
         console.log("Este es el input")
         console.log(input)
-        response = await this.userRepository.existsBy({ username: input }).catch((error) => {
+        response = await this.userRepository.existsBy({ username: input, isActive: true }).catch((error) => {
           const catchErrorResponse: IBadRequestex = { status: false, message: 'Error in the verification if username exists' };
           console.error(error);
           throw new BadRequestException(catchErrorResponse);
@@ -298,7 +299,7 @@ export class UserService {
         console.log(response)
       break;
       case (UniqueUserRecourse.ID_NUMBER): 
-        response = await this.userRepository.existsBy({ idNumber: input }).catch((error) => {
+        response = await this.userRepository.existsBy({ idNumber: input, isActive: true }).catch((error) => {
           const catchErrorResponse: IBadRequestex = { status: false, message: 'Error in the verification if identification number exists' };
           console.error(error);
           throw new BadRequestException(catchErrorResponse);
@@ -359,6 +360,7 @@ export class UserService {
 
     const body: User = {
       id: userToUpdate.id,
+      isActive: true,
       name: updateUserDto?.name ?? userToUpdate.name,
       surname: updateUserDto?.surname ?? userToUpdate.surname,
       username: updateUserDto?.username ?? userToUpdate.username,
@@ -422,7 +424,7 @@ export class UserService {
   async remove(id: number): Promise<IRecourseDeleted<User>> {
 
     const userToRemove: User = (await this.findOneById(id)).recourse;
-    const userRemoved = await this.userRepository.remove(userToRemove).catch((error) => {
+    await this.userRepository.update(userToRemove.id, { isActive: false}).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
@@ -430,9 +432,17 @@ export class UserService {
       };
       throw new BadRequestException(badRequestError);
     });
+    const userRemoved: User = await this.userRepository.findOneBy({ id, isActive: false }).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error finding the user unactivated with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
     const response: IRecourseDeleted<User> = { 
       status: true, 
-      message: 'The recourse was deleted succesfully', 
+      message: 'The recourse was unactivated succesfully', 
       recourse:  userRemoved
     };
     return response;

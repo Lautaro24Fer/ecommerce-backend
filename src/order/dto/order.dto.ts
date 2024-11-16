@@ -15,3 +15,8 @@ export class OrderDto{
 
   items: ProductOrderDto[];
 }
+
+export class OrderQueryParams {
+  minDate: Date;
+  maxDate: Date;
+}
