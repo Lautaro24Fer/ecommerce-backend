@@ -22,32 +22,39 @@ export class EmailService {
 		this.NODEMAILER_USER = configService.get<string>('NM_USER');
 		this.NODEMAILER_PASSWORD = configService.get<string>('NM_PASSWORD');
 
-		console.log(" ____ constructor _____")
-		console.log("nodemailer_host: " + this.NODEMAILER_HOST);
-		console.log("nodemailer_port: " + this.NODEMAILER_PORT);
-		console.log("nodemailer_user: " + this.NODEMAILER_USER);
-		console.log("nodemailer_password: " + this.NODEMAILER_PASSWORD);
-
 		this.transporter = nodemailer.createTransport({
 			host: this.NODEMAILER_HOST,
 			port: this.NODEMAILER_PORT, 
-			secure: false, 
+			secure: true, 
 			auth: {
 				user: this.NODEMAILER_USER, 
 				pass: this.NODEMAILER_PASSWORD,
+			},
+			tls: {
+				rejectUnauthorized: false, // Permitir certificados no válidos (útil para servidores internos)
 			},
 		});
 	}
 
 	async sendEmailForResetPassword(token: number, toUser: string){
 
+		console.log(" ____ constructor _____")
+		console.log("nodemailer_host: " + this.NODEMAILER_HOST);
+		console.log("nodemailer_port: " + this.NODEMAILER_PORT);
+		console.log("nodemailer_user: " + this.NODEMAILER_USER);
+		console.log("nodemailer_password: " + this.NODEMAILER_PASSWORD);
+
 		const layout: string = resetPasswordLayout(token);
 
 		const info: IRecourseCreated<any> = await this.transporter.sendMail({
+			from: `no reply <${this.NODEMAILER_USER}>`,
 			to: [toUser],
 			subject: "Padel point - Reset password code", // Asunto
 			html: layout
 		}).then((data) => {
+			console.log("____data____\n\n")
+			console.log(data)
+			console.log("\n\n_________________\n\n")
 			const recourseCreated: IRecourseCreated<any> = {
 				status: true,
 				message: "The reset password mail was sended succesfully",

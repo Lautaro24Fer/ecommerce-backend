@@ -179,7 +179,12 @@ export class UserController {
 
     const userUpdated: IRecourseUpdated<User> = await this.userService.resetPassword(jwt, updateUserPasswordDto.newPassword);
     res.cookie('password-reset', '', { httpOnly: true, expires: new Date(0) });
-    return res.status(201).json(userUpdated);
+    const userParsed: UserDto = this.userService.mapUserToUserDto(userUpdated.recourse);
+    const response: IRecourseUpdated<UserDto> = {
+      ...userUpdated,
+      recourse: userParsed
+    };
+    return res.status(201).json(response);
   }
 
   @ApiOperation({ summary: "Get all addresses asociated an a user" })

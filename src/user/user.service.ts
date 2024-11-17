@@ -473,6 +473,9 @@ export class UserService {
       throw new BadRequestException(badRequestError);
     });
 
+    console.log("__correo__")
+    console.log(user.email)
+
     await this.emailService.sendEmailForResetPassword(token, user.email); // Envío del correo al usuario con el codigo de cambio de contraseña
 
     const response: IRecourseCreated<User> = {
