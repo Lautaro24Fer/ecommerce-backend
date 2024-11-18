@@ -5,6 +5,9 @@ import { Resend } from 'resend';
 import { resetPasswordLayout } from './layouts/change-password-code';
 import * as nodemailer from 'nodemailer';
 import { IBadRequestex, IRecourseCreated } from 'src/global/responseInterfaces';
+import { Order } from 'src/order/entities/order.entity';
+import createOrderLayout from './layouts/order';
+import { OrderDto } from 'src/order/dto/order.dto';
 
 @Injectable()
 export class EmailService {
@@ -14,6 +17,7 @@ export class EmailService {
 	NODEMAILER_PORT: number;
 	NODEMAILER_USER: string;
 	NODEMAILER_PASSWORD: string;
+	NODEMAILER_ADMIN_MAIL: string;
 
   constructor(private readonly configService: ConfigService) {
 
@@ -21,6 +25,7 @@ export class EmailService {
 		this.NODEMAILER_PORT = configService.get<number>('NM_PORT');
 		this.NODEMAILER_USER = configService.get<string>('NM_USER');
 		this.NODEMAILER_PASSWORD = configService.get<string>('NM_PASSWORD');
+		this.NODEMAILER_ADMIN_MAIL = configService.get<string>('NM_ADMIN_MAIL');
 
 		this.transporter = nodemailer.createTransport({
 			host: this.NODEMAILER_HOST,
@@ -34,6 +39,41 @@ export class EmailService {
 				rejectUnauthorized: false, // Permitir certificados no válidos (útil para servidores internos)
 			},
 		});
+	}
+
+	async sendEmailForOrder(order: Order): Promise<IRecourseCreated<any>> {
+		const layout: string = createOrderLayout(order);
+
+		console.log("\n\n___SEND EMAIL FOR ORDER___\n")
+		console.log("ESRA ES LA ORDEN")
+		console.log(order);
+		console.log(" ______________________________________________________________________ \n\n\n")
+
+		const info: IRecourseCreated<any> = await this.transporter.sendMail({
+			from: `no reply <${this.NODEMAILER_USER}>`,
+			to: [this.NODEMAILER_ADMIN_MAIL],
+			subject: "Padel point - Nueva orden de pago", // Asunto
+			html: layout
+		}).then((data) => {
+			console.log(" ****DATA****")
+			console.log(data);
+			const recourseCreated: IRecourseCreated<any> = {
+				status: true,
+				message: "The order mail was sended succesfully to the admin",
+				recourse: data
+			};
+			return recourseCreated;
+		})
+		.catch((error) => {
+			console.error(" ***ERROR***")
+			console.error(error);
+			const badRequestError: IBadRequestex = {
+				status: false,
+				message: "Error sending the order email to the admin"
+			};
+			throw new BadRequestException(badRequestError);
+		});
+		return info;
 	}
 
 	async sendEmailForResetPassword(token: number, toUser: string){

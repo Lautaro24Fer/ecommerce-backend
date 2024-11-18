@@ -16,14 +16,15 @@ import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound } fro
 import { Order } from './entities/order.entity';
 import { OrderDto } from './dto/order.dto';
 import { UserService } from 'src/user/user.service';
-import { UserDto } from 'src/user/dto/user.dto';
+import { EmailService } from 'src/email/email.service';
 
 @ApiTags('Orders')
 @Controller('order')
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
-    private readonly userService: UserService) {}
+    private readonly userService: UserService,
+    private readonly emailService: EmailService) {}
 
   @ApiOperation({
     summary: "Create a new order"
@@ -44,6 +45,11 @@ export class OrderController {
   async create(@Body() createOrderDto: CreateOrderDto): Promise<IRecourseCreated<OrderDto>> {
     const response: IRecourseCreated<Order> = await this.orderService.create(createOrderDto);
     const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(response.recourse);
+
+    // Envío de la orden por correo al admin
+
+    await this.emailService.sendEmailForOrder(response.recourse);
+
     const recourse: IRecourseCreated<OrderDto> = {
       ...response,
       recourse: orderDto

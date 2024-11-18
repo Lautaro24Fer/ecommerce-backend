@@ -10,14 +10,17 @@ import { Address } from 'src/address/entities/address.entity';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseFound } from 'src/global/responseInterfaces';
 import { ProductService } from 'src/product/product.service';
 import { OrderService } from 'src/order/order.service';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class PaymentService {
 
-	constructor(
+	constructor(	
 		private readonly configService: ConfigService, 
 		private readonly userService: UserService,
 		private readonly productService: ProductService,
+		private readonly emailService: EmailService,
+		private readonly orderService: OrderService
 	) { }
 
 	CLIENT_DOMAIN = this.configService.get<string>('DEV_CLIENT_DOMAIN');
@@ -139,7 +142,7 @@ export class PaymentService {
     if (paymentStatus === 'approved') {
 			console.log(" == Status: APPROVED == ");
 
-
+			// const order: Order = await this.orderService.
     }
 		if (paymentStatus === 'pending') {
 			console.log(" == Status: PENDING == ");

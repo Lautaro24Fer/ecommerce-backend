@@ -15,6 +15,7 @@ import { OrderDto } from './dto/order.dto';
 import { MethodPaymentType } from 'src/global/enum';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ProductOrderDto } from './dto/product-order.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class OrderService {
@@ -24,7 +25,8 @@ export class OrderService {
     @InjectRepository(ProductOrder) private readonly productOrderRepository: Repository<ProductOrder>,
     private readonly productService: ProductService,
     private readonly userService: UserService,
-    private readonly configService: ConfigService) {}
+    private readonly configService: ConfigService,
+    private readonly emailService: EmailService) {}
 
     ACCESS_TOKEN = this.configService.get<string>('MP_ACCESS_TOKEN');
 
@@ -291,5 +293,16 @@ export class OrderService {
     };
 
     return orderDto;
+  }
+
+  // Testing
+  async testSendOrderByEmail(orderId: number) {
+    const order: Order = (await this.findOneById(orderId)).recourse;
+    console.log(" ___test send order by email___")
+    const data: any = await this.emailService.sendEmailForOrder(order).then((data) => {
+      console.log("EL correo fue enviado con éxito")
+      return data;
+    });
+    return data;
   }
 }
