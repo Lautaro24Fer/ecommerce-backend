@@ -1,13 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsNotEmpty, IsNumber, IsPositive, IsString, IsUrl, Length } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsPositive, IsString, IsUrl, Length, ValidateNested } from "class-validator";
+import { MulterFile } from "./multer-file";
 
 
 export class CreateImageDto {
-  @ApiProperty()
+  @ApiProperty({ type: [MulterFile] })
 	@IsNotEmpty()
-	@IsString()
-	@IsUrl()
-	url: string;
+	@ValidateNested({ each: true })
+	multerFile: MulterFile;
 
 	@ApiProperty()
 	@IsNotEmpty()

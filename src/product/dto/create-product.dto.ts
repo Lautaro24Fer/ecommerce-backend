@@ -20,21 +20,8 @@ export class CreateProductDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  @IsUrl()
-  image: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
   @Length(1, 1024)
   description: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  @IsUrl({}, { each: true })
-  secondariesImages?: string[];
 
   @ApiProperty()
   @IsNotEmpty()

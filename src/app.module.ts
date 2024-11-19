@@ -29,6 +29,7 @@ import { IdType } from './id-type/entities/id-type.entity';
 import { AddressModule } from './address/address.module';
 import { Address } from './address/entities/address.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { FtpModule } from './ftp/ftp.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     IdTypeModule,
     AddressModule,
     ScheduleModule.forRoot(),
+    FtpModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],

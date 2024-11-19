@@ -7,17 +7,81 @@ import { DataSource, Repository } from 'typeorm';
 import { ProductService } from 'src/product/product.service';
 import { Product } from 'src/product/entities/product.entity';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { FtpService } from 'src/ftp/ftp.service';
+import * as fs from "fs";
+import { MulterFile } from './dto/multer-file';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ImagesService {
 
-  constructor(@InjectRepository(ProductImage) private readonly imageRepository: Repository<ProductImage>,
-  @Inject(forwardRef(() => ProductService)) private readonly productService: ProductService,) {}
+  private readonly FTP_SERVER: string;
 
-  async create(createImageDto: CreateImageDto): Promise<IRecourseCreated<ProductImage>> {
-    const product: Product = (await this.productService.findOne(createImageDto.productId)).recourse;
+  constructor(
+    @InjectRepository(ProductImage) private readonly imageRepository: Repository<ProductImage>,
+    @Inject(forwardRef(() => ProductService)) private readonly productService: ProductService,
+    private readonly ftpService: FtpService,
+    private readonly configService: ConfigService) {
+      this.FTP_SERVER = this.configService.get<string>('FTP_SERVER');
+    }
 
-    const imageCreated: ProductImage = this.imageRepository.create({ ...createImageDto, product });
+  async saveImageOnFTPServer(file: MulterFile) {
+    console.log(" ** SAVE IMAGE ON FTP SERVER **\n\n")
+    console.log(file)
+    console.log("************************\n\n\n")
+    const localPath: string = file.path;
+    const remotePath: string = `${this.FTP_SERVER}/products`;
+
+    await this.ftpService.connectToFTPServer();
+
+    try {
+      const response = await this.ftpService.uploadFile(localPath, remotePath);
+      return response;
+    } catch (error) {
+      console.error(error);
+      const uploadingError: IBadRequestex = {
+        status: false,
+        message: "Error uploading the arrived image"
+      };
+      throw new BadRequestException(uploadingError);
+    }
+    finally{
+      await this.ftpService.closeFTPServerConnection();
+      fs.unlinkSync(localPath);
+    }
+    
+  }
+
+  async uploadFile(file: MulterFile) {
+    const localPath = file.path;
+    const remotePath = `/uploads/${file.originalname}`;
+
+    await this.ftpService.connectToFTPServer();
+
+    try {
+      await this.ftpService.uploadFile(localPath, remotePath);
+      console.log('Archivo subido correctamente al servidor FTP');
+    } catch (err) {
+      throw new Error(`Error al subir el archivo: ${err.message}`);
+    } finally {
+      await this.ftpService.closeFTPServerConnection()
+      fs.unlinkSync(localPath); // Borra el archivo local después de subirlo
+    }
+  }
+
+  async create(id: number, file: MulterFile) {
+
+    const ftpResponse = await this.saveImageOnFTPServer(file);
+
+    console.log("**===CREATE SECONDARY IMAGE===**")
+    console.log("response of ftp server")
+    console.log(ftpResponse);
+
+    return ftpResponse;
+
+    const product: Product = (await this.productService.findOne(id)).recourse;
+
+    const imageCreated: ProductImage = this.imageRepository.create({ product, url: "asd" });
 
     const imageSaved: ProductImage = await this.imageRepository.save(imageCreated).catch((error) => {
       console.error(error);

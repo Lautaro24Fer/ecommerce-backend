@@ -50,7 +50,6 @@ export class ProductService {
       name: createProductDto.name,
       description: createProductDto.description,
       price: createProductDto.price,
-      image: createProductDto.image,
       type,
       supplier,
       brand
@@ -58,14 +57,14 @@ export class ProductService {
 
     const { id }: Product = await this.productRepository.save(newProduct);
 
-    if(createProductDto.secondariesImages){
-      const secondariesImagesMapped: ProductImage[] = await Promise.all(createProductDto.secondariesImages.map(async(image) =>{
-        return (await this.productImageService.create({ productId: id, url: image })).recourse;
-      }));
+    // if(createProductDto.secondariesImages){
+    //   const secondariesImagesMapped: ProductImage[] = await Promise.all(createProductDto.secondariesImages.map(async(image) =>{
+    //     return (await this.productImageService.create({ productId: id, url: image })).recourse;
+    //   }));
 
-      newProduct.secondariesImages = [ ...secondariesImagesMapped ];
-      await this.productRepository.save(newProduct);
-    }
+    //   newProduct.secondariesImages = [ ...secondariesImagesMapped ];
+    //   await this.productRepository.save(newProduct);
+    // }
 
     const productCreated: Product = (await this.findOne(id)).recourse;
     const response: IRecourseCreated<Product> = {
