@@ -9,6 +9,8 @@ import {
   HttpStatus,
   Query,
   Put,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -18,6 +20,9 @@ import { QueryParamsDto } from './dto/query-params.dto';
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 import { UpdateType } from 'src/global/enum';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from 'src/global/multer.config';
+import { MulterFile } from 'src/images/dto/multer-file';
 
 @ApiTags('Products')
 @Controller('product')
@@ -34,8 +39,9 @@ export class ProductController {
     description: 'Bad request, the product was not created',
   })
   @Post()
-  async create(@Body() createProductDto: CreateProductDto): Promise<IRecourseCreated<Product>> {
-    return await this.productService.create(createProductDto);
+  @UseInterceptors(FileInterceptor('image', multerOptions))
+  async create(@Body() createProductDto: CreateProductDto, @UploadedFile() file?: MulterFile): Promise<IRecourseCreated<Product>> {
+    return await this.productService.create(createProductDto, file);
   }
 
   @ApiOperation({ summary: 'Find all products' })

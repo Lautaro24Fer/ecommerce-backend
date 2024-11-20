@@ -24,6 +24,8 @@ import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecour
 import { UpdateType } from 'src/global/enum';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Item, ItemDto } from 'src/payment/dto/preference-payment';
+import { MulterFile } from 'src/images/dto/multer-file';
+import { FtpService } from 'src/ftp/ftp.service';
 
 @Injectable()
 export class ProductService {
@@ -34,9 +36,10 @@ export class ProductService {
     private readonly brandService: BrandService,
     private readonly supplierService: SupplierService,
     private readonly typeService: TypeService,
+    private readonly ftpService: FtpService
   ) {}
 
-  async create(createProductDto: CreateProductDto): Promise<IRecourseCreated<Product>> {
+  async create(createProductDto: CreateProductDto, file?: MulterFile): Promise<IRecourseCreated<Product>> {
 
     // Verificar que el id de supplier y brand existen. Para eso primero haremos sus respectivos repositorios primero
 
@@ -46,13 +49,20 @@ export class ProductService {
 
     const type: ProductType = (await this.typeService.findOne(createProductDto.typeId)).recourse;
 
+    let imageUrl: string = "";
+
+    if(file){
+      imageUrl = await this.ftpService.saveImageOnFTPServer(file);
+    }
+
     const newProduct: Product = this.productRepository.create({  
       name: createProductDto.name,
       description: createProductDto.description,
       price: createProductDto.price,
       type,
       supplier,
-      brand
+      brand,
+      image: imageUrl
     });
 
     const { id }: Product = await this.productRepository.save(newProduct);
@@ -208,6 +218,7 @@ export class ProductService {
 
   async remove(id: number): Promise<IRecourseDeleted<Product>> {
     const product: Product = (await this.findOne(id)).recourse;
+    const urlPath: string = product.image;
     const removed: Product = await this.productRepository.remove(product).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -216,6 +227,10 @@ export class ProductService {
       };
       throw new BadRequestException(badRequestError);
     });
+    await this.ftpService.deleteFile(urlPath);
+    await Promise.all(product.secondariesImages.map(async (image) => {
+      await this.ftpService.deleteFile(image.url);
+    }));
     const response: IRecourseDeleted<Product> = {
       status: true,
       message: "The product was deleted succesfully",
@@ -237,9 +252,6 @@ export class ProductService {
         }
         throw new BadRequestException(badRequestError);
       }
-      // product.quantity = product.quantity - item.quantity
-      // console.log("The operation is valid. \n new stock of the product: " + product.quantity + "\n\n")
-      // await this.productRepository.save(product);
     }
     const response: IRecourseFound<any> = {
       status: true,

@@ -8,12 +8,12 @@ export class UpdateProductDto {
   @Length(1, 200)
   name?: string; 
 
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  @IsUrl()
-  @Length(1, 200)
-  image?: string;
+  // @ApiProperty()
+  // @IsOptional()
+  // @IsString()
+  // @IsUrl()
+  // @Length(1, 200)
+  // image?: string;
 
   @ApiProperty()
   @IsOptional()

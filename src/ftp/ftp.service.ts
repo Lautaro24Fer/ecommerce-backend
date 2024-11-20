@@ -1,7 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as ftp from "basic-ftp"
 import { IBadRequestex } from 'src/global/responseInterfaces';
+import { MulterFile } from 'src/images/dto/multer-file';
+import * as fs from "fs"
 
 @Injectable()
 export class FtpService {
@@ -17,6 +19,34 @@ export class FtpService {
     this.FTP_SERVER = this.configService.get<string>('FTP_SERVER'),
     this.FTP_USER = this.configService.get<string>('FTP_USER'),
     this.FTP_PASSWORD = this.configService.get<string>('FTP_PASSWORD')
+  }
+
+  async saveImageOnFTPServer(file: MulterFile): Promise<string> {
+    const localPath: string = file.path;
+
+    // Asegúrate de que el archivo temporal existe
+    if (!fs.existsSync(localPath)) {
+      throw new BadRequestException('Temporary file not found');
+    }
+    const remotePath: string = `products/${file.filename}`;
+    await this.connectToFTPServer();
+
+    try {
+      await this.uploadFile(localPath, remotePath);
+      return `${this.FTP_SERVER}/${remotePath}`;
+    } catch (error) {
+      console.error(error);
+      const uploadingError: IBadRequestex = {
+        status: false,
+        message: "Error uploading the arrived image"
+      };
+      throw new BadRequestException(uploadingError);
+    }
+    finally{
+      await this.closeFTPServerConnection();
+      fs.unlinkSync(localPath);
+    }
+    
   }
 
   async connectToFTPServer() {
@@ -50,6 +80,33 @@ export class FtpService {
       throw new BadRequestException(uploadingError);
     }
   }
+
+  async deleteFile(remotePath: string): Promise<void> {
+    try {
+      // Conectar al servidor FTP
+      await this.connectToFTPServer();
+
+      // Verificar si el archivo existe antes de intentar eliminarlo
+      const fileExists = await this.client.size(remotePath).catch(() => false);
+      if (!fileExists) {
+        throw new BadRequestException(`File not found: ${remotePath}`);
+      }
+
+      // Eliminar el archivo
+      await this.client.remove(remotePath);
+      console.log(`File deleted successfully: ${remotePath}`);
+    } catch (error) {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error deleting file: ${error.message}"
+      }
+      throw new InternalServerErrorException(badRequestError);
+    } finally {
+      await this.closeFTPServerConnection() // Asegurarse de cerrar la conexión
+    }
+  }
+
 
   async closeFTPServerConnection() {
     try {

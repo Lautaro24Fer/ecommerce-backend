@@ -24,65 +24,12 @@ export class ImagesService {
     private readonly configService: ConfigService) {
       this.FTP_SERVER = this.configService.get<string>('FTP_SERVER');
     }
-
-  async saveImageOnFTPServer(file: MulterFile): Promise<string> {
-    const localPath: string = file.path;
-
-    // Asegúrate de que el archivo temporal existe
-  if (!fs.existsSync(localPath)) {
-    throw new BadRequestException('Temporary file not found');
-  }
-    const remotePath: string = `products/${file.filename}`;
-    await this.ftpService.connectToFTPServer();
-
-    try {
-      await this.ftpService.uploadFile(localPath, remotePath);
-      return file.path;
-    } catch (error) {
-      console.error(error);
-      const uploadingError: IBadRequestex = {
-        status: false,
-        message: "Error uploading the arrived image"
-      };
-      throw new BadRequestException(uploadingError);
-    }
-    finally{
-      await this.ftpService.closeFTPServerConnection();
-      fs.unlinkSync(localPath);
-    }
-    
-  }
-
-  async uploadFile(file: MulterFile) {
-    const localPath = file.path;
-    const remotePath = `/uploads/${file.originalname}`;
-
-    await this.ftpService.connectToFTPServer();
-
-    try {
-      await this.ftpService.uploadFile(localPath, remotePath);
-      console.log('Archivo subido correctamente al servidor FTP');
-    } catch (err) {
-      const uploadingError: IBadRequestex = {
-        status: false,
-        message: "Error tryng to upload the file"
-      };
-      throw new BadRequestException(uploadingError);
-    } finally {
-      await this.ftpService.closeFTPServerConnection()
-      // fs.unlinkSync(localPath); // Borra el archivo local después de subirlo
-    }
-  }
-
+  
   async create(id: number, file: MulterFile) {
 
-    const imagePath = await this.saveImageOnFTPServer(file);
-
-    console.log("**===CREATE SECONDARY IMAGE===**")
-    console.log("imagePath")
-    console.log(imagePath);
-
     const product: Product = (await this.productService.findOne(id)).recourse;
+
+    const imagePath = await this.ftpService.saveImageOnFTPServer(file);
 
     const imageCreated: ProductImage = this.imageRepository.create({ product, url: imagePath });
 
@@ -199,6 +146,8 @@ export class ImagesService {
 
   async remove(id: number): Promise<IRecourseDeleted<ProductImage>> {
     const productImage: ProductImage = (await this.findOne(id)).recourse;
+    const remotePath: string = productImage.url;
+    await this.ftpService.deleteFile(remotePath);
     const removed: ProductImage = await this.imageRepository.remove(productImage).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {

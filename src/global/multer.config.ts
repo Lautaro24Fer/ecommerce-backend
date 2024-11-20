@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import path from "path";
+import * as path from "path";
 import { diskStorage } from 'multer';
 
 const imageFileFilter = (req, file, callback) => {
