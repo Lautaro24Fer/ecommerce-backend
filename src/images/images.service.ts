@@ -25,18 +25,19 @@ export class ImagesService {
       this.FTP_SERVER = this.configService.get<string>('FTP_SERVER');
     }
 
-  async saveImageOnFTPServer(file: MulterFile) {
-    console.log(" ** SAVE IMAGE ON FTP SERVER **\n\n")
-    console.log(file)
-    console.log("************************\n\n\n")
+  async saveImageOnFTPServer(file: MulterFile): Promise<string> {
     const localPath: string = file.path;
-    const remotePath: string = `${this.FTP_SERVER}/products`;
 
+    // Asegúrate de que el archivo temporal existe
+  if (!fs.existsSync(localPath)) {
+    throw new BadRequestException('Temporary file not found');
+  }
+    const remotePath: string = `products/${file.filename}`;
     await this.ftpService.connectToFTPServer();
 
     try {
-      const response = await this.ftpService.uploadFile(localPath, remotePath);
-      return response;
+      await this.ftpService.uploadFile(localPath, remotePath);
+      return file.path;
     } catch (error) {
       console.error(error);
       const uploadingError: IBadRequestex = {
@@ -62,26 +63,28 @@ export class ImagesService {
       await this.ftpService.uploadFile(localPath, remotePath);
       console.log('Archivo subido correctamente al servidor FTP');
     } catch (err) {
-      throw new Error(`Error al subir el archivo: ${err.message}`);
+      const uploadingError: IBadRequestex = {
+        status: false,
+        message: "Error tryng to upload the file"
+      };
+      throw new BadRequestException(uploadingError);
     } finally {
       await this.ftpService.closeFTPServerConnection()
-      fs.unlinkSync(localPath); // Borra el archivo local después de subirlo
+      // fs.unlinkSync(localPath); // Borra el archivo local después de subirlo
     }
   }
 
   async create(id: number, file: MulterFile) {
 
-    const ftpResponse = await this.saveImageOnFTPServer(file);
+    const imagePath = await this.saveImageOnFTPServer(file);
 
     console.log("**===CREATE SECONDARY IMAGE===**")
-    console.log("response of ftp server")
-    console.log(ftpResponse);
-
-    return ftpResponse;
+    console.log("imagePath")
+    console.log(imagePath);
 
     const product: Product = (await this.productService.findOne(id)).recourse;
 
-    const imageCreated: ProductImage = this.imageRepository.create({ product, url: "asd" });
+    const imageCreated: ProductImage = this.imageRepository.create({ product, url: imagePath });
 
     const imageSaved: ProductImage = await this.imageRepository.save(imageCreated).catch((error) => {
       console.error(error);
@@ -167,32 +170,32 @@ export class ImagesService {
     return recourse;
   }
 
-  async update(id: number, updateImageDto: UpdateImageDto): Promise<IRecourseUpdated<ProductImage>> {
-    console.log("UPDATE IMAGE DTO")
-    console.log(updateImageDto)
-    const productImageToUpdate: ProductImage = (await this.findOne(id)).recourse;
-    const imageBody: ProductImage = { ...productImageToUpdate, ...updateImageDto };
-    if((updateImageDto.productId) && (updateImageDto.productId !== productImageToUpdate.product.id) ){
-      const newProduct: Product = (await this.productService.findOne(updateImageDto.productId)).recourse;
-      imageBody.product = newProduct;
-    }
-    console.log("\n\n IMAGE BODY")
-    console.log(imageBody)
-    const productImageUpdated = await this.imageRepository.save(imageBody).catch((error) => {
-      console.error(error);
-      const badRequestError: IBadRequestex = {
-        status: false,
-        message: `Error updating the product image with id: '${id}'`
-      };
-      throw new BadRequestException(badRequestError);
-    });
-    const recourse: IRecourseUpdated<ProductImage> = {
-      status: true,
-      message: "The product image was updated succesfully",
-      recourse: productImageUpdated
-    };
-    return recourse;
-  }
+  // async update(id: number, updateImageDto: UpdateImageDto): Promise<IRecourseUpdated<ProductImage>> {
+  //   console.log("UPDATE IMAGE DTO")
+  //   console.log(updateImageDto)
+  //   const productImageToUpdate: ProductImage = (await this.findOne(id)).recourse;
+  //   const imageBody: ProductImage = { ...productImageToUpdate, ...updateImageDto };
+  //   if((updateImageDto.productId) && (updateImageDto.productId !== productImageToUpdate.product.id) ){
+  //     const newProduct: Product = (await this.productService.findOne(updateImageDto.productId)).recourse;
+  //     imageBody.product = newProduct;
+  //   }
+  //   console.log("\n\n IMAGE BODY")
+  //   console.log(imageBody)
+  //   const productImageUpdated = await this.imageRepository.save(imageBody).catch((error) => {
+  //     console.error(error);
+  //     const badRequestError: IBadRequestex = {
+  //       status: false,
+  //       message: `Error updating the product image with id: '${id}'`
+  //     };
+  //     throw new BadRequestException(badRequestError);
+  //   });
+  //   const recourse: IRecourseUpdated<ProductImage> = {
+  //     status: true,
+  //     message: "The product image was updated succesfully",
+  //     recourse: productImageUpdated
+  //   };
+  //   return recourse;
+  // }
 
   async remove(id: number): Promise<IRecourseDeleted<ProductImage>> {
     const productImage: ProductImage = (await this.findOne(id)).recourse;
