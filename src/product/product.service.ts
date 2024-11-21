@@ -63,7 +63,14 @@ export class ProductService {
       image: imageUrl
     });
 
-    const { id }: Product = await this.productRepository.save(newProduct);
+    const { id }: Product = await this.productRepository.save(newProduct).catch((error) => {
+      console.error(error)
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `error saving the product instance`
+      };
+      throw new BadRequestException(badRequestError);
+    });
 
     // if(createProductDto.secondariesImages){
     //   const secondariesImagesMapped: ProductImage[] = await Promise.all(createProductDto.secondariesImages.map(async(image) =>{
