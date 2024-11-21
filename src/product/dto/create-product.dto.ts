@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsNotEmpty,
@@ -9,6 +10,7 @@ import {
   isURL,
   Length,
 } from 'class-validator';
+import { MulterFile } from 'src/images/dto/multer-file';
 
 export class CreateProductDto {
   @ApiProperty() 
@@ -17,34 +19,46 @@ export class CreateProductDto {
   @Length(1, 200)
   name: string;
 
+  // @ApiProperty({ type: [MulterFile] })
+  // @IsNotEmpty()
+  // image: MulterFile;
+
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
   @Length(1, 1024)
   description: string;
 
-  @ApiProperty()
+  @IsOptional()
+  image?: any;
+
   @IsNotEmpty()
   @IsPositive()
+  @Type(() => Number) // Convierte string a número
+  shippingCost: number;
+
+  @IsNotEmpty()
+  @IsPositive()
+  @Type(() => Number) // Convierte string a número
   price: number;
 
-  @ApiProperty()
   @IsNotEmpty()
   @IsPositive()
+  @Type(() => Number) // Convierte string a número
   brandId: number;
 
-  @ApiProperty()
   @IsNotEmpty()
   @IsPositive()
+  @Type(() => Number) // Convierte string a número
   supplierId: number;
 
-  @ApiProperty()
   @IsNotEmpty()
   @IsPositive()
+  @Type(() => Number) // Convierte string a número
   typeId: number;
 
-  @ApiProperty()
   @IsNotEmpty()
   @IsPositive()
+  @Type(() => Number) // Convierte string a número
   stock: number;
 }

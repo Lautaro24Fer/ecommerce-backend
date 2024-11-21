@@ -40,7 +40,11 @@ export class ProductController {
   })
   @Post()
   @UseInterceptors(FileInterceptor('image', multerOptions))
-  async create(@Body() createProductDto: CreateProductDto, @UploadedFile() file?: MulterFile): Promise<IRecourseCreated<Product>> {
+  async create(@Body() createProductDto: CreateProductDto, @UploadedFile() file: MulterFile): Promise<IRecourseCreated<Product>> {
+    console.log("**CREATE PRODUCT DTO**")
+    console.log(createProductDto)
+    console.log("**FILE ARRIVED**")
+    console.log(file)
     return await this.productService.create(createProductDto, file);
   }
 
@@ -130,8 +134,11 @@ export class ProductController {
     description: 'Error updating the product',
   })
   @Patch(':id')
-  async partialUpdate(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto): Promise<IRecourseUpdated<Product>> {
-    const responseService: IRecourseUpdated<Product> = (await this.productService.update(id, updateProductDto));
+  @UseInterceptors(FileInterceptor('image', multerOptions))
+  async partialUpdate(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto, file?: MulterFile): Promise<IRecourseUpdated<Product>> {
+    console.log("**file**")
+    console.log(file)
+    const responseService: IRecourseUpdated<Product> = (await this.productService.update(id, updateProductDto, file));
     return responseService;
   }
 

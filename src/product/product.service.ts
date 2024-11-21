@@ -39,7 +39,7 @@ export class ProductService {
     private readonly ftpService: FtpService
   ) {}
 
-  async create(createProductDto: CreateProductDto, file?: MulterFile): Promise<IRecourseCreated<Product>> {
+  async create(createProductDto: CreateProductDto, file: MulterFile): Promise<IRecourseCreated<Product>> {
 
     // Verificar que el id de supplier y brand existen. Para eso primero haremos sus respectivos repositorios primero
 
@@ -49,13 +49,10 @@ export class ProductService {
 
     const type: ProductType = (await this.typeService.findOne(createProductDto.typeId)).recourse;
 
-    let imageUrl: string = "";
-
-    if(file){
-      imageUrl = await this.ftpService.saveImageOnFTPServer(file);
-    }
+    let imageUrl: string = await this.ftpService.saveImageOnFTPServer(file);
 
     const newProduct: Product = this.productRepository.create({  
+      ...createProductDto,
       name: createProductDto.name,
       description: createProductDto.description,
       price: createProductDto.price,
@@ -176,7 +173,7 @@ export class ProductService {
     return recourseFound;
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<IRecourseUpdated<Product>> {
+  async update(id: number, updateProductDto: UpdateProductDto, file?: MulterFile): Promise<IRecourseUpdated<Product>> {
     const productFinded: Product = (await this.findOne(id)).recourse;
 
     const body: Product = {
@@ -197,6 +194,12 @@ export class ProductService {
     if(updateProductDto.typeId){
       const type: ProductType = (await this.typeService.findOne(updateProductDto?.typeId)).recourse;
      body.type = type;
+    }
+
+    if(file){
+      const newImageUrl: string = await this.ftpService.saveImageOnFTPServer(file);
+      await this.ftpService.deleteFile(productFinded.image);
+      body.image = newImageUrl;
     }
 
     const productUpdated: Product = await this.productRepository.save(body).catch((error) => {
@@ -227,9 +230,13 @@ export class ProductService {
       };
       throw new BadRequestException(badRequestError);
     });
-    await this.ftpService.deleteFile(urlPath);
+    if(urlPath.includes('padel-point')){
+      await this.ftpService.deleteFile(urlPath);
+    }
     await Promise.all(product.secondariesImages.map(async (image) => {
-      await this.ftpService.deleteFile(image.url);
+      if(image.url.includes('padel-point')){
+        await this.ftpService.deleteFile(image.url);
+      }
     }));
     const response: IRecourseDeleted<Product> = {
       status: true,

@@ -11,9 +11,10 @@ export class UpdateProductDto {
   // @ApiProperty()
   // @IsOptional()
   // @IsString()
-  // @IsUrl()
-  // @Length(1, 200)
   // image?: string;
+
+  @IsOptional()
+  image?: string;
 
   @ApiProperty()
   @IsOptional()

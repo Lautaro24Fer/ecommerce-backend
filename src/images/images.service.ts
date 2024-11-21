@@ -15,32 +15,31 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class ImagesService {
 
-  private readonly FTP_SERVER: string;
 
   constructor(
     @InjectRepository(ProductImage) private readonly imageRepository: Repository<ProductImage>,
     @Inject(forwardRef(() => ProductService)) private readonly productService: ProductService,
     private readonly ftpService: FtpService,
-    private readonly configService: ConfigService) {
-      this.FTP_SERVER = this.configService.get<string>('FTP_SERVER');
-    }
+    private readonly configService: ConfigService) {}
   
   async create(id: number, file: MulterFile) {
 
     const product: Product = (await this.productService.findOne(id)).recourse;
 
-    const imagePath = await this.ftpService.saveImageOnFTPServer(file);
+    const imageUrl = await this.ftpService.saveImageOnFTPServer(file);
 
-    const imageCreated: ProductImage = this.imageRepository.create({ product, url: imagePath });
+    const imageCreated: ProductImage = this.imageRepository.create({ product, url: imageUrl });
 
-    const imageSaved: ProductImage = await this.imageRepository.save(imageCreated).catch((error) => {
+    const imageSaved: ProductImage = await this.imageRepository.save(imageCreated).catch(async (error) => {
       console.error(error);
+      await this.ftpService.deleteFile(imageUrl)
       const badRequestError: IBadRequestex = {
         status: false,
         message: "Error in the creation of the product image"
       };
       throw new BadRequestException(badRequestError);
     });
+
 
     const response: IRecourseCreated<ProductImage> = {
       status: true,
@@ -147,7 +146,9 @@ export class ImagesService {
   async remove(id: number): Promise<IRecourseDeleted<ProductImage>> {
     const productImage: ProductImage = (await this.findOne(id)).recourse;
     const remotePath: string = productImage.url;
-    await this.ftpService.deleteFile(remotePath);
+    if(remotePath.includes('padel-point')){
+      await this.ftpService.deleteFile(remotePath);
+    }
     const removed: ProductImage = await this.imageRepository.remove(productImage).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {

@@ -24,6 +24,9 @@ export class FtpService {
   async saveImageOnFTPServer(file: MulterFile): Promise<string> {
     const localPath: string = file.path;
 
+    console.log("LOCALPATH:")
+    console.log(localPath)
+
     // Asegúrate de que el archivo temporal existe
     if (!fs.existsSync(localPath)) {
       throw new BadRequestException('Temporary file not found');
@@ -44,7 +47,16 @@ export class FtpService {
     }
     finally{
       await this.closeFTPServerConnection();
-      fs.unlinkSync(localPath);
+      try {
+        if (fs.existsSync(localPath)) {
+          fs.unlinkSync(localPath);
+        } else {
+          console.warn("El archivo no existe:", localPath);
+        }
+      } catch (err) {
+        console.error("Error eliminando el archivo local:", err.message);
+      }
+
     }
     
   }
