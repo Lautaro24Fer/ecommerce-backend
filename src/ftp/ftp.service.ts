@@ -21,6 +21,25 @@ export class FtpService {
     this.FTP_PASSWORD = this.configService.get<string>('FTP_PASSWORD')
   }
 
+  async checkFileExists(remotePath: string): Promise<boolean> {
+    try {
+      await this.connectToFTPServer()
+      // Lista los archivos en el directorio que contiene el archivo
+      const fileList = await this.client.list(remotePath);
+
+      // Si el archivo está en el listado, retorna true
+      return fileList.length > 0;
+    } catch (error) {
+      // Si ocurre un error, probablemente el archivo no exista
+      console.log("Error al verificar el archivo:", error);
+      return false;
+    }
+    finally{
+      await this.closeFTPServerConnection()
+    }
+  }
+  
+
   async saveImageOnFTPServer(file: MulterFile): Promise<string> {
     const localPath: string = file.path;
 
@@ -97,23 +116,18 @@ export class FtpService {
     try {
       // Conectar al servidor FTP
       await this.connectToFTPServer();
-
       // Verificar si el archivo existe antes de intentar eliminarlo
       const fileExists = await this.client.size(remotePath).catch(() => false);
-      if (!fileExists) {
-        throw new BadRequestException(`File not found: ${remotePath}`);
+      if (fileExists) {
+        await this.client.remove(remotePath);
       }
-
-      // Eliminar el archivo
-      await this.client.remove(remotePath);
-      console.log(`File deleted successfully: ${remotePath}`);
     } catch (error) {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
-        message: "Error deleting file: ${error.message}"
+        message: `Error deleting file: ${error.message}`
       }
-      throw new InternalServerErrorException(badRequestError);
+      throw new BadRequestException(badRequestError);
     } finally {
       await this.closeFTPServerConnection() // Asegurarse de cerrar la conexión
     }

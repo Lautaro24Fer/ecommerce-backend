@@ -135,9 +135,11 @@ export class ProductController {
   })
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image', multerOptions))
-  async partialUpdate(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto, file?: MulterFile): Promise<IRecourseUpdated<Product>> {
+  async partialUpdate(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto,@UploadedFile() file?: MulterFile): Promise<IRecourseUpdated<Product>> {
     console.log("**file**")
     console.log(file)
+    console.log("dto")
+    console.log(updateProductDto)
     const responseService: IRecourseUpdated<Product> = (await this.productService.update(id, updateProductDto, file));
     return responseService;
   }

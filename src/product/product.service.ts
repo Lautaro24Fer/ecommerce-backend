@@ -4,6 +4,7 @@ import {
   HttpException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -36,7 +37,7 @@ export class ProductService {
     private readonly brandService: BrandService,
     private readonly supplierService: SupplierService,
     private readonly typeService: TypeService,
-    private readonly ftpService: FtpService
+    private readonly ftpService: FtpService,
   ) {}
 
   async create(createProductDto: CreateProductDto, file: MulterFile): Promise<IRecourseCreated<Product>> {
@@ -198,7 +199,19 @@ export class ProductService {
 
     if(file){
       const newImageUrl: string = await this.ftpService.saveImageOnFTPServer(file);
-      await this.ftpService.deleteFile(productFinded.image);
+      if(productFinded.image.includes('padel-point')){
+        const imageExists: boolean = await this.ftpService.checkFileExists(productFinded.image)
+        if(imageExists){
+          await this.ftpService.deleteFile(productFinded.image).catch((error) => {
+            console.error(error);
+            const ftpError: IBadRequestex = {
+              status: false,
+              message: "Error deleting the image on the server"
+            };
+            throw new InternalServerErrorException(ftpError);
+          });
+        }
+      }
       body.image = newImageUrl;
     }
 
@@ -222,6 +235,12 @@ export class ProductService {
   async remove(id: number): Promise<IRecourseDeleted<Product>> {
     const product: Product = (await this.findOne(id)).recourse;
     const urlPath: string = product.image;
+    if(urlPath.includes('padel-point')){
+      await this.ftpService.deleteFile(urlPath);
+    }
+    await Promise.all(product.secondariesImages.map(async (image) => {
+      await this.productImageService.remove(image.id);
+    }));
     const removed: Product = await this.productRepository.remove(product).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -230,14 +249,6 @@ export class ProductService {
       };
       throw new BadRequestException(badRequestError);
     });
-    if(urlPath.includes('padel-point')){
-      await this.ftpService.deleteFile(urlPath);
-    }
-    await Promise.all(product.secondariesImages.map(async (image) => {
-      if(image.url.includes('padel-point')){
-        await this.ftpService.deleteFile(image.url);
-      }
-    }));
     const response: IRecourseDeleted<Product> = {
       status: true,
       message: "The product was deleted succesfully",

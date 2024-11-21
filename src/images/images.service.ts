@@ -32,7 +32,14 @@ export class ImagesService {
 
     const imageSaved: ProductImage = await this.imageRepository.save(imageCreated).catch(async (error) => {
       console.error(error);
-      await this.ftpService.deleteFile(imageUrl)
+      await this.ftpService.deleteFile(imageUrl).catch((error) => {
+        console.error(error);
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: "Error deleting file in FTP server"
+        };
+        throw new BadRequestException(badRequestError);
+      })
       const badRequestError: IBadRequestex = {
         status: false,
         message: "Error in the creation of the product image"
@@ -142,6 +149,19 @@ export class ImagesService {
   //   };
   //   return recourse;
   // }
+
+  async removeByUrl(url: string): Promise<IRecourseDeleted<ProductImage>>{
+    const image: ProductImage = await this.imageRepository.findOneBy({ url }).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error finding the image with url '${url}' in database`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const removed: IRecourseDeleted<ProductImage> = await this.remove(image.id);
+    return removed;
+  }
 
   async remove(id: number): Promise<IRecourseDeleted<ProductImage>> {
     const productImage: ProductImage = (await this.findOne(id)).recourse;
