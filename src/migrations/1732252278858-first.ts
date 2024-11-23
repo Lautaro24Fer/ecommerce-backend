@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class First1731793567730 implements MigrationInterface {
-    name = 'First1731793567730'
+export class First1732252278858 implements MigrationInterface {
+    name = 'First1732252278858'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE \`address\` (\`id\` int NOT NULL AUTO_INCREMENT, \`postalCode\` varchar(10) NOT NULL, \`addressStreet\` varchar(30) NOT NULL, \`addressNumber\` varchar(10) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`identification_type\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(20) NOT NULL, UNIQUE INDEX \`IDX_1bddbdc00ecfb061c6b81a3cc8\` (\`name\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`roles\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`user\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(255) NOT NULL, \`surname\` varchar(255) NOT NULL, \`username\` varchar(255) NOT NULL, \`isActive\` tinyint NOT NULL DEFAULT 1, \`idNumber\` varchar(255) NOT NULL, \`email\` varchar(255) NOT NULL, \`method\` enum ('LOCAL', 'GOOGLE') NOT NULL DEFAULT 'LOCAL', \`password\` varchar(255) NULL, \`passwordResetToken\` varchar(255) NULL, \`passwordResetTokenExpiresIn\` timestamp NULL, \`idTypeId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`user\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(255) NOT NULL, \`surname\` varchar(255) NOT NULL, \`username\` varchar(255) NOT NULL, \`isActive\` tinyint NOT NULL DEFAULT 1, \`phone\` varchar(20) NOT NULL, \`idNumber\` varchar(255) NOT NULL, \`email\` varchar(255) NOT NULL, \`method\` enum ('LOCAL', 'GOOGLE') NOT NULL DEFAULT 'LOCAL', \`password\` varchar(255) NULL, \`passwordResetToken\` varchar(255) NULL, \`passwordResetTokenExpiresIn\` timestamp NULL, \`idTypeId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`brand\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`supplier\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`product_type\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, UNIQUE INDEX \`IDX_8978484a9cee7a0c780cd259b8\` (\`name\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
@@ -31,7 +31,7 @@ export class First1731793567730 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`user_roles_roles\` ADD CONSTRAINT \`FK_0d0cc409255467b0ac4fe6b1693\` FOREIGN KEY (\`userId\`) REFERENCES \`user\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`ALTER TABLE \`user_roles_roles\` ADD CONSTRAINT \`FK_7521d8491e7c51f885e9f861e02\` FOREIGN KEY (\`rolesId\`) REFERENCES \`roles\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
     
-                       // INSERTS
+        // INSERTS
         
         // MARCAS
         await queryRunner.query(`insert into brand (name) values ('ADIDAS'),('BABOLAT'),('BULLPADEL'),('NOX'),('SIUX'),('ROYAL'),('COAST'),('TOP FORCE'),('BLACK CROWN'),('FELINA PADEL'),('HEAD')`);

@@ -99,8 +99,6 @@ export class PaymentService {
 			body: { ...preferenceBody, }
 		})
 			.then(async data => {
-				console.log("ESTA ES LA DATA")
-				console.log(JSON.stringify(data, null, 2))
 				const response: IRecourseCreated<string> = {
 					status: true,
 					message: "The embeded form was created succesfully",

@@ -82,7 +82,7 @@ export class UserController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'User not founded'
+    description: 'User not found'
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -224,7 +224,7 @@ export class UserController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The user was not founded',
+    description: 'The user was not found',
   })
   @ApiResponse({ 
     status: HttpStatus.BAD_REQUEST, 
@@ -254,7 +254,7 @@ export class UserController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The user was not founded',
+    description: 'The user was not found',
   })
   @ApiResponse({ 
     status: HttpStatus.BAD_REQUEST, 
@@ -278,7 +278,7 @@ export class UserController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The user was not founded',
+    description: 'The user was not found',
   })
   @ApiResponse({ 
     status: HttpStatus.BAD_REQUEST, 
@@ -310,7 +310,7 @@ export class UserController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The user was not founded',
+    description: 'The user was not found',
   })
   @ApiResponse({ 
     status: HttpStatus.BAD_REQUEST, 

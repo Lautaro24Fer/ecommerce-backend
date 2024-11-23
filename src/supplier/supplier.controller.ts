@@ -46,7 +46,7 @@ export class SupplierController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Suppliers not founded',
+    description: 'Suppliers not found',
   })
   @Get()
   findAll(): Promise<IRecourseFound<Supplier[]>> {
@@ -64,7 +64,7 @@ export class SupplierController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Supplier not founded',
+    description: 'Supplier not found',
   })
   @Get(':id')
   findOne(@Param('id') id: number): Promise<IRecourseFound<Supplier>> {
@@ -82,7 +82,7 @@ export class SupplierController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Supplier not founded',
+    description: 'Supplier not found',
   })
   @Put(':id')
   update( @Param('id') id: number, @Body() updateSupplierDto: UpdateSupplierDto ): Promise<IRecourseUpdated<Supplier>> {
@@ -100,7 +100,7 @@ export class SupplierController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Supplier not founded',
+    description: 'Supplier not found',
   })
   @Delete(':id')
   remove(@Param('id') id: number): Promise<IRecourseDeleted<Supplier>> {

@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import {
   IsEmail,
   IsOptional,
+  IsPhoneNumber,
   IsPositive,
   IsString,
   Length,
@@ -21,6 +22,10 @@ export class FullUpdateUserDto {
   @ApiProperty()
   @IsString()
   username: string;
+
+  @ApiProperty()
+  @IsPhoneNumber('AR')
+  phone: string;
 
   @ApiProperty()
   @IsString()
@@ -63,6 +68,11 @@ export class PartialUpdateUserDto {
 
   @ApiProperty()
   @IsOptional()
+  @IsPhoneNumber('AR')
+  phone: string;
+
+  @ApiProperty()
+  @IsOptional()
   @IsString()
   @Length(8, 50)
   password?: string;
@@ -102,6 +112,7 @@ class AddressDto {
   addressStreet: string;
 
   @ApiProperty()
-  @IsPositive()
+  @IsString()
+  @Length(1, 10)
   addressNumber: string;
 }

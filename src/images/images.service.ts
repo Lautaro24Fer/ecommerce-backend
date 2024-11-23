@@ -111,7 +111,7 @@ export class ImagesService {
     if(!productImage){
       const notFoundError: INotFoundEx = {
         status: false,
-        message: `The product image with id '${productId}' and url '${url}' was not founded`
+        message: `The product image with id '${productId}' and url '${url}' was not found`
       }
       throw new NotFoundException(notFoundError);
     }
@@ -124,16 +124,12 @@ export class ImagesService {
   }
 
   // async update(id: number, updateImageDto: UpdateImageDto): Promise<IRecourseUpdated<ProductImage>> {
-  //   console.log("UPDATE IMAGE DTO")
-  //   console.log(updateImageDto)
   //   const productImageToUpdate: ProductImage = (await this.findOne(id)).recourse;
   //   const imageBody: ProductImage = { ...productImageToUpdate, ...updateImageDto };
   //   if((updateImageDto.productId) && (updateImageDto.productId !== productImageToUpdate.product.id) ){
   //     const newProduct: Product = (await this.productService.findOne(updateImageDto.productId)).recourse;
   //     imageBody.product = newProduct;
   //   }
-  //   console.log("\n\n IMAGE BODY")
-  //   console.log(imageBody)
   //   const productImageUpdated = await this.imageRepository.save(imageBody).catch((error) => {
   //     console.error(error);
   //     const badRequestError: IBadRequestex = {

@@ -182,10 +182,10 @@ export class ProductService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto, file?: MulterFile): Promise<IRecourseUpdated<Product>> {
-    const productFinded: Product = (await this.findOne(id)).recourse;
+    const productFound: Product = (await this.findOne(id)).recourse;
 
     const body: Product = {
-      ...productFinded,
+      ...productFound,
       ...updateProductDto
     }
 
@@ -206,10 +206,10 @@ export class ProductService {
 
     if(file){
       const newImageUrl: string = await this.ftpService.saveImageOnFTPServer(file);
-      if(productFinded.image.includes('padel-point')){
-        const imageExists: boolean = await this.ftpService.checkFileExists(productFinded.image)
+      if(productFound.image.includes('padel-point')){
+        const imageExists: boolean = await this.ftpService.checkFileExists(productFound.image)
         if(imageExists){
-          await this.ftpService.deleteFile(productFinded.image).catch((error) => {
+          await this.ftpService.deleteFile(productFound.image).catch((error) => {
             console.error(error);
             const ftpError: IBadRequestex = {
               status: false,
@@ -265,12 +265,9 @@ export class ProductService {
   }
 
   async validateOperation(items: ItemDto[]): Promise<IRecourseFound<any>> {
-    console.log("--THIS IS THE VALIDATION OF THE PAYMENT OPERATION--")
     for(const item of items) {
       const product: Product = (await this.findOne(item.id)).recourse;
-      console.log("product: \n" + product);
       if(product.stock < item.quantity) {
-        console.log("The product have not many stock. \n product stock: " + product.stock + "\nproduct quantity in order: " + item.quantity + "\n\n")
         const badRequestError: IBadRequestex = {
           status: false,
           message: `There is not enough stock of the product with id '${item.id}' to carry out the operation`

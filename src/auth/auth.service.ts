@@ -58,9 +58,9 @@ export class AuthService {
 
   async getCookieByPassportStrategy( user: any ): Promise<IAuthTokens> {
 
-    const userFinded: User = (await this.userService.findOneById(user?.id)).recourse; 
-    const token: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '1m');
-    const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFinded.roles }, '7m');
+    const userFound: User = (await this.userService.findOneById(user?.id)).recourse; 
+    const token: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFound.roles }, '1m');
+    const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFound.roles }, '7m');
     const tokens: IAuthTokens = {
       token,
       refreshToken

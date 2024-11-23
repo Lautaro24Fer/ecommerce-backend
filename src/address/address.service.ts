@@ -24,7 +24,6 @@ export class AddressService {
   // }
 
   async removeOrphanedAddresses(): Promise<void> {
-    console.log("SE EJECUTO LA FUNCION DE LIMPIEZA DE DIRECCIONES NO USADAS")
     const orphanedAddresses = await this.addressRepository
       .createQueryBuilder('address')
       .leftJoin('address.user', 'user')
@@ -32,12 +31,8 @@ export class AddressService {
       .getMany();
 
     if (orphanedAddresses.length > 0) {
-      console.log("RESULTADO: HAY DIRECCIONES QUE NO ESTEN EN USO")
-      console.log(orphanedAddresses)
       await this.addressRepository.remove(orphanedAddresses);
     }
-    console.log("RESULTADO: NO HAY DIRECCIONES QUE NO ESTEN EN USO")
-    console.log(orphanedAddresses)
   }
 
   async findOrCreate(createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>>{
@@ -50,17 +45,11 @@ export class AddressService {
     })
     .catch(async (error) => {
       if(error instanceof NotFoundException){
-        console.log(" ============ la direccion no fue encontrada asi que debe crearse")
         const newAddress: IRecourseCreated<Address> = await this.create({ postalCode, addressNumber, addressStreet });
-        console.log(" ____ esta es la nueva direccion!!!")
-        console.log(newAddress);
         estado = "NO ENCONTRADO EN LA BASE DE DATOS ASI QUE FUE CREADO"
         return newAddress.recourse;
       }
     });
-    console.log(" ______ este es el address con la direccion cargada")
-    console.log(address)
-    console.log(estado);  
     const recourse: IRecourseCreated<Address> = {
       status: true,
       message: "The address was created succesfully",
@@ -113,7 +102,7 @@ export class AddressService {
       throw new BadRequestException(response);
     })
     if(!address){
-      const response: INotFoundEx = { status: false, message: `The address with id '${id}' was not founded` }
+      const response: INotFoundEx = { status: false, message: `The address with id '${id}' was not found` }
       throw new NotFoundException(response);
     }
     const recourse: IRecourseFound<Address> = {
@@ -179,14 +168,14 @@ export class AddressService {
     if(!address){
       const response: INotFoundEx = { 
         status: false, 
-        message: `The address with postal code '${postalCode}', addressStreet '${addressStreet}' and addressNumber ${addressNumber} was not founded` 
+        message: `The address with postal code '${postalCode}', addressStreet '${addressStreet}' and addressNumber ${addressNumber} was not found` 
       };
       throw new NotFoundException(response);
     };
 
     const recourse: IRecourseFound<Address> = {
       status: true,
-      message: 'The recourse was founded succesfully',
+      message: 'The recourse was found succesfully',
       recourse: address
     };
 

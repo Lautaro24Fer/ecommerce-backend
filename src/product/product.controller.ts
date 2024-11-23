@@ -41,10 +41,6 @@ export class ProductController {
   @Post()
   @UseInterceptors(FileInterceptor('image', multerOptions))
   async create(@Body() createProductDto: CreateProductDto, @UploadedFile() file: MulterFile): Promise<IRecourseCreated<Product>> {
-    console.log("**CREATE PRODUCT DTO**")
-    console.log(createProductDto)
-    console.log("**FILE ARRIVED**")
-    console.log(file)
     return await this.productService.create(createProductDto, file);
   }
 
@@ -55,7 +51,7 @@ export class ProductController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The products was not founded'
+    description: 'The products was not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -109,7 +105,7 @@ export class ProductController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The product by id was not founded',
+    description: 'The product by id was not found',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -127,7 +123,7 @@ export class ProductController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The product was by id was not founded',
+    description: 'The product was by id was not found',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -136,10 +132,6 @@ export class ProductController {
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image', multerOptions))
   async partialUpdate(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto,@UploadedFile() file?: MulterFile): Promise<IRecourseUpdated<Product>> {
-    console.log("**file**")
-    console.log(file)
-    console.log("dto")
-    console.log(updateProductDto)
     const responseService: IRecourseUpdated<Product> = (await this.productService.update(id, updateProductDto, file));
     return responseService;
   }
@@ -151,7 +143,7 @@ export class ProductController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The product by id was not founded',
+    description: 'The product by id was not found',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,

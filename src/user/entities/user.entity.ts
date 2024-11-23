@@ -21,6 +21,9 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ length: 20 })
+  phone: string;
+
   @ManyToOne(() => IdType, (m) => m.id)
   idType: IdType;
 

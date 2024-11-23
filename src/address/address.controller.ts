@@ -61,7 +61,7 @@ export class AddressController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The addresses was not founded'
+    description: 'The addresses was not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -85,7 +85,7 @@ export class AddressController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The address was not founded'
+    description: 'The address was not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -109,7 +109,7 @@ export class AddressController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The address was not founded'
+    description: 'The address was not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -133,7 +133,7 @@ export class AddressController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The address was not founded'
+    description: 'The address was not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,

@@ -42,11 +42,6 @@ export class ImagesController {
   @Post(':id')
   @UseInterceptors(FileInterceptor('image', multerOptions)) // 'image' en este caso sería el nombre del campo del formulario
   async create(@Param('id') id: number, @UploadedFile() file: MulterFile): Promise<IRecourseCreated<ProductImage>> {
-    console.log("__creacion de una nueva imagen__")
-    console.log("file")
-    console.log(file)
-    console.log("id")
-    console.log(id)
     const imageServiceResponse = await this.imagesService.create(id, file);
     return imageServiceResponse;
   }
@@ -58,7 +53,7 @@ export class ImagesController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Image not founded'
+    description: 'Image not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -77,7 +72,7 @@ export class ImagesController {
   // })
   // @ApiResponse({
   //   status: HttpStatus.NOT_FOUND,
-  //   description: 'Image not founded'
+  //   description: 'Image not found'
   // })
   // @ApiResponse({
   //   status: HttpStatus.BAD_REQUEST,
@@ -96,7 +91,7 @@ export class ImagesController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND, 
-    description: 'Image not founded'
+    description: 'Image not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,

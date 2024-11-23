@@ -45,7 +45,7 @@ export class BrandController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Brands not founded',
+    description: 'Brands not found',
   })
   @Get()
   findAll(): Promise<IRecourseFound<Brand[]>> {
@@ -63,7 +63,7 @@ export class BrandController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Brand not founded',
+    description: 'Brand not found',
   })
   @Get(':id')
   findOne(@Param('id') id: number): Promise<IRecourseFound<Brand>> {
@@ -81,7 +81,7 @@ export class BrandController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Brand not founded',
+    description: 'Brand not found',
   })
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateBrandDto: UpdateBrandDto): Promise<IRecourseUpdated<Brand>> {
@@ -99,7 +99,7 @@ export class BrandController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Brand not founded',
+    description: 'Brand not found',
   })
   @Delete(':id')
   remove(@Param('id') id: number): Promise<IRecourseDeleted<Brand>> {

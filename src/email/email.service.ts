@@ -44,10 +44,6 @@ export class EmailService {
 	async sendEmailForOrder(order: Order): Promise<IRecourseCreated<any>> {
 		const layout: string = createOrderLayout(order);
 
-		console.log("\n\n___SEND EMAIL FOR ORDER___\n")
-		console.log("ESRA ES LA ORDEN")
-		console.log(order);
-		console.log(" ______________________________________________________________________ \n\n\n")
 
 		const info: IRecourseCreated<any> = await this.transporter.sendMail({
 			from: `no reply <${this.NODEMAILER_USER}>`,
@@ -55,8 +51,6 @@ export class EmailService {
 			subject: "Padel point - Nueva orden de pago", // Asunto
 			html: layout
 		}).then((data) => {
-			console.log(" ****DATA****")
-			console.log(data);
 			const recourseCreated: IRecourseCreated<any> = {
 				status: true,
 				message: "The order mail was sended succesfully to the admin",
@@ -78,11 +72,6 @@ export class EmailService {
 
 	async sendEmailForResetPassword(token: number, toUser: string){
 
-		console.log(" ____ constructor _____")
-		console.log("nodemailer_host: " + this.NODEMAILER_HOST);
-		console.log("nodemailer_port: " + this.NODEMAILER_PORT);
-		console.log("nodemailer_user: " + this.NODEMAILER_USER);
-		console.log("nodemailer_password: " + this.NODEMAILER_PASSWORD);
 
 		const layout: string = resetPasswordLayout(token);
 
@@ -92,9 +81,6 @@ export class EmailService {
 			subject: "Padel point - Reset password code", // Asunto
 			html: layout
 		}).then((data) => {
-			console.log("____data____\n\n")
-			console.log(data)
-			console.log("\n\n_________________\n\n")
 			const recourseCreated: IRecourseCreated<any> = {
 				status: true,
 				message: "The reset password mail was sended succesfully",

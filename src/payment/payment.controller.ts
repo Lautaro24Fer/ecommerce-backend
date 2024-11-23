@@ -37,8 +37,6 @@ export class PaymentController {
   // TODO: La id no debería llegar desde el body, sino desde la cookie ya que es un recurso protegido
   @Post('mp/preference')
   async createPaymentPreference(@Body() paymentPreference: IPaymentPreferenceReq,  @Res() res: Response ): Promise<void>{
-    console.log("payment preference")
-    console.log(paymentPreference)
     await this.paymentService.generatePaymentOrException(paymentPreference, res);
   }
 
@@ -46,7 +44,6 @@ export class PaymentController {
   // desde la integración
   @Post("mp/preference/webhook")
   async notificationWehbook(@Body() payload: any) {
-      console.log(" |== MERCADO PAGO WEBHOOK PREFERENCE ==| ")
       const paymentId = payload?.data?.id;
       if (!paymentId) {
         const badRequestError: IBadRequestex = {

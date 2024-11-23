@@ -77,8 +77,8 @@ export class UserService {
 
     if(createUserDto.address) {
       addressCreated = await Promise.all(createUserDto.address.map(async (add) =>{
-        const addressCreatedOrFinded: Address = (await this.addressService.findOrCreate(add)).recourse;
-        return addressCreatedOrFinded;
+        const addressCreatedOrFound: Address = (await this.addressService.findOrCreate(add)).recourse;
+        return addressCreatedOrFound;
       }));
     }
     
@@ -135,14 +135,13 @@ export class UserService {
   }
 
   async findOneById(id: number): Promise<IRecourseFound<User>> {
-    console.log("findOneByid)) Entrada al metodo")
     const user: User = await this.userRepository.findOne({ where: { id, isActive: true }, relations: ['roles', 'idType', 'address']}).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with id '${id}'` };
       console.error(error);
       throw new BadRequestException(response);
     });
     if (!user) {
-      const response: INotFoundEx = { status: false, message: `The user with id '${id}' was not founded` };
+      const response: INotFoundEx = { status: false, message: `The user with id '${id}' was not found` };
       throw new NotFoundException(response);
     }
 
@@ -157,9 +156,6 @@ export class UserService {
 
   async findOneByUserName(username: string): Promise<IRecourseFound<User>> {
 
-    console.log("FIND ONE BY USERNAME");
-    console.log("username:")
-    console.log(username)
 
     const user: User = await this.userRepository.findOne({ where: { username: username.toLowerCase(), isActive: true }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with username '${username}'` };
@@ -167,7 +163,7 @@ export class UserService {
       throw new BadRequestException(response)
     });
     if (!user) {
-      const response: INotFoundEx = { status: false, message: `The user with username '${username}' was not founded` };
+      const response: INotFoundEx = { status: false, message: `The user with username '${username}' was not found` };
       throw new NotFoundException(response);
     }
     const response: IRecourseFound<User> = {
@@ -193,7 +189,7 @@ export class UserService {
       throw new BadRequestException(response)
     })
     if (!user) {
-      const response: INotFoundEx = { status: false, message: `The user with email '${email}' was not founded` }
+      const response: INotFoundEx = { status: false, message: `The user with email '${email}' was not found` }
       throw new NotFoundException(response);
     }
 
@@ -287,16 +283,11 @@ export class UserService {
         });
       break;
       case (UniqueUserRecourse.USERNAME):
-        console.log("recourseInUse) -- VERIFIACION DE USERNAME --")
-        console.log("Este es el input")
-        console.log(input)
         response = await this.userRepository.existsBy({ username: input, isActive: true }).catch((error) => {
           const catchErrorResponse: IBadRequestex = { status: false, message: 'Error in the verification if username exists' };
           console.error(error);
           throw new BadRequestException(catchErrorResponse);
         });
-        console.log("\n\nLa repuesta es la siguiente")
-        console.log(response)
       break;
       case (UniqueUserRecourse.ID_NUMBER): 
         response = await this.userRepository.existsBy({ idNumber: input, isActive: true }).catch((error) => {
@@ -369,7 +360,8 @@ export class UserService {
       email: userToUpdate.email,
       method: userToUpdate.method,
       address: [...userToUpdate.address],
-      roles: [...userToUpdate.roles]
+      roles: [...userToUpdate.roles],
+      phone: updateUserDto?.phone
     }
 
     if(updateUserDto?.idType) {
@@ -378,19 +370,14 @@ export class UserService {
     }
 
     if((updateUserDto?.address)){
-      console.log(" == *********** ADDRESS  ********* ==")
       if(updateType === UpdateType.FULL){
-        console.log(" __la actualización es completa o tipo FULL__ ")
         body.address = [];
       }
       else{
-        console.log(" __la actualizacion es parcial o tipo PARTIAL __ ")
       }
       const addresses = await Promise.all(
         updateUserDto.address.map(async (ad) => {
           const address: Address = (await this.addressService.findOrCreate({ ...ad, addressNumber: ad.addressNumber.toString() })).recourse;
-          console.log(" ___ address encontrada dentro del servicio de usuario ___");
-          console.log(address);
           return address;
         })
       );
@@ -409,8 +396,6 @@ export class UserService {
 
     const userUpdated: User = (await this.findOneById(id)).recourse;
 
-    console.log(" -- this is the total user updated --  ")
-    console.log(userUpdated);
 
     const response: IRecourseUpdated<User> = {
       status: true,
@@ -473,8 +458,6 @@ export class UserService {
       throw new BadRequestException(badRequestError);
     });
 
-    console.log("__correo__")
-    console.log(user.email)
 
     await this.emailService.sendEmailForResetPassword(token, user.email); // Envío del correo al usuario con el codigo de cambio de contraseña
 
@@ -554,7 +537,8 @@ export class UserService {
       surname: user.surname,
       idType: user.idType,
       idNumber: user.idNumber,
-      address: user.address ?? []
+      address: user.address ?? [],
+      phone: user.phone
     };
     return userDto;
   }

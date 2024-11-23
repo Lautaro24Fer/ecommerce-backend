@@ -70,8 +70,6 @@ export class AuthController {
 
       const responseLogin = new LoginResponseDto(true, 'login succesfully');
 
-      console.log("Response Login");
-      console.log(responseLogin);
       res.status(201).json(responseLogin);
   }
 
@@ -149,7 +147,7 @@ export class AuthController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: "The user in the token was not finded"
+    description: "The user in the token was not found"
   })
   @Post('refresh')
   async refreshToken(@Req() req: Request, @Res() res: Response): Promise<Response>{

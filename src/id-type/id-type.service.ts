@@ -57,7 +57,7 @@ export class IdTypeService {
       throw new BadRequestException(exResponse);
     });
     if(!idType){
-      const exResponse: INotFoundEx = { status: false, message: `Identification type not founded by id '${id}'` };
+      const exResponse: INotFoundEx = { status: false, message: `Identification type not found by id '${id}'` };
       throw new NotFoundException(exResponse);
     }
     const recourse: IRecourseFound<IdType> = {

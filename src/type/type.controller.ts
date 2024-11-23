@@ -46,7 +46,7 @@ export class TypeController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Product type not founded'
+    description: 'Product type not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -64,7 +64,7 @@ export class TypeController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Product type not founded'
+    description: 'Product type not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -82,7 +82,7 @@ export class TypeController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Product type not founded'
+    description: 'Product type not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,

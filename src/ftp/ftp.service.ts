@@ -31,7 +31,6 @@ export class FtpService {
       return fileList.length > 0;
     } catch (error) {
       // Si ocurre un error, probablemente el archivo no exista
-      console.log("Error al verificar el archivo:", error);
       return false;
     }
     finally{
@@ -43,8 +42,6 @@ export class FtpService {
   async saveImageOnFTPServer(file: MulterFile): Promise<string> {
     const localPath: string = file.path;
 
-    console.log("LOCALPATH:")
-    console.log(localPath)
 
     // Asegúrate de que el archivo temporal existe
     if (!fs.existsSync(localPath)) {
@@ -69,11 +66,17 @@ export class FtpService {
       try {
         if (fs.existsSync(localPath)) {
           fs.unlinkSync(localPath);
-        } else {
-          console.warn("El archivo no existe:", localPath);
+        } 
+        else {
+          console.error("El archivo no existe:", localPath);
         }
       } catch (err) {
-        console.error("Error eliminando el archivo local:", err.message);
+        console.error();
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: `"Error eliminando el archivo local: ${err.message}`
+        }
+        throw new InternalServerErrorException(badRequestError);
       }
 
     }

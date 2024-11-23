@@ -30,7 +30,7 @@ export class RolesService {
   }
 
   async findAll(): Promise<IRecourseFound<Role[]>> {
-    const rolesFinded: Role[] = await this.roleRepository.find().catch((error) => {
+    const rolesFound: Role[] = await this.roleRepository.find().catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
@@ -41,14 +41,14 @@ export class RolesService {
     const response: IRecourseFound<Role[]> = {
       status: true,
       message: "The role was created succesfully",
-      recourse: rolesFinded
+      recourse: rolesFound
     };
     return response;
   }
 
   async findOne(id: number): Promise<IRecourseFound<Role>>{
     
-    const roleFinded: Role = await this.roleRepository.findOneBy({ id }).catch((error) => {
+    const roleFound: Role = await this.roleRepository.findOneBy({ id }).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
@@ -56,7 +56,7 @@ export class RolesService {
       };
       throw new BadRequestException(badRequestError);
     });
-    if(!roleFinded) {
+    if(!roleFound) {
       const notFoundError: INotFoundEx = {
       status: false,
       message: `The role with id '${id}' was not found`
@@ -66,7 +66,7 @@ export class RolesService {
     const response: IRecourseFound<Role> = {
       status: true,
       message: "The role was found succesfully",
-      recourse: roleFinded
+      recourse: roleFound
     };
     return response;
   }
@@ -96,8 +96,8 @@ export class RolesService {
   }
 
   async update(id: number, updateRoleDto: UpdateRoleDto): Promise<IRecourseUpdated<Role>> {
-    const roleFinded: Role = (await this.findOne(id)).recourse;
-    const roleBody: Role = { ...roleFinded, ...updateRoleDto };
+    const roleFound: Role = (await this.findOne(id)).recourse;
+    const roleBody: Role = { ...roleFound, ...updateRoleDto };
     const updated: Role = await this.roleRepository.save(roleBody).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {

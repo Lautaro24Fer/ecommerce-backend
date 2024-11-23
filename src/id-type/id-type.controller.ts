@@ -44,7 +44,7 @@ export class IdTypeController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The identification type id was not founded'
+    description: 'The identification type id was not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -60,7 +60,7 @@ export class IdTypeController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Identification type finded'
+    description: 'Identification type found'
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -68,7 +68,7 @@ export class IdTypeController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The identification type id was not founded'
+    description: 'The identification type id was not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -92,7 +92,7 @@ export class IdTypeController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The identification type id was not founded'
+    description: 'The identification type id was not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -116,7 +116,7 @@ export class IdTypeController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The identification type id was not founded'
+    description: 'The identification type id was not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,

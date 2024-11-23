@@ -53,7 +53,7 @@ export class OrderService {
       if(response?.status === 404) {
         const badRequestError: INotFoundEx = {
           status: false,
-          message: `The payment order with id '${paymentId}' was not founded in marcado pago server`
+          message: `The payment order with id '${paymentId}' was not found in marcado pago server`
         }
         throw new NotFoundException(badRequestError);
       }
@@ -141,8 +141,6 @@ export class OrderService {
 
     orderCreated.productOrder = [...products]; 
 
-    console.log(" ==== ORDER CREATED === ");
-    console.log(JSON.stringify(orderCreated, null, 2));
 
     const orderUpdated: Order = await this.orderRepository.save(orderCreated).catch((error) => {
       console.error(error);
@@ -231,9 +229,6 @@ export class OrderService {
 
     const productOrders: ProductOrder[] = await Promise.all(order.productOrder.map(async (po) => {
       const productOrder: ProductOrder = await this.findProductOrderById(po.id);
-      console.log("======== product order ========")
-      console.log(JSON.stringify(productOrder, null, 2));
-      console.log("\n\n");
       return productOrder;
     }));
 
@@ -250,9 +245,6 @@ export class OrderService {
   async remove(id: number): Promise<IRecourseDeleted<Order>> {
     
     const order: Order = (await this.findOneById(id)).recourse;
-    console.log("\n\n\n ==== REMOVE ==== ")
-    console.log("order")
-    console.log(order)
     await this.orderRepository.delete(order.id).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -298,9 +290,7 @@ export class OrderService {
   // Testing
   async testSendOrderByEmail(orderId: number) {
     const order: Order = (await this.findOneById(orderId)).recourse;
-    console.log(" ___test send order by email___")
     const data: any = await this.emailService.sendEmailForOrder(order).then((data) => {
-      console.log("EL correo fue enviado con éxito")
       return data;
     });
     return data;

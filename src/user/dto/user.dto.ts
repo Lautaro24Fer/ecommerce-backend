@@ -9,6 +9,7 @@ export class UserDto {
   name: string;
   surname: string;
   username: string;
+  phone: string;
   idType: IdType;
   idNumber: string;
   address: Address[]
