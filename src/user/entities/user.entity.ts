@@ -1,7 +1,7 @@
-import { Address } from 'src/address/entities/address.entity';
-import { LoginMethodType } from 'src/global/enum';
-import { IdType } from 'src/id-type/entities/id-type.entity';
-import { Role } from 'src/roles/entities/role.entity';
+import { Address } from '../../address/entities/address.entity';
+import { LoginMethodType } from '../../global/enum';
+import { IdType } from '../../id-type/entities/id-type.entity';
+import { Role } from '../../roles/entities/role.entity';
 import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('user')

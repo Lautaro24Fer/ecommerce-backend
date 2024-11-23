@@ -60,11 +60,22 @@ export class AddressService {
 
   async create(createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>> {
 
-    const body: Address = this.addressRepository.create({
-      postalCode: createAddressDto.postalCode.toUpperCase(),
-      addressNumber: createAddressDto.addressNumber.toLowerCase(),
-      addressStreet: createAddressDto.addressStreet.toLowerCase()
-    });
+    let body: Address;
+
+    try {
+      body = this.addressRepository.create({
+        postalCode: createAddressDto.postalCode.toUpperCase(),
+        addressNumber: createAddressDto.addressNumber.toLowerCase(),
+        addressStreet: createAddressDto.addressStreet.toLowerCase()
+      });
+    } catch (error) {
+      console.error(error)
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error creating the new instance of address"
+      };
+      throw new BadRequestException(badRequestError);
+    }
 
     const addressCreated: Address = await this.addressRepository.save(body).catch((error) => {
       console.error(error);
