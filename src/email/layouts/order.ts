@@ -32,9 +32,9 @@ const presentation = (user: User, operationType: string, totalPrice: number) => 
         <tr>
           <td><img alt="Nike" height="22" src="https://react-email-demo-bymyam2i5-resend.vercel.app/static/nike-logo.png" style="display:block;outline:none;border:none;text-decoration:none;margin:auto" width="66" />
             <h1 style="font-size:32px;line-height:1.3;font-weight:700;text-align:center;letter-spacing:-1px">Orden de compra</h1>
-            <p style="font-size:14px;line-height:2;margin:0;color:#747474;font-weight:500">Se ha hecho un pedido a nombre de ${user.name ?? 'Prueba'} ${user.surname ?? 'Prueba'}</p>
+            <p style="font-size:14px;line-height:2;margin:0;color:#747474;font-weight:500">Se ha hecho un pedido a nombre de ${user?.name ?? 'Prueba'} ${user?.surname ?? 'Prueba'}</p>
             <p style="font-size:14px;line-height:2;margin:0;color:#747474;font-weight:500;margin-top:24px">
-              Numero de ${user.idType.name ?? 'DNI'}: ${user.idNumber ?? 1111} <br>
+              Numero de ${user?.idType.name ?? 'DNI'}: ${user?.idNumber ?? 1111} <br>
               Monto de la operación: $${totalPrice ?? 0} <br>
               Tipo de operación: ${operationType ?? "PRUEBA"}
             </p>
@@ -62,7 +62,7 @@ const shippingData = (name: string, surname: string, address?: string) => {
 
 const buildProductHtml = (product: Product, quantity: number) => {
 
-  const imageUrl: string = product.image ?? 'https://react-email-demo-bymyam2i5-resend.vercel.app/static/nike-product.png'
+  const imageUrl: string = product?.image ?? 'https://react-email-demo-bymyam2i5-resend.vercel.app/static/nike-product.png'
 
   return `
     <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="padding-left:40px;padding-right:40px;padding-top:40px;padding-bottom:40px">
@@ -74,8 +74,8 @@ const buildProductHtml = (product: Product, quantity: number) => {
                 <tr style="width:100%">
                   <td data-id="__react-email-column"><img alt="nombre_del_producto" src=${imageUrl} style="display:block;outline:none;border:none;text-decoration:none;float:left" width="200px" /></td>
                   <td data-id="__react-email-column" style="vertical-align:top;padding-left:12px">
-                    <p style="font-size:14px;line-height:2;margin:0;font-weight:500;">${product.name}</p>
-                    <p style="font-size:14px;line-height:2;margin:0;color:#747474;font-weight:500">${product.description}</p>
+                    <p style="font-size:14px;line-height:2;margin:0;font-weight:500;">${product?.name}</p>
+                    <p style="font-size:14px;line-height:2;margin:0;color:#747474;font-weight:500">${product?.description}</p>
                   </td>
                 </tr>
               </tbody>
@@ -121,15 +121,15 @@ const userInfo = (user: User, emitionDate: Date) => {
             <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="padding-top:22px;padding-bottom:22px;padding-left:20px;padding-right:20px">
               <tbody style="width:100%">
                 <tr style="width:100%">
-                  <td colSpan="1" data-id="__react-email-column" style="width:33%"><a href="/" style="color:#000;text-decoration-line:none;font-size:13.5px;margin-top:0;font-weight:500" target="_blank">Nombre completo: ${user.name} ${user.surname}</a></td>
-                  <td colSpan="1" data-id="__react-email-column" style="width:33%"><a href="/" style="color:#000;text-decoration-line:none;font-size:13.5px;margin-top:0;font-weight:500" target="_blank">Correo: ${user.email}</a></td>
+                  <td colSpan="1" data-id="__react-email-column" style="width:33%"><a href="/" style="color:#000;text-decoration-line:none;font-size:13.5px;margin-top:0;font-weight:500" target="_blank">Nombre completo: ${user?.name} ${user?.surname}</a></td>
+                  <td colSpan="1" data-id="__react-email-column" style="width:33%"><a href="/" style="color:#000;text-decoration-line:none;font-size:13.5px;margin-top:0;font-weight:500" target="_blank">Correo: ${user?.email}</a></td>
                 </tr>
               </tbody>
             </table>
             <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="padding-top:0;padding-bottom:22px;padding-left:20px;padding-right:20px">
               <tbody style="width:100%">
                 <tr style="width:100%">
-                  <td colSpan="2" data-id="__react-email-column" style="width:66%"><a href="/" style="color:#000;text-decoration-line:none;font-size:13.5px;margin-top:0;font-weight:500" target="_blank">Numero de documento: ${user.idNumber}</a></td>
+                  <td colSpan="2" data-id="__react-email-column" style="width:66%"><a href="/" style="color:#000;text-decoration-line:none;font-size:13.5px;margin-top:0;font-weight:500" target="_blank">Numero de documento: ${user?.idNumber}</a></td>
                 </tr>
               </tbody>
             </table>
@@ -166,15 +166,15 @@ const createOrderLayout = (order: Order) => {
 
   const headerLayout: string = header(order.id);
 
-  const totalPrice: number = order.productOrder.reduce((acum, curr) => acum = acum + (curr.product.price * curr.quantity), 0);
+  const totalPrice: number = order?.productOrder?.reduce((acum, curr) => acum = acum + (curr.product.price * curr.quantity), 0);
  
-  const presentationLayout: string = presentation(order.user, order.paymentMethod,totalPrice );
-  const shippingDataLayout: string = shippingData(order.user.name, order.user.surname);
-  const productLayout: string[] = order.productOrder.map((p) => {
+  const presentationLayout: string = presentation(order?.user, order?.paymentMethod,totalPrice );
+  const shippingDataLayout: string = shippingData(order?.user?.name, order?.user?.surname);
+  const productLayout: string[] = order?.productOrder?.map((p) => {
     const productHtml: string = buildProductHtml(p.product, p.quantity);
     return productHtml;
   })
-  const userInfoLayout: string = userInfo(order.user, order.dateCreated);
+  const userInfoLayout: string = userInfo(order?.user, order?.dateCreated);
 
   return `
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

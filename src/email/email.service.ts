@@ -40,7 +40,7 @@ export class EmailService {
 			},
 		});
 	}
-
+	
 	async sendEmailForOrder(order: Order): Promise<IRecourseCreated<any>> {
 		const layout: string = createOrderLayout(order);
 

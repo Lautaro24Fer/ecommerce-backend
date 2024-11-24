@@ -1,7 +1,6 @@
-import { Address } from 'src/address/entities/address.entity';
-import { MethodPaymentType } from 'src/global/enum';
-import { Product } from 'src/product/entities/product.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Address } from '../../address/entities/address.entity';
+import { Product } from '../../product/entities/product.entity';
+import { User } from '../../user/entities/user.entity';
 import {
   Column,
   Entity,

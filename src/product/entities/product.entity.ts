@@ -1,8 +1,8 @@
-import { Brand } from 'src/brand/entities/brand.entity';
-import { Supplier } from 'src/supplier/entities/supplier.entity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Brand } from '../../brand/entities/brand.entity';
+import { Supplier } from '../../supplier/entities/supplier.entity';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ProductType } from '../../type/entities/type.entity';
-import { ProductImage } from 'src/images/entities/image.entity';
+import { ProductImage } from '../../images/entities/image.entity';
 
 @Entity('product')
 export class Product {
