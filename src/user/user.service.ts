@@ -1,22 +1,22 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { FullUpdateUserDto, PartialUpdateUserDto } from './dto/update-user.dto';
+import { PartialUpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import { RolesService } from 'src/roles/roles.service';
-import { Role } from 'src/roles/entities/role.entity';
+import { RolesService } from '../roles/roles.service';
+import { Role } from '../roles/entities/role.entity';
 import { UserDto } from './dto/user.dto';
-import { EmailService } from 'src/email/email.service';
-import { IdTypeService } from 'src/id-type/id-type.service';
-import { IdType } from 'src/id-type/entities/id-type.entity';
+import { EmailService } from '../email/email.service';
+import { IdTypeService } from '../id-type/id-type.service';
+import { IdType } from '../id-type/entities/id-type.entity';
 import { AuthUserResponseDto, CreateUserStrategyDto } from './dto/oauth-data';
-import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from 'src/global/responseInterfaces';
-import { AddressService } from 'src/address/address.service';
-import { Address } from 'src/address/entities/address.entity';
-import { LoginMethodType, MethodPaymentType, UpdateType } from 'src/global/enum';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from '../global/responseInterfaces';
+import { AddressService } from '../address/address.service';
+import { Address } from '../address/entities/address.entity';
+import { UpdateType } from '../global/enum';
 
 enum UniqueUserRecourse { USERNAME, EMAIL, ID_NUMBER };
 
@@ -205,10 +205,10 @@ export class UserService {
     
     const isEmail: boolean = await this.validateEmail(input);
     if(isEmail){
-      const userByEmail = await this.findOneByEmail(input)
+      const userByEmail: IRecourseFound<User> = await this.findOneByEmail(input)
       return userByEmail;
     }
-    const userByUsername = await this.findOneByUserName(input);
+    const userByUsername: IRecourseFound<User> = await this.findOneByUserName(input);
     return userByUsername;
   }
 

@@ -16,7 +16,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from './auth-google.guard';
 import { InputLoginDto, LoginResponseDto } from './dto/login.dto';
 import { SessionStateDto } from './dto/session-state.dto';
-import { IUnauthorizedEx } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseDeleted, IUnauthorizedEx } from 'src/global/responseInterfaces';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -153,11 +153,19 @@ export class AuthController {
   async refreshToken(@Req() req: Request, @Res() res: Response): Promise<Response>{
     const refreshToken: string = req.cookies['refresh']
     if(!refreshToken){
-      throw new UnauthorizedException({ error: 'any refresh token, please login again' })
+      const unauthError: IUnauthorizedEx = {
+        status: false,
+        message: "any refresh token, please login again"
+      };
+      throw new UnauthorizedException(unauthError);
     }
-    const response = this.authService.verifyJwtIsExpired(refreshToken)
+    const response: boolean = await this.authService.verifyJwtIsExpired(refreshToken)
     if(!response){
-      throw new BadRequestException({ error: 'the refresh token was expired, please login again' })
+      const unauthError: IUnauthorizedEx = {
+        status: false,
+        message: "The refresh token was expired, please login again"
+      };
+      throw new UnauthorizedException(unauthError)
     }
     const accessToken: string = await this.authService.getTokenRefreshed(refreshToken)
     res.cookie('user', accessToken, {
@@ -166,7 +174,12 @@ export class AuthController {
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',
     })
-    return res.status(201).json({  essage: 'token refreshed succesfully', token: accessToken })
+    const recourse: IRecourseCreated<string> = {
+      status: true,
+      message: "Token refreshed succesfully",
+      recourse: accessToken
+    };
+    return res.status(201).json(recourse)
   }
 
   @ApiOperation({
@@ -188,7 +201,12 @@ export class AuthController {
   logout(@Res() res: Response): Response{
     res.cookie('user', '', { httpOnly: true, expires: new Date(0) });
     res.cookie('refresh', '', { httpOnly: true, expires: new Date(0) });
-    return res.status(200).json({ message: 'Logout successful' });
+    const recourseCreated: IRecourseDeleted<null> = {
+      status: true,
+      message: "Logout successfully",
+      recourse: null
+    }
+    return res.status(200).json(recourseCreated);
   }
 
 }
