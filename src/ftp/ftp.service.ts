@@ -40,8 +40,16 @@ export class FtpService {
   
 
   async saveImageOnFTPServer(file: MulterFile): Promise<string> {
-    const localPath: string = file.path;
 
+    if(!file){
+      const notFileArrived: IBadRequestex = {
+        status: false,
+        message: "The file not arrived on the method"
+      };
+      throw new BadRequestException(notFileArrived)
+    }
+
+    const localPath: string = file.path;
 
     // Asegúrate de que el archivo temporal existe
     if (!fs.existsSync(localPath)) {
