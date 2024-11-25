@@ -69,7 +69,7 @@ export class PartialUpdateUserDto {
   @ApiProperty()
   @IsOptional()
   @IsPhoneNumber('AR')
-  phone: string;
+  phone?: string;
 
   @ApiProperty()
   @IsOptional()

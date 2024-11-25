@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,11 +6,16 @@ import { Address } from './entities/address.entity';
 import { Repository } from 'typeorm';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 import { Cron } from '@nestjs/schedule';
+import { UserService } from '../user/user.service';
+import { UpdateType } from '../global/enum';
 
 @Injectable()
 export class AddressService {
 
-  constructor(@InjectRepository(Address) private readonly addressRepository: Repository<Address>) {}
+  constructor(
+    @InjectRepository(Address) private readonly addressRepository: Repository<Address>,
+    @Inject(forwardRef(() => UserService)) private readonly userService: UserService
+  ) {}
 
 
   // Ejecuta la limpieza cada día a medianoche
@@ -81,7 +86,13 @@ export class AddressService {
       console.error(error);
       const response: IBadRequestex = { status: false, message: 'Error creating the new address' };
       throw new BadRequestException(response);
-    })
+    });
+
+    if(createAddressDto.userId) {
+      await this.userService.update(createAddressDto.userId, {
+        address: [addressCreated],
+      }, UpdateType.PARTIAL)
+    }
 
     const response: IRecourseCreated<Address> = {
       status: true,
