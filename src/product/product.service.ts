@@ -11,22 +11,19 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Supplier } from 'src/supplier/entities/supplier.entity';
-import { BrandService } from 'src/brand/brand.service';
-import { SupplierService } from 'src/supplier/supplier.service';
-import { Brand } from 'src/brand/entities/brand.entity';
+import { Supplier } from '../supplier/entities/supplier.entity';
+import { BrandService } from '../brand/brand.service';
+import { SupplierService } from '../supplier/supplier.service';
+import { Brand } from '../brand/entities/brand.entity';
 import { QueryParamsDto } from './dto/query-params.dto';
-import { ProductType } from 'src/type/entities/type.entity';
-import { TypeService } from 'src/type/type.service';
-import { ProductImage } from 'src/images/entities/image.entity';
-import { ImagesService } from 'src/images/images.service';
-import { CreateImageDto } from 'src/images/dto/create-image.dto';
-import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
-import { UpdateType } from 'src/global/enum';
+import { ProductType } from '../type/entities/type.entity';
+import { TypeService } from '../type/type.service';
+import { ImagesService } from '../images/images.service';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Item, ItemDto } from 'src/payment/dto/preference-payment';
-import { MulterFile } from 'src/images/dto/multer-file';
-import { FtpService } from 'src/ftp/ftp.service';
+import { ItemDto } from '../payment/dto/preference-payment';
+import { MulterFile } from '../images/dto/multer-file';
+import { FtpService } from '../ftp/ftp.service';
 
 @Injectable()
 export class ProductService {

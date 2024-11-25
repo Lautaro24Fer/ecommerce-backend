@@ -1,15 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseInterceptors, UploadedFile, Res, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Param, Delete, HttpStatus, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { ImagesService } from './images.service';
-import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ProductImageResponseDto } from './dto/image-response.dto';
 import { ProductImage } from './entities/image.entity';
-import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound } from '../global/responseInterfaces';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterFile } from './dto/multer-file';
-import * as path from 'path';
-import { multerOptions } from 'src/global/multer.config';
+import { multerOptions } from '../global/multer.config';
 
 @ApiTags('Images of products')
 @Controller('images')

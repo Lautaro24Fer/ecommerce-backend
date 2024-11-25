@@ -1,19 +1,19 @@
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductImage } from './entities/image.entity';
-import { DataSource, Repository } from 'typeorm';
-import { ProductService } from 'src/product/product.service';
-import { Product } from 'src/product/entities/product.entity';
-import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
-import { FtpService } from 'src/ftp/ftp.service';
-import * as fs from "fs";
+import { Repository } from 'typeorm';
+import { ProductService } from '../product/product.service';
+import { Product } from '../product/entities/product.entity';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound } from '../global/responseInterfaces';
+import { FtpService } from '../ftp/ftp.service';
 import { MulterFile } from './dto/multer-file';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ImagesService {
+  update(arg0: number, arg1: { url: string; }) {
+    throw new Error('Method not implemented.');
+  }
 
 
   constructor(
@@ -50,7 +50,7 @@ export class ImagesService {
 
     const response: IRecourseCreated<ProductImage> = {
       status: true,
-      message: "The product image was created succesfully",
+      message: "The product image was created successfully",
       recourse: imageSaved
     }
     return response;
@@ -65,7 +65,7 @@ export class ImagesService {
       .getMany()
       const recourse: IRecourseFound<ProductImage[]> = {
         status: true,
-        message: "The product images was found succesfully",
+        message: "The product images was found successfully",
         recourse: allImages
       }
       return recourse;
@@ -93,61 +93,38 @@ export class ImagesService {
     }
     const recourse: IRecourseFound<ProductImage> = {
       status: true,
-      message: "The product image was found succesfully",
+      message: "The product image was found successfully",
       recourse: productImage
     }
     return recourse;
   }
 
-  async findOneByIdAndUrl(productId: number, url: string): Promise<IRecourseFound<ProductImage>>{
-    const productImage = await this.imageRepository.findOneBy({ product: { id: productId }, url}).catch((error) => {
-      console.error(error);
-      const badRequestError: IBadRequestex = {
-        status: false,
-        message: `Error loading the product with id '${productId}' and url '${url}'`
-      };
-      throw new BadRequestException(badRequestError);
-    });
-    if(!productImage){
-      const notFoundError: INotFoundEx = {
-        status: false,
-        message: `The product image with id '${productId}' and url '${url}' was not found`
-      }
-      throw new NotFoundException(notFoundError);
-    }
-    const recourse: IRecourseFound<ProductImage> = {
-      status: true,
-      message: "The product image was found succesfully",
-      recourse: productImage
-    }
-    return recourse;
-  }
-
-  // async update(id: number, updateImageDto: UpdateImageDto): Promise<IRecourseUpdated<ProductImage>> {
-  //   const productImageToUpdate: ProductImage = (await this.findOne(id)).recourse;
-  //   const imageBody: ProductImage = { ...productImageToUpdate, ...updateImageDto };
-  //   if((updateImageDto.productId) && (updateImageDto.productId !== productImageToUpdate.product.id) ){
-  //     const newProduct: Product = (await this.productService.findOne(updateImageDto.productId)).recourse;
-  //     imageBody.product = newProduct;
-  //   }
-  //   const productImageUpdated = await this.imageRepository.save(imageBody).catch((error) => {
+  // async findOneByIdAndUrl(productId: number, url: string): Promise<IRecourseFound<ProductImage>>{
+  //   const productImage = await this.imageRepository.findOneBy({ product: { id: productId }, url}).catch((error) => {
   //     console.error(error);
   //     const badRequestError: IBadRequestex = {
   //       status: false,
-  //       message: `Error updating the product image with id: '${id}'`
+  //       message: `Error loading the product with id '${productId}' and url '${url}'`
   //     };
   //     throw new BadRequestException(badRequestError);
   //   });
-  //   const recourse: IRecourseUpdated<ProductImage> = {
+  //   if(!productImage){
+  //     const notFoundError: INotFoundEx = {
+  //       status: false,
+  //       message: `The product image with id '${productId}' and url '${url}' was not found`
+  //     }
+  //     throw new NotFoundException(notFoundError);
+  //   }
+  //   const recourse: IRecourseFound<ProductImage> = {
   //     status: true,
-  //     message: "The product image was updated succesfully",
-  //     recourse: productImageUpdated
-  //   };
+  //     message: "The product image was found successfully",
+  //     recourse: productImage
+  //   }
   //   return recourse;
   // }
 
   async removeByUrl(url: string): Promise<IRecourseDeleted<ProductImage>>{
-    const image: ProductImage = await this.imageRepository.findOneBy({ url }).catch((error) => {
+    const image: ProductImage = await this.imageRepository.findOne({ where: {url} }).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
@@ -155,6 +132,13 @@ export class ImagesService {
       };
       throw new BadRequestException(badRequestError);
     });
+    if(!image){
+      const notFoundError: INotFoundEx = {
+        status: false,
+        message: `The image with url '${url}' was not found`
+      };
+      throw new NotFoundException(notFoundError);
+    }
     const removed: IRecourseDeleted<ProductImage> = await this.remove(image.id);
     return removed;
   }
@@ -175,7 +159,7 @@ export class ImagesService {
     });
     const recourse: IRecourseDeleted<ProductImage> = {
       status: true,
-      message: "The product image was deleted succesfully",
+      message: "The product image was deleted successfully",
       recourse: removed
     };
     return recourse;
