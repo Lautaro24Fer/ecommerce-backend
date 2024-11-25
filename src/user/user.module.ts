@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -17,7 +17,7 @@ import { AddressModule } from 'src/address/address.module';
     RolesModule,
     EmailModule,
     IdTypeModule,
-    AddressModule,
+    forwardRef(() => AddressModule),
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       imports: [ConfigModule],

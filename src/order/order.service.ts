@@ -2,20 +2,19 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order, ProductOrder } from './entities/order.entity';
-import { Repository, TreeRepositoryNotSupportedError } from 'typeorm';
-import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
-import { ProductService } from 'src/product/product.service';
-import { Product } from 'src/product/entities/product.entity';
-import { UserService } from 'src/user/user.service';
-import { User } from 'src/user/entities/user.entity';
-import { Address } from 'src/address/entities/address.entity';
+import { Repository } from 'typeorm';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
+import { ProductService } from '../product/product.service';
+import { Product } from '../product/entities/product.entity';
+import { UserService } from '../user/user.service';
+import { User } from '../user/entities/user.entity';
+import { Address } from '../address/entities/address.entity';
 import { ConfigService } from '@nestjs/config';
-import { UserDto } from 'src/user/dto/user.dto';
+import { UserDto } from '../user/dto/user.dto';
 import { OrderDto } from './dto/order.dto';
-import { MethodPaymentType } from 'src/global/enum';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ProductOrderDto } from './dto/product-order.dto';
-import { EmailService } from 'src/email/email.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class OrderService {
@@ -30,44 +29,44 @@ export class OrderService {
 
     ACCESS_TOKEN = this.configService.get<string>('MP_ACCESS_TOKEN');
 
-    async verifyStatus(paymentId: number){
-      if(paymentId === 12345 ){ // Codigo de prueba
-        return true;
-      }
-      const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${this.ACCESS_TOKEN}`,
-        },
-      })
-      .then(data => data.json())
-      .catch((error) => {
-        console.error(error);
-        const badRequestError: IBadRequestex = {
-          status: false,
-          message: "Error fetching the payment status by payment id"
-        };
-        throw new BadRequestException(badRequestError);
-      });
-      if(response?.status === 404) {
-        const badRequestError: INotFoundEx = {
-          status: false,
-          message: `The payment order with id '${paymentId}' was not found in marcado pago server`
-        }
-        throw new NotFoundException(badRequestError);
-      }
-      return response;
+  async verifyStatus(paymentId: number){
+    if(paymentId === 12345 ){ // Codigo de prueba
+      return true;
     }
+    const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${this.ACCESS_TOKEN}`,
+      },
+    })
+    .then(data => data.json())
+    .catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error fetching the payment status by payment id"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    if(response?.status === 404) {
+      const badRequestError: INotFoundEx = {
+        status: false,
+        message: `The payment order with id '${paymentId}' was not found in marcado pago server`
+      }
+      throw new NotFoundException(badRequestError);
+    }
+    return response;
+  }
 
   async create(createOrderDto: CreateOrderDto): Promise<IRecourseCreated<Order>> {
 
     // Verificar si el paymentId existe en el servidor de mercado pago
     // const mpApiResponse = await this.verifyStatus(createOrderDto.paymentId);
 
-    const user: User = (await this.userService.findOneById(createOrderDto.userId)).recourse;
+    const user: User = (await this.userService.findOneById(createOrderDto.userId))?.recourse;
 
-    const address: Address = user.address.find((add) => add.id === createOrderDto.addressId);
+    const address: Address = user?.address.find((add) => add.id === createOrderDto.addressId);
 
     const paymentIdExists: boolean = await this.orderRepository.existsBy({ paymentId:createOrderDto.paymentId.toString() });
 
@@ -96,8 +95,8 @@ export class OrderService {
     });
 
     await Promise.all(createOrderDto.products.map(async (productInstance) => {
-      const product: Product = (await this.productService.findOne(productInstance.productId)).recourse;
-      if(product.stock < productInstance.quantity){
+      const product: Product = (await this.productService.findOne(productInstance.productId))?.recourse;
+      if(product?.stock < productInstance.quantity){
         const badRequestError: IBadRequestex = {
           status: false,
           message: `The product with id '${product.id}' not have many stock`
@@ -116,12 +115,12 @@ export class OrderService {
     });
 
     const products: ProductOrder[] = await Promise.all(createOrderDto.products.map(async (productInstance) => {
-      const productFound: Product = (await this.productService.findOne(productInstance.productId)).recourse;
+      const productFound: Product = (await this.productService.findOne(productInstance.productId))?.recourse;
 
       // TODO: ESTO DEBE HACERSE AL FINAL UNA VEZ NO HAYA EXCEPCIONES AL CREAR LA ORDEN
       productFound.stock = productFound.stock - productInstance.quantity;
 
-      const productUpdated: Product = (await this.productService.update(productFound.id, { stock: productFound.stock })).recourse;
+      const productUpdated: Product = (await this.productService.update(productFound.id, { stock: productFound.stock }))?.recourse;
 
       const productOrder: ProductOrder = this.productOrderRepository.create({
         product: productUpdated,
@@ -224,7 +223,7 @@ export class OrderService {
       throw new NotFoundException(notFoundError);
     }
 
-    const user: User = (await this.userService.findOneById(order.user.id)).recourse;
+    const user: User = (await this.userService.findOneById(order.user.id))?.recourse;
     order.user = user;
 
     const productOrders: ProductOrder[] = await Promise.all(order.productOrder.map(async (po) => {
@@ -244,7 +243,7 @@ export class OrderService {
 
   async remove(id: number): Promise<IRecourseDeleted<Order>> {
     
-    const order: Order = (await this.findOneById(id)).recourse;
+    const order: Order = (await this.findOneById(id))?.recourse;
     await this.orderRepository.delete(order.id).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -285,14 +284,5 @@ export class OrderService {
     };
 
     return orderDto;
-  }
-
-  // Testing
-  async testSendOrderByEmail(orderId: number) {
-    const order: Order = (await this.findOneById(orderId)).recourse;
-    const data: any = await this.emailService.sendEmailForOrder(order).then((data) => {
-      return data;
-    });
-    return data;
   }
 }
