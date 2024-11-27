@@ -8,15 +8,17 @@ import {
   Delete,
   HttpStatus,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
 import { Order } from './entities/order.entity';
 import { OrderDto } from './dto/order.dto';
 import { UserService } from 'src/user/user.service';
 import { EmailService } from 'src/email/email.service';
+import { QueryParamsDto } from './dto/query-params.dto';
 
 @ApiTags('Orders')
 @Controller('order')
@@ -72,9 +74,33 @@ export class OrderController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error finding the ordersr"
   })
+  @ApiQuery({
+    name: 'minDate',
+    required: false,
+    type: String,
+    description: 'Min date for filter the orders',
+  })
+  @ApiQuery({
+    name: 'maxDate',
+    required: false,
+    type: String,
+    description: 'Max date for filter the orders',
+  })
   @Get()
-  findAll(): Promise<IRecourseFound<Order[]>> {
-    return this.orderService.findAll();
+  async findAll(@Query() queryParams: QueryParamsDto): Promise<IRecourseFound<OrderDto[]>> {
+    const orders: IRecourseFound<Order[]> = await this.orderService.findAll(queryParams);
+    console.log("-- FIND ALL ORDERS --")
+    console.log(JSON.stringify(orders, null, 2));
+    const ordersDto: OrderDto[] = orders.recourse.map((order) => {
+      const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(order);
+      return  orderDto
+    });
+    const response: IRecourseFound<OrderDto[]> = {
+      status: true,
+      message: "The orders was found succesfully",
+      recourse: ordersDto
+    };
+    return response;
   }
 
   @ApiOperation({

@@ -15,6 +15,7 @@ import { OrderDto } from './dto/order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ProductOrderDto } from './dto/product-order.dto';
 import { EmailService } from '../email/email.service';
+import { QueryParamsDto } from './dto/query-params.dto';
 
 @Injectable()
 export class OrderService {
@@ -166,25 +167,43 @@ export class OrderService {
     return
   }
 
-  async findAll(): Promise<IRecourseFound<Order[]>> {
-    const orders: Order[] = await this.orderRepository.find().
-    catch((error) => {
+  async findAll(queryParams: QueryParamsDto): Promise<IRecourseFound<Order[]>> {
+    let orders: Order[];
+  
+    try {
+      const queryBuilder = this.orderRepository.createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('user.roles', 'roles') // Join with roles
+      .leftJoinAndSelect('user.address', 'address') // Join with address
+      .leftJoinAndSelect('order.productOrder', 'productOrder')
+      .leftJoinAndSelect('productOrder.product', 'product');
+  
+      if (queryParams.minDate) {
+        queryBuilder.andWhere('order.dateCreated >= :minDate', { minDate: queryParams.minDate });
+      }
+  
+      if (queryParams.maxDate) {
+        queryBuilder.andWhere('order.dateCreated <= :maxDate', { maxDate: queryParams.maxDate });
+      }
+  
+      orders = await queryBuilder.getMany();
+    } 
+    catch (error) {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
-        message: "Error loading the orders from the database"
+        message: "Error loading all the orders from the database"
       };
       throw new BadRequestException(badRequestError);
-    });
-
+    }
+  
     const response: IRecourseFound<Order[]> = {
       status: true,
-      message: "The orders was found succesfully",
+      message: "The orders were found successfully",
       recourse: orders
     };
     return response;
   }
-
   async findProductOrderById(id: number) {
     const productOrder: ProductOrder = await this.productOrderRepository.findOne({ where: { id }, relations: ['product'] }).catch((error) => {
       console.error(error);
