@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Brand } from './entities/brand.entity';
 import { Repository } from 'typeorm';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { QueryParamsBrandDto } from './dto/query-params.dto';
 
 @Injectable()
 export class BrandService {
@@ -34,21 +35,39 @@ export class BrandService {
     return recourse;
   }
 
-  async findAll(): Promise<IRecourseCreated<Brand[]>> {
-    const brands: Brand[] = await this.brandRepository.find().catch((error) => {
+  async findAll(queryParams: QueryParamsBrandDto): Promise<IRecourseCreated<Brand[]>> {
+  
+    const { name, limit } = queryParams;
+    
+    try{
+      // Buscará todas las coincidencias desde principio a fin unicamente. Ej
+      // 'ad' => 'ADIDAS' ✔
+      // 'didas' => 'ADIDAS' ❌
+      // 'didas' => null ✔
+      const queryBuilder = this.brandRepository.createQueryBuilder('brand');
+      if(name){
+        queryBuilder.andWhere('brand.name LIKE :name', { name: `${name}%` });
+      }
+      if(limit){
+        queryBuilder.take(limit);
+      }
+
+      const brands: Brand[] = await queryBuilder.getMany();
+      const recourse: IRecourseCreated<Brand[]> = {
+        status: true,
+        message: "The brands were loaded successfully",
+        recourse: brands
+      };
+      return recourse;
+    }
+    catch(error) {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
         message: "Error finding the brands"
       };
       throw new BadRequestException(badRequestError);
-    });
-    const recourse: IRecourseCreated<Brand[]> = {
-      status: true,
-      message: "The brands was loaded succesfully",
-      recourse: brands
     };
-    return recourse;
   }
 
   async findOne(id: number): Promise<IRecourseFound<Brand>> {

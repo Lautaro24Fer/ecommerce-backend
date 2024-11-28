@@ -7,13 +7,15 @@ import {
   Param,
   Delete,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { BrandService } from './brand.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 import { Brand } from './entities/brand.entity';
+import { QueryParamsBrandDto } from './dto/query-params.dto';
 
 @ApiTags('Brands')
 @Controller('brand')
@@ -47,9 +49,20 @@ export class BrandController {
     status: HttpStatus.NOT_FOUND,
     description: 'Brands not found',
   })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    type: String,
+    description: 'Name of the brand',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Limit of the orders returned',
+  })
   @Get()
-  findAll(): Promise<IRecourseFound<Brand[]>> {
-    return this.brandService.findAll();
+  findAll(@Query() queryParams: QueryParamsBrandDto): Promise<IRecourseFound<Brand[]>> {
+    return this.brandService.findAll(queryParams);
   }
 
   @ApiOperation({ summary: 'Find a brand by id' })
