@@ -104,6 +104,41 @@ export class OrderController {
   }
 
   @ApiOperation({
+    summary: 'Get all the orders of one user by id'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'The orders were found successfully',
+    type: OrderDto,
+    isArray: true
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Bad request, error loading the user orders'
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Unauthorized request to load user orders'
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'The user with the specified id was not found'
+  })
+  @Get('user/:id')
+  async getUserOrders(@Param('id') id: number): Promise<IRecourseFound<OrderDto[]>>{
+
+    const orders: IRecourseFound<Order[]> = await this.orderService.findOrdersByUserId(id);
+    const ordersDto: OrderDto[] = orders.recourse.map((order) => {
+      return this.orderService.mapOrderToOrderDto(order);
+    });
+    const response: IRecourseFound<OrderDto[]> = {
+      ...orders,
+      recourse: ordersDto
+    };
+    return response;
+  }
+
+  @ApiOperation({
     summary: "Find one order by id"
   })
   @ApiResponse({

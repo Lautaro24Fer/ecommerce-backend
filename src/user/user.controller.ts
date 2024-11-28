@@ -28,6 +28,7 @@ import { RequestUpdatePasswordCodeDto, ResponsetUpdatePasswordCodeDto, UpdateUse
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from 'src/global/responseInterfaces';
 import { UpdateType } from 'src/global/enum';
 import { Address } from 'src/address/entities/address.entity';
+import { OrderDto } from 'src/order/dto/order.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -204,7 +205,7 @@ export class UserController {
     status: HttpStatus.NOT_FOUND,
     description: "The id user was not found in database"
   })
-  @Get('address/:id')
+  @Get('addresses/:id')
   async getUserAddresses(@Param('id') id: number): Promise<IRecourseFound<Address[]>>{
     const recourseFound: IRecourseFound<User> = await this.userService.findOneById(id);
     const addresses: Address[] = [...recourseFound.recourse.address];
@@ -215,6 +216,7 @@ export class UserController {
     };
     return response;
   }
+  
 
   @ApiOperation({ summary: 'Find one user by id' })
   @ApiResponse({

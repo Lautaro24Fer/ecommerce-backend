@@ -223,6 +223,37 @@ export class OrderService {
     return productOrder;
   }
 
+  async findOrdersByUserId(id: number): Promise<IRecourseFound<Order[]>>{
+
+    await this.userService.findOneById(id);
+    
+    try{
+      const orders: Order[] = await this.orderRepository.createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('user.roles', 'roles') // Join with roles
+      .leftJoinAndSelect('user.address', 'address') // Join with address
+      .leftJoinAndSelect('order.productOrder', 'productOrder')
+      .leftJoinAndSelect('productOrder.product', 'product')
+      .where('user.id = :userId', { userId: id })
+      .getMany()
+      const recourse: IRecourseFound<Order[]> = {
+        status: true,
+        message: "The orders was found succesfully",
+        recourse: orders
+      };
+  
+      return recourse;
+    }
+    catch(error) {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error loading the orders by user id: ${id}`
+      };
+      throw new BadRequestException(badRequestError);
+    };
+  }
+
   async findOneById(id: number): Promise<IRecourseFound<Order>> {
     
     const order: Order = await this.orderRepository.findOne({ where: { id }, relations: { productOrder: true, user: true }})
