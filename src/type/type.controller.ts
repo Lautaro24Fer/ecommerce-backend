@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Put } from '@nestjs/common';
 import { TypeService } from './type.service';
 import { CreateTypeDto } from './dto/create-type.dto';
 import { UpdateTypeDto } from './dto/update-type.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { ProductType } from './entities/type.entity';
 
 @ApiTags('Type of product')
 @Controller('type')
@@ -19,7 +21,7 @@ export class TypeController {
     description: 'Error creating the product type'
   })
   @Post()
-  create(@Body() createTypeDto: CreateTypeDto) {
+  create(@Body() createTypeDto: CreateTypeDto): Promise<IRecourseCreated<ProductType>> {
     return this.typeService.create(createTypeDto);
   }
 
@@ -33,7 +35,7 @@ export class TypeController {
     description: 'Error loading the product types'
   })
   @Get()
-  findAll() {
+  findAll(): Promise<IRecourseFound<ProductType[]>> {
     return this.typeService.findAll();
   }
 
@@ -44,14 +46,14 @@ export class TypeController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Product type not founded'
+    description: 'Product type not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Error loading the product type'
   })
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: number): Promise<IRecourseFound<ProductType>>{
     return this.typeService.findOne(id);
   }
 
@@ -62,14 +64,14 @@ export class TypeController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Product type not founded'
+    description: 'Product type not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Error updating the product type'
   })
-  @Patch(':id')
-  update(@Param('id') id: number, @Body() updateTypeDto: UpdateTypeDto) {
+  @Put(':id')
+  update(@Param('id') id: number, @Body() updateTypeDto: UpdateTypeDto): Promise<IRecourseUpdated<ProductType>> {
     return this.typeService.update(id, updateTypeDto);
   }
 
@@ -80,14 +82,14 @@ export class TypeController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Product type not founded'
+    description: 'Product type not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Error deleting the product type'
   })
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number): Promise<IRecourseDeleted<ProductType>> {
     return this.typeService.remove(id);
   }
 }

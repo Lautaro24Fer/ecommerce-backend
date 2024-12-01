@@ -8,11 +8,12 @@ export class UpdateProductDto {
   @Length(1, 200)
   name?: string; 
 
-  @ApiProperty()
+  // @ApiProperty()
+  // @IsOptional()
+  // @IsString()
+  // image?: string;
+
   @IsOptional()
-  @IsString()
-  @IsUrl()
-  @Length(1, 200)
   image?: string;
 
   @ApiProperty()
@@ -40,4 +41,9 @@ export class UpdateProductDto {
   @IsOptional()
   @IsPositive()
   typeId?: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsPositive()
+  stock?: number;
 }

@@ -6,39 +6,211 @@ import {
   Patch,
   Param,
   Delete,
+  HttpStatus,
+  BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
+import { Order } from './entities/order.entity';
+import { OrderDto } from './dto/order.dto';
+import { UserService } from 'src/user/user.service';
+import { EmailService } from 'src/email/email.service';
+import { QueryParamsDto } from './dto/query-params.dto';
 
-@ApiTags('Orders (proximamente v2)')
+@ApiTags('Orders')
 @Controller('order')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly userService: UserService,
+    private readonly emailService: EmailService) {}
 
+  @ApiOperation({
+    summary: "Create a new order"
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "The order was created succesfully"
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "Not authorized to create orders"
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "Error in the creation of the order"
+  })
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  async create(@Body() createOrderDto: CreateOrderDto): Promise<IRecourseCreated<OrderDto>> {
+    const response: IRecourseCreated<Order> = await this.orderService.create(createOrderDto);
+    const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(response.recourse);
+
+    // Envío de la orden por correo al admin
+
+    await this.emailService.sendEmailForOrder(response.recourse);
+
+    const recourse: IRecourseCreated<OrderDto> = {
+      ...response,
+      recourse: orderDto
+    };
+    return recourse;
   }
 
+  @ApiOperation({
+    summary: "Find all orders"
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "The orders was found succesfully"
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "Not authorized to load orders"
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "Error finding the ordersr"
+  })
+  @ApiQuery({
+    name: 'minDate',
+    required: false,
+    type: String,
+    description: 'Min date for filter the orders',
+  })
+  @ApiQuery({
+    name: 'maxDate',
+    required: false,
+    type: String,
+    description: 'Max date for filter the orders',
+  })
   @Get()
-  findAll() {
-    return this.orderService.findAll();
+  async findAll(@Query() queryParams: QueryParamsDto): Promise<IRecourseFound<OrderDto[]>> {
+    const orders: IRecourseFound<Order[]> = await this.orderService.findAll(queryParams);
+    console.log("-- FIND ALL ORDERS --")
+    console.log(JSON.stringify(orders, null, 2));
+    const ordersDto: OrderDto[] = orders.recourse.map((order) => {
+      const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(order);
+      return  orderDto
+    });
+    const response: IRecourseFound<OrderDto[]> = {
+      status: true,
+      message: "The orders was found succesfully",
+      recourse: ordersDto
+    };
+    return response;
   }
 
+  @ApiOperation({
+    summary: 'Get all the orders of one user by id'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'The orders were found successfully',
+    type: OrderDto,
+    isArray: true
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Bad request, error loading the user orders'
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Unauthorized request to load user orders'
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'The user with the specified id was not found'
+  })
+  @Get('user/:id')
+  async getUserOrders(@Param('id') id: number): Promise<IRecourseFound<OrderDto[]>>{
+
+    const orders: IRecourseFound<Order[]> = await this.orderService.findOrdersByUserId(id);
+    const ordersDto: OrderDto[] = orders.recourse.map((order) => {
+      return this.orderService.mapOrderToOrderDto(order);
+    });
+    const response: IRecourseFound<OrderDto[]> = {
+      ...orders,
+      recourse: ordersDto
+    };
+    return response;
+  }
+
+  @ApiOperation({
+    summary: "Find one order by id"
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "The order was found succesfully"
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "Not authorized to load orders"
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "Order not found by id"
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "Error finding the order"
+  })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderService.findOne(+id);
+  async findOne(@Param('id') id: number): Promise<IRecourseFound<OrderDto>> {
+    const recourseFound: IRecourseFound<Order> = await this.orderService.findOneById(id);
+    try{
+      const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(recourseFound.recourse);
+      const response: IRecourseFound<OrderDto> = {
+        ...recourseFound,
+        recourse: orderDto
+      }
+
+      return response;
+    }
+    catch(error){
+      console.error(error)
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error in controller instance. Can not load order with id: '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    }
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(+id, updateOrderDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: number, @Body() updateOrderDto: UpdateOrderDto) {
+  //   return this.orderService.update(+id, updateOrderDto);
+  // }
 
+  @ApiOperation({
+    summary: "Delete one order by id"
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "The order was deleted succesfully"
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "Not authorized to delete orders"
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "Order not found by id"
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "Error deleting the order"
+  })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
+  async remove(@Param('id') id: number): Promise<IRecourseDeleted<OrderDto>> {
+    const recourseDeleted: IRecourseDeleted<Order> = await this.orderService.remove(id);
+    const orderParsed: OrderDto = this.orderService.mapOrderToOrderDto(recourseDeleted.recourse);
+    const response: IRecourseDeleted<OrderDto> = {
+      ...recourseDeleted,
+      recourse: orderParsed
+    };
+    return response;
   }
 }

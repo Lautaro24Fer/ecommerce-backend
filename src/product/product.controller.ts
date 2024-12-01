@@ -8,15 +8,21 @@ import {
   Delete,
   HttpStatus,
   Query,
+  Put,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Product } from './entities/product.entity';
 import { QueryParamsDto } from './dto/query-params.dto';
-import { ProductResponseDto } from './dto/product-response.dto';
-import { ProductImageResponseDto } from 'src/images/dto/image-response.dto';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { UpdateType } from 'src/global/enum';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from 'src/global/multer.config';
+import { MulterFile } from 'src/images/dto/multer-file';
 
 @ApiTags('Products')
 @Controller('product')
@@ -33,14 +39,19 @@ export class ProductController {
     description: 'Bad request, the product was not created',
   })
   @Post()
-  async create(@Body() createProductDto: CreateProductDto) {
-    return await this.productService.create(createProductDto);
+  @UseInterceptors(FileInterceptor('image', multerOptions))
+  async create(@Body() createProductDto: CreateProductDto, @UploadedFile() file: MulterFile): Promise<IRecourseCreated<Product>> {
+    return await this.productService.create(createProductDto, file);
   }
 
   @ApiOperation({ summary: 'Find all products' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'All products loaded succesfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'The products was not found'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -83,7 +94,7 @@ export class ProductController {
     description: 'type of the product',
   })
   @Get()
-  async findAll(@Query() queryParams: QueryParamsDto): Promise<Product[]> {
+  async findAll(@Query() queryParams: QueryParamsDto): Promise<IRecourseFound<Product[]>> {
     return await this.productService.findAll(queryParams);
   }
 
@@ -94,7 +105,7 @@ export class ProductController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The product by id was not founded',
+    description: 'The product by id was not found',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -105,29 +116,23 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Update the data of one product by id' })
+  @ApiOperation({ summary: 'Update a product partially by id' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The product was updated succesfully',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The product was by id was not founded',
+    description: 'The product was by id was not found',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Error updating the product',
   })
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
-    const responseService: Product = await this.productService.update(id, updateProductDto);
-    if(responseService?.secondariesImages[0]?.product?.id){
-      const imagesMapped:  ProductImageResponseDto[] = responseService.secondariesImages.map(image => {
-        return { id: image.id, url: image.url, productId: image.product.id };
-      });
-      const responseUpdate = { ...responseService, secondariesImages: [...imagesMapped] };
-      return responseUpdate;
-    }
+  @UseInterceptors(FileInterceptor('image', multerOptions))
+  async partialUpdate(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto,@UploadedFile() file?: MulterFile): Promise<IRecourseUpdated<Product>> {
+    const responseService: IRecourseUpdated<Product> = (await this.productService.update(id, updateProductDto, file));
     return responseService;
   }
 
@@ -138,14 +143,14 @@ export class ProductController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'The product by id was not founded',
+    description: 'The product by id was not found',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Error deliting the product',
   })
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number): Promise<IRecourseDeleted<Product>> {
     return this.productService.remove(id);
   }
 }

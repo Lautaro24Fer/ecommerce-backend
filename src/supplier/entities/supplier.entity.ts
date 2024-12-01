@@ -5,6 +5,6 @@ export class Supplier {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ length: 50 })
   name: string;
 }

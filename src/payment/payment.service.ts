@@ -1,158 +1,201 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { IPaymentPreferenceResponse, ITokenReq, PaymentPreferenceRequestDto } from './dto/preference-payment';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { IPaymentPreference, IPaymentPreferenceReq } from './dto/preference-payment';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Payment } from './entities/payment.entity';
-import { JwtService } from '@nestjs/jwt';
-import { AuthService } from 'src/auth/auth.service';
-import { response } from 'express';
-import { json } from 'stream/consumers';
-import { ModuleTokenFactory } from '@nestjs/core/injector/module-token-factory';
+import MercadoPagoConfig, { Preference } from 'mercadopago';
+import { Response } from 'express';
+import { UserService } from 'src/user/user.service';
+import { UserDto } from 'src/user/dto/user.dto';
+import { User } from 'src/user/entities/user.entity';
+import { Address } from 'src/address/entities/address.entity';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseFound } from 'src/global/responseInterfaces';
+import { ProductService } from 'src/product/product.service';
+import { OrderService } from 'src/order/order.service';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class PaymentService {
 
-	private readonly OP_CLIENT_ID: string;
-	private readonly OP_CLIENT_SECRET: string;
-	private readonly OP_AUTH_PROD: string;
-	private readonly OP_CHECKOUT_PROD: string;
-	private readonly OP_JWT_SECRET: string;
-	private readonly DEV_API_DOMAIN: string;
+	constructor(	
+		private readonly configService: ConfigService, 
+		private readonly userService: UserService,
+		private readonly productService: ProductService,
+		private readonly emailService: EmailService,
+		private readonly orderService: OrderService
+	) { }
 
-	constructor ( 
-		@InjectRepository(Payment) private readonly paymentRepository: Repository<Payment>, 
-		private readonly configService: ConfigService,
-		private readonly jwtService: JwtService,
-		
-	) {
+	CLIENT_DOMAIN = this.configService.get<string>('DEV_CLIENT_DOMAIN');
+	ACCESS_TOKEN = this.configService.get<string>('MP_ACCESS_TOKEN');
+	PUBLIC_KEY = this.configService.get<string>('MP_PUBLIC_KEY');
+	CLIENT_ID = this.configService.get<string>('MP_CLIENT_ID');
+	CLIENT_SECRET = this.configService.get<string>('MP_CLIENT_SECRET');
 
-			this.OP_AUTH_PROD = this.configService.get<string>('OPENPAY_AUTH_PROD');
-			this.OP_CHECKOUT_PROD = this.configService.get<string>('OPENPAY_CHECKOUT_PROD');
-			this.OP_CLIENT_ID = this.configService.get<string>('OPENPAY_CLIENT_ID');
-			this.OP_CLIENT_SECRET = this.configService.get<string>('OPENPAY_CLIENT_SECRET');
-			this.OP_JWT_SECRET = this.configService.get<string>('OPENPAY_JWT_SECRET');
-			this.DEV_API_DOMAIN = this.configService.get<string>('DEV_API_DOMAIN');
+	client = new MercadoPagoConfig({ accessToken: this.ACCESS_TOKEN })
+
+	async generatePaymentOrException(preferenceData: IPaymentPreferenceReq, res: Response): Promise<void> {
+		const response: IRecourseFound<any> = await this.productService.validateOperation(preferenceData.items);
+		if(response.status){
+			await this.createPaymentPreference(preferenceData, res);
+		}
 	}
 
-  // OpenPay
-	async getTokensFromAPI(): Promise<string>{
 
-		const data = {
-			grant_type: "client_credentials",
-			client_id: this.OP_CLIENT_ID,
-			client_secret: this.OP_CLIENT_SECRET,
-			scope: '*'
+	async createPaymentPreference(preferenceData: IPaymentPreferenceReq, res: Response) {
+
+		const preference = new Preference(this.client)
+		const expDataFrom = new Date;
+		const expDataTo = new Date(Date.now() + (1000 * 60 * 15));
+
+		const payer: UserDto = (await this.userService.findOneById(preferenceData.userId)).recourse;
+
+		const address: Address = payer.address.find(a => a.id === preferenceData.addressId);
+
+		if(!address){
+
+			const badRequestError: INotFoundEx = { status: false, message: `The id address '${preferenceData.addressId}' not exists in the user register` };
+			throw new NotFoundException(badRequestError);
 		}
 
-		const fetchOptions: any = {
-			method: 'POST',
-			headers: {
-			'Content-Type': 'application/json'
-			},
-				body: JSON.stringify(data)
+		const preferenceBody: IPaymentPreference = {
+				items: preferenceData.items.map((item) => ({
+					...item,
+					id: item.id.toString()
+				})), 
+				back_urls: {
+					success: `${this.CLIENT_DOMAIN}/success`,
+					failure: `${this.CLIENT_DOMAIN}/failure`,
+					pending: `${this.CLIENT_DOMAIN}/pending`
+				},
+				payer: {
+					name: payer.name,
+					surname: payer.surname,
+					email: payer.email,
+					identification: {
+						type: payer.idType.name,
+						number: payer.idNumber
+					},
+					address: {
+						street_name: address.addressStreet ?? "",
+						street_number: address.addressNumber ?? "",	
+						zip_code: address.postalCode
+					}
+				},
+				auto_return: "approved",
+				payment_methods: {
+					excluded_payment_methods: [],
+					excluded_payment_types: [
+            { id: 'ticket' }
+       	  ],
+					installments: 12
+				},
+				notification_url: "",
+				statement_descriptor: "PADEL POINT",
+				external_reference: "Padel Point",
+				expires: true,
+				expiration_date_from: expDataFrom.toISOString(),
+				expiration_date_to: expDataTo.toISOString()
 		}
 
-		const apiToken: ITokenReq = await fetch(`${this.OP_AUTH_PROD}/oauth/token`, fetchOptions)
-		.then(response => response.json())
-		.then(data => data)
-		.catch(error => {
+		preference.create({
+			body: { ...preferenceBody, }
+		})
+			.then(async data => {
+				const response: IRecourseCreated<string> = {
+					status: true,
+					message: "The embeded form was created succesfully",
+					recourse: data.init_point
+				}
+				res.json(response);
+			})
+			.catch(error => {
+				console.error(error);
+				const badRequestError: IBadRequestex = {
+					status: false,
+					message: "Error in the creation of the embeded form"
+				}
+				throw new BadRequestException(badRequestError);
+			});
+
+	}
+
+	async updateOrderStatusByPaymentId(paymentId: string) {
+		const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
+    const response = await fetch(url, {
+			method: 'GET',
+      headers: {
+        Authorization: `Bearer ${this.ACCESS_TOKEN}`,
+      },
+    })
+		.then(data => data.json())
+		.catch((error) => {
 			console.error(error);
-			throw new BadRequestException({ error: "error taking tokens from API" });
+			const badRequestError: IBadRequestex = {
+				status: false,
+				message: "Error fetching the payment status by payment id"
+			};
+			throw new BadRequestException(badRequestError);
 		});
 
-		console.log("getTokenFromAPI --) respuesta de la api: \n")
-		console.log(apiToken)
-		console.log("\n")
-		if(!apiToken) {
-			console.log("getTokenFromAPI --) esfalso")
-		}
+    const paymentStatus = response.data.status; 
 
-		try{
+    if (paymentStatus === 'approved') {
+			console.log(" == Status: APPROVED == ");
 
-			const tokenJwt: string = await this.jwtService.signAsync(apiToken, { secret: this.OP_JWT_SECRET })
-			return tokenJwt;
-		}
-		catch(error){
-			throw new BadRequestException({ message: error })
-		}
-	}
+			// const order: Order = await this.orderService.
+    }
+		if (paymentStatus === 'pending') {
+			console.log(" == Status: PENDING == ");
 
-	async verifyJwtAsync(jwt: string, secret: string): Promise<any> {
 
-		try {
-			const token: any = await this.jwtService.verifyAsync(jwt, { secret });
-			return token;
-		} catch (error) {
-			throw new BadRequestException({ error: 'Error decoding jwt' })
-		}
-	}
+    }
+		if (paymentStatus === 'in_process') {
+			console.log(" == Status: IN_PROCESS == ");
 
-	async createPaymentPreference(orderData: PaymentPreferenceRequestDto, token: string): Promise<IPaymentPreferenceResponse> {
 
-		const bodyData: PaymentPreferenceRequestDto = {
-			...orderData
-		}
+    }
+		if (paymentStatus === 'rejected') {
+			console.log(" == Status: REJECTED == ");
 
-		bodyData.data.attributes.redirect_urls = {
-			success: `${this.DEV_API_DOMAIN}/payment/success`,
-			failed: `${this.DEV_API_DOMAIN}/payment/failed`	
-		}
 
-		bodyData.data.attributes.webhookUrl = `${this.DEV_API_DOMAIN}/payment/webhook`
+    }
+		if (paymentStatus === 'cancelled') {
+			console.log(" == Status: CANCELLED == ");
 
-		const tokenDecoded: ITokenReq = await this.verifyJwtAsync(token, this.OP_JWT_SECRET);
 
-		const fetchOptions = {
-			method: 'POST',
-			headers: {
-				"Content-Type": "application/vnd.api+json",
-				"Accept": "application/vnd.api+json",
-				"Authorization": `Bearer ${tokenDecoded.access_token}`
-			},
-			body: JSON.stringify(bodyData)
-			}
+    }
+		if (paymentStatus === 'refunded') {
+			console.log(" == Status: REFUNDED == ");
 
-		console.log("\n\n ======= CORTE PREVIO AL FETCH ======= \n\n");
 
-		const paymentIntent: IPaymentPreferenceResponse = await fetch(`${this.OP_CHECKOUT_PROD}/api/v2/orders`, fetchOptions)
-		.then(response => response.json())
-		.then(data => data)
-		.catch(error => console.error(error));
+    }
+		if (paymentStatus === 'charged_back') {
+			console.log(" == Status: CHARGED_BACK == ");
 
-		console.log("createPaymentIntent --) 3) __payment intent__\n");
-		console.log(paymentIntent);
 
-		return paymentIntent;
-	}
+    }
+  }
 
-	async getOrderStatus(location: string, token: string): Promise<any> {
-
-		console.log("====== SOLICITUD DEL ESTADO DE LA ORDEN ======\n\n")
-		
-		const tokenDecoded: ITokenReq = await this.verifyJwtAsync(token, this.OP_JWT_SECRET);
-
-		console.log("getOrderStatus --) 1) token que se usará");
-		console.log(tokenDecoded);
-
-		const fetchOptions = {
+	// Este metodo era unicamente para testear 
+	// el estado de la orden por id. Se debe 
+	// eliminar al igual que su endpoint
+	async knowStatus(paymentId: number){
+		const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
+    const response = await fetch(url, {
 			method: 'GET',
-			headers: {
-				'Content-Type': 'application/vnd.api+json',	
-				'Accept': 'application/vnd.api+json',
-				'Authorization': `Bearer ${tokenDecoded.access_token}`
-			}
-		}
+      headers: {
+        Authorization: `Bearer ${this.ACCESS_TOKEN}`,
+      },
+    })
+		.then(data => data.json())
+		.catch((error) => {
+			console.error(error);
+			const badRequestError: IBadRequestex = {
+				status: false,
+				message: "Error fetching the payment status by payment id"
+			};
+			throw new BadRequestException(badRequestError);
+		});
 
-		const order = await fetch(`${this.OP_CHECKOUT_PROD}${location}`, fetchOptions)
-		.then(response => response.json())
-		.then(data => data)
-		.catch(error => console.error(error))
-
-		console.log(" ______ GET UUID FROM PAYMENT PREFERENCE ______")
-		console.log(JSON.stringify(order, null, 2));
-
-		return order;
+		console.log("PAYMENT STATUS");
+		console.log(response.status);
 	}
-
 }

@@ -7,11 +7,15 @@ import {
   Param,
   Delete,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { BrandService } from './brand.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { Brand } from './entities/brand.entity';
+import { QueryParamsBrandDto } from './dto/query-params.dto';
 
 @ApiTags('Brands')
 @Controller('brand')
@@ -28,7 +32,7 @@ export class BrandController {
     description: 'Bad request. The new brand was not created',
   })
   @Post()
-  create(@Body() createBrandDto: CreateBrandDto) {
+  create(@Body() createBrandDto: CreateBrandDto): Promise<IRecourseCreated<Brand>> {
     return this.brandService.create(createBrandDto);
   }
 
@@ -43,11 +47,22 @@ export class BrandController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Brands not founded',
+    description: 'Brands not found',
+  })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    type: String,
+    description: 'Name of the brand',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Limit of the orders returned',
   })
   @Get()
-  findAll() {
-    return this.brandService.findAll();
+  findAll(@Query() queryParams: QueryParamsBrandDto): Promise<IRecourseFound<Brand[]>> {
+    return this.brandService.findAll(queryParams);
   }
 
   @ApiOperation({ summary: 'Find a brand by id' })
@@ -61,10 +76,10 @@ export class BrandController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Brand not founded',
+    description: 'Brand not found',
   })
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: number): Promise<IRecourseFound<Brand>> {
     return this.brandService.findOne(id);
   }
 
@@ -79,10 +94,10 @@ export class BrandController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Brand not founded',
+    description: 'Brand not found',
   })
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateBrandDto: UpdateBrandDto) {
+  update(@Param('id') id: number, @Body() updateBrandDto: UpdateBrandDto): Promise<IRecourseUpdated<Brand>> {
     return this.brandService.update(id, updateBrandDto);
   }
 
@@ -97,10 +112,10 @@ export class BrandController {
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Brand not founded',
+    description: 'Brand not found',
   })
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number): Promise<IRecourseDeleted<Brand>> {
     return this.brandService.remove(id);
   }
 }

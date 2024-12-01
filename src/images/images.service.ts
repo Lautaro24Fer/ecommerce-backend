@@ -1,74 +1,178 @@
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductImage } from './entities/image.entity';
-import { DataSource, Repository } from 'typeorm';
-import { ProductService } from 'src/product/product.service';
-import { Product } from 'src/product/entities/product.entity';
+import { Repository } from 'typeorm';
+import { ProductService } from '../product/product.service';
+import { Product } from '../product/entities/product.entity';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound } from '../global/responseInterfaces';
+import { FtpService } from '../ftp/ftp.service';
+import { MulterFile } from './dto/multer-file';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ImagesService {
-
-  constructor(@InjectRepository(ProductImage) private readonly imageRepository: Repository<ProductImage>,
-  @Inject(forwardRef(() => ProductService)) private readonly productService: ProductService,
-  private readonly dataSource: DataSource) {}
-
-  async create(createImageDto: CreateImageDto) {
-    const product: Product = await this.productService.findOne(createImageDto.productId);
-
-    const imageCreated: ProductImage = this.imageRepository.create({ ...createImageDto, product });
-
-    const imageSaved: ProductImage = await this.imageRepository.save(imageCreated);
-    return imageSaved;
+  update(arg0: number, arg1: { url: string; }) {
+    throw new Error('Method not implemented.');
   }
 
-  async findAll() {
+
+  constructor(
+    @InjectRepository(ProductImage) private readonly imageRepository: Repository<ProductImage>,
+    @Inject(forwardRef(() => ProductService)) private readonly productService: ProductService,
+    private readonly ftpService: FtpService,
+    private readonly configService: ConfigService) {}
+  
+  async create(id: number, file: MulterFile) {
+
+    console.log("-----CREATING IMAGE-----")
+
+    const product: Product = (await this.productService.findOne(id)).recourse;
+
+    console.log("=PRODUCT=")
+    console.log(product)
+
+    const imageUrl = await this.ftpService.saveImageOnFTPServer(file);
+
+    console.log("\n\n=IMAGE URL=")
+    console.log(imageUrl)
+
+    const imageCreated: ProductImage = this.imageRepository.create({ product, url: imageUrl });
+
+    const imageSaved: ProductImage = await this.imageRepository.save(imageCreated).catch(async (error) => {
+      console.error(error);
+      await this.ftpService.deleteFile(imageUrl).catch((error) => {
+        console.error(error);
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: "Error deleting file in FTP server"
+        };
+        throw new BadRequestException(badRequestError);
+      })
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error in the creation of the product image"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+
+    console.log("\n\n=IMAGE SAVED=")
+    console.log(imageSaved)
+
+
+    const response: IRecourseCreated<ProductImage> = {
+      status: true,
+      message: "The product image was created successfully",
+      recourse: imageSaved
+    }
+    return response;
+  }
+
+  async findAll(): Promise<IRecourseFound<ProductImage[]>> {
     try{
       const allImages: ProductImage[] = await this.imageRepository.createQueryBuilder('product_image')
       .leftJoin('product_image.product', 'product')
       .addSelect('product.id')
       .orderBy('product_image.id', 'ASC') 
       .getMany()
-      return allImages;
+      const recourse: IRecourseFound<ProductImage[]> = {
+        status: true,
+        message: "The product images was found successfully",
+        recourse: allImages
+      }
+      return recourse;
     }
     catch(error){
       throw new BadRequestException({ error: 'Error exception loading all images' })
     }
   }
 
-  async findOne(id: number) {
-    const productImage: ProductImage = await this.imageRepository.findOneBy({ id });
+  async findOne(id: number): Promise<IRecourseFound<ProductImage>> {
+    const productImage: ProductImage = await this.imageRepository.findOne({ where: { id }, relations: ['product'] }).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error loading the product with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
     if(!productImage){
-      throw new NotFoundException({ error: `The product image id '${id}' was not founded` });
+      const notFoundError: INotFoundEx = {
+        status: false,
+        message: `The image with id '${id}' was not found`
+      };
+      throw new NotFoundException(notFoundError);
     }
-    return productImage;
+    const recourse: IRecourseFound<ProductImage> = {
+      status: true,
+      message: "The product image was found successfully",
+      recourse: productImage
+    }
+    return recourse;
   }
 
-  async findOneByIdAndUrl(productId: number, url: string){
-    const productImage = await this.imageRepository.findOneBy({ product: { id: productId }, url});
-    if(!productImage){
-      throw new NotFoundException({ error: `The product image with id ''${productId}'' and url '${url}' was not founded` });
+  // async findOneByIdAndUrl(productId: number, url: string): Promise<IRecourseFound<ProductImage>>{
+  //   const productImage = await this.imageRepository.findOneBy({ product: { id: productId }, url}).catch((error) => {
+  //     console.error(error);
+  //     const badRequestError: IBadRequestex = {
+  //       status: false,
+  //       message: `Error loading the product with id '${productId}' and url '${url}'`
+  //     };
+  //     throw new BadRequestException(badRequestError);
+  //   });
+  //   if(!productImage){
+  //     const notFoundError: INotFoundEx = {
+  //       status: false,
+  //       message: `The product image with id '${productId}' and url '${url}' was not found`
+  //     }
+  //     throw new NotFoundException(notFoundError);
+  //   }
+  //   const recourse: IRecourseFound<ProductImage> = {
+  //     status: true,
+  //     message: "The product image was found successfully",
+  //     recourse: productImage
+  //   }
+  //   return recourse;
+  // }
+
+  async removeByUrl(url: string): Promise<IRecourseDeleted<ProductImage>>{
+    const image: ProductImage = await this.imageRepository.findOne({ where: {url} }).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error finding the image with url '${url}' in database`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    if(!image){
+      const notFoundError: INotFoundEx = {
+        status: false,
+        message: `The image with url '${url}' was not found`
+      };
+      throw new NotFoundException(notFoundError);
     }
-    return productImage;
+    const removed: IRecourseDeleted<ProductImage> = await this.remove(image.id);
+    return removed;
   }
 
-  async update(id: number, updateImageDto: UpdateImageDto) {
-    const productImageToUpdate: ProductImage = await this.imageRepository.findOneBy({ id });
-    if(!productImageToUpdate){
-      throw new NotFoundException({ error: `The product image id '${id}' was not founded` });
+  async remove(id: number): Promise<IRecourseDeleted<ProductImage>> {
+    const productImage: ProductImage = (await this.findOne(id)).recourse;
+    const remotePath: string = productImage.url;
+    if(remotePath.includes('padel-point')){
+      await this.ftpService.deleteFile(remotePath);
     }
-    const productImageUpdated: ProductImage = { ...productImageToUpdate, ...updateImageDto };
-    await this.imageRepository.save(productImageUpdated);
-    return productImageUpdated;
-  }
-
-  async remove(id: number) {
-    const productImage: ProductImage = await this.imageRepository.findOneBy({ id });
-    if(!productImage){
-      throw new NotFoundException({ error: `The product image id '${id}' was not founded` });
-    }
-    await this.imageRepository.delete(productImage);
-    return productImage;
+    const removed: ProductImage = await this.imageRepository.remove(productImage).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error removing the product image with id: '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const recourse: IRecourseDeleted<ProductImage> = {
+      status: true,
+      message: "The product image was deleted successfully",
+      recourse: removed
+    };
+    return recourse;
   }
 }
