@@ -5,11 +5,23 @@ export class InputLoginDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  input: string;
+  usernameOrEmail: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
   @MinLength(8)
   password: string;
+}
+
+export class LoginResponseDto {
+  status: boolean;
+  message: string;
+  token?: any;
+
+  constructor(status: boolean, message: string, token?: any) {
+    this.status = status;
+    this.message = message;
+    this.token = token;
+  }
 }

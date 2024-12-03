@@ -1,5 +1,6 @@
-import { Product } from 'src/product/entities/product.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Address } from '../../address/entities/address.entity';
+import { Product } from '../../product/entities/product.entity';
+import { User } from '../../user/entities/user.entity';
 import {
   Column,
   Entity,
@@ -14,11 +15,14 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  destinity: string;
+  @Column({ unique: true })
+  paymentId: string;
+
+  @ManyToOne(() => Address, (address) => address.id)
+  address: Address;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  date_created: Date;
+  dateCreated: Date;
 
   // @Column()
   // dev_date_estimated: Date;
@@ -26,16 +30,10 @@ export class Order {
   // @Column()
   // dev_date: Date;
 
-  @ManyToOne(() => User, (user) => user.id, { cascade: true })
+  @ManyToOne(() => User, (user) => user.id)
   user: User;
 
   @ManyToMany(() => Product, (product) => product.id, { cascade: true })
   @JoinTable()
   products: Product[];
-
-  @Column({ type: 'varchar', default: "MP_TRANSFER" })
-  paymentMethod: string;
-
-  // @Column({ type: 'number', default: 21 })
-  // IVA: number;
 }

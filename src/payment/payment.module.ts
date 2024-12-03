@@ -4,12 +4,14 @@ import { PaymentController } from './payment.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from 'src/auth/auth.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Payment } from './entities/payment.entity';
+import { UserModule } from 'src/user/user.module';
+import { ProductModule } from 'src/product/product.module';
+import { EmailModule } from 'src/email/email.module';
+import { OrderModule } from 'src/order/order.module';
 
 @Module({
   controllers: [PaymentController],
   providers: [PaymentService, ConfigService],
-  imports: [TypeOrmModule.forFeature([Payment]), ConfigModule, JwtModule, AuthModule]
+  imports: [ConfigModule, JwtModule, AuthModule, UserModule, ProductModule, EmailModule, OrderModule]
 })
 export class PaymentModule {}

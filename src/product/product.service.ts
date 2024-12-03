@@ -4,76 +4,90 @@ import {
   HttpException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import {DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Supplier } from 'src/supplier/entities/supplier.entity';
-import { BrandService } from 'src/brand/brand.service';
-import { SupplierService } from 'src/supplier/supplier.service';
-import { Brand } from 'src/brand/entities/brand.entity';
+import { Supplier } from '../supplier/entities/supplier.entity';
+import { BrandService } from '../brand/brand.service';
+import { SupplierService } from '../supplier/supplier.service';
+import { Brand } from '../brand/entities/brand.entity';
 import { QueryParamsDto } from './dto/query-params.dto';
-import { ProductType } from 'src/type/entities/type.entity';
-import { TypeService } from 'src/type/type.service';
-import { ProductImage } from 'src/images/entities/image.entity';
-import { ImagesService } from 'src/images/images.service';
-import { CreateImageDto } from 'src/images/dto/create-image.dto';
+import { ProductType } from '../type/entities/type.entity';
+import { TypeService } from '../type/type.service';
+import { ImagesService } from '../images/images.service';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { ItemDto } from '../payment/dto/preference-payment';
+import { MulterFile } from '../images/dto/multer-file';
+import { FtpService } from '../ftp/ftp.service';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    //@InjectRepository(ImagesService)
-    //private readonly productImagesRepository: Repository<ImagesService>
     @Inject(forwardRef(() => ImagesService)) private readonly productImageService: ImagesService,
     private readonly brandService: BrandService,
     private readonly supplierService: SupplierService,
     private readonly typeService: TypeService,
+    private readonly ftpService: FtpService,
   ) {}
 
-  async create(createProductDto: CreateProductDto): Promise<Product> {
+  async create(createProductDto: CreateProductDto, file: MulterFile): Promise<IRecourseCreated<Product>> {
 
     // Verificar que el id de supplier y brand existen. Para eso primero haremos sus respectivos repositorios primero
 
-    const brand: Brand = await this.brandService.findOne(createProductDto.brandId);
+    const brand: Brand = (await this.brandService.findOne(createProductDto.brandId)).recourse;
 
-    const supplier: Supplier = await this.supplierService.findOne(createProductDto.supplierId);
+    const supplier: Supplier = (await this.supplierService.findOne(createProductDto.supplierId)).recourse;
 
-    const type: ProductType = await this.typeService.findOne(createProductDto.typeId);
+    const type: ProductType = (await this.typeService.findOne(createProductDto.typeId)).recourse;
+
+    let imageUrl: string = await this.ftpService.saveImageOnFTPServer(file);
 
     const newProduct: Product = this.productRepository.create({  
+      ...createProductDto,
       name: createProductDto.name,
       description: createProductDto.description,
       price: createProductDto.price,
-      image: createProductDto.image,
       type,
       supplier,
-      brand
+      brand,
+      image: imageUrl
     });
 
-    const { id }: Product = await this.productRepository.save(newProduct);
+    const { id }: Product = await this.productRepository.save(newProduct).catch((error) => {
+      console.error(error)
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `error saving the product instance`
+      };
+      throw new BadRequestException(badRequestError);
+    });
 
-    if(createProductDto.secondariesImages){
-      const secondariesImagesMapped: any[] = await Promise.all(createProductDto.secondariesImages.map(async(image) =>{
-        return await this.productImageService.create({ productId: id, url: image });
-      }));
+    // if(createProductDto.secondariesImages){
+    //   const secondariesImagesMapped: ProductImage[] = await Promise.all(createProductDto.secondariesImages.map(async(image) =>{
+    //     return (await this.productImageService.create({ productId: id, url: image })).recourse;
+    //   }));
 
-      newProduct.secondariesImages = [ ...secondariesImagesMapped ];
-      await this.productRepository.save(newProduct);
+    //   newProduct.secondariesImages = [ ...secondariesImagesMapped ];
+    //   await this.productRepository.save(newProduct);
+    // }
+
+    const productCreated: Product = (await this.findOne(id)).recourse;
+    const response: IRecourseCreated<Product> = {
+      status: true,
+      message: "The product was created succesfully",
+      recourse: productCreated
     }
-
-    const productCreated: Product = await this.productRepository.findOne({
-      where: { id },
-      relations: ['brand', 'supplier', 'secondariesImages'],
-    });
-    return productCreated;
+    return response;
   } 
 
-  async findAll(queryParams: QueryParamsDto): Promise<Product[]> {
+  async findAll(queryParams: QueryParamsDto): Promise<IRecourseFound<Product[]>> {
     const queryBuilder = this.productRepository
       .createQueryBuilder('product') 
       .innerJoinAndSelect('product.brand', 'brand')
@@ -120,76 +134,149 @@ export class ProductService {
       queryBuilder.take(queryParams.limit);
     }
 
-    const products: Product[] = await queryBuilder.getMany();
+    const products: Product[] = await queryBuilder.getMany().catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error loading all products"
+      };
+      throw new BadRequestException(badRequestError);
+    });
 
-    return products;
+    const response: IRecourseFound<Product[]> = {
+      status: true,
+      message: "The products was found succesfully",
+      recourse: products
+    }
+
+    return response;
   }
 
-  async findOne(id: number): Promise<Product> {
-    const productFinded: Product = await this.productRepository.findOne({
-      where: { id },
-      relations: ['brand', 'supplier', 'type', 'secondariesImages'],
-    });
-    if (!productFinded) {
-      throw new NotFoundException(`The product with the id '${id}' was not founded`);
+  async findOne(id: number): Promise<IRecourseFound<Product>> {
+    const product: Product = await this.productRepository.findOne({
+      where: { id }, relations: ['brand', 'supplier', 'type', 'secondariesImages']})
+      .catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error finding the product by id"
+      };
+      throw new BadRequestException(badRequestError);
+    })
+    if (!product) {
+      const notFoundError: INotFoundEx = {
+        status: false,
+        message: `The product with id '${id}' was not found`
+      }
+      throw new NotFoundException(notFoundError);
     }
-    return productFinded;
+    const recourseFound: IRecourseFound<Product> = {
+      status: true,
+      message: "The product was found succcesfully",
+      recourse: product
+    };
+    return recourseFound;
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
-    const productFinded: Product = await this.productRepository.findOne({
-      where: { id },
-      relations: ['brand', 'supplier', 'secondariesImages'],
-    });
-    if (!productFinded) {
-      throw new NotFoundException(`The product with the id '${id}' was not founded`);
-    }
+  async update(id: number, updateProductDto: UpdateProductDto, file?: MulterFile): Promise<IRecourseUpdated<Product>> {
+    const productFound: Product = (await this.findOne(id)).recourse;
 
-    if (updateProductDto.name) {
-      productFinded.name = updateProductDto.name;
-    }
-
-    if(updateProductDto.description){
-      productFinded.description = updateProductDto.description;
-    }
-
-    if (updateProductDto.price) {
-      productFinded.price = updateProductDto.price;
+    const body: Product = {
+      ...productFound,
+      ...updateProductDto
     }
 
     if (updateProductDto.brandId) {
-      const brand: Brand = await this.brandService.findOne(updateProductDto?.brandId);
-      productFinded.brand = brand;
+      const brand: Brand = (await this.brandService.findOne(updateProductDto?.brandId)).recourse;
+     body.brand = brand;
     }
 
     if (updateProductDto.supplierId) {
-      const supplier: Supplier = await this.supplierService.findOne(updateProductDto?.supplierId);
-      productFinded.supplier = supplier;
+      const supplier: Supplier = (await this.supplierService.findOne(updateProductDto?.supplierId)).recourse;
+     body.supplier = supplier;
     }
 
     if(updateProductDto.typeId){
-      const type: ProductType = await this.typeService.findOne(updateProductDto?.typeId);
-      productFinded.type = type;
+      const type: ProductType = (await this.typeService.findOne(updateProductDto?.typeId)).recourse;
+     body.type = type;
     }
 
-    const productUpdated: Product = await this.productRepository.save(productFinded);
-    return productUpdated;
-
-  }
-
-  async remove(id: number): Promise<void> {
-    const product: Product = await this.productRepository.findOneBy({ id });
-    if (!product) {
-      throw new NotFoundException(`The product with the id '${id}' was not founded`);
+    if(file){
+      const newImageUrl: string = await this.ftpService.saveImageOnFTPServer(file);
+      if(productFound.image.includes('padel-point')){
+        const imageExists: boolean = await this.ftpService.checkFileExists(productFound.image)
+        if(imageExists){
+          await this.ftpService.deleteFile(productFound.image).catch((error) => {
+            console.error(error);
+            const ftpError: IBadRequestex = {
+              status: false,
+              message: "Error deleting the image on the server"
+            };
+            throw new InternalServerErrorException(ftpError);
+          });
+        }
+      }
+      body.image = newImageUrl;
     }
-    await this.productRepository.remove(product);
-  }
 
-  mapUrlToProductImage(url: string, id: number){
-    const productImage: CreateImageDto = {
-      url,
-      productId: id 
+    const productUpdated: Product = await this.productRepository.save(body).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "Error updating the product"
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const recourse: IRecourseUpdated<Product> = {
+      status: true,
+      message: "The product was updated succesfully",
+      recourse: productUpdated
     };
-    return productImage;
+
+    return recourse;
+  }
+
+  async remove(id: number): Promise<IRecourseDeleted<Product>> {
+    const product: Product = (await this.findOne(id)).recourse;
+    const urlPath: string = product.image;
+    if(urlPath.includes('padel-point')){
+      await this.ftpService.deleteFile(urlPath);
+    }
+    await Promise.all(product.secondariesImages.map(async (image) => {
+      await this.productImageService.remove(image.id);
+    }));
+    const removed: Product = await this.productRepository.remove(product).catch((error) => {
+      console.error(error);
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: `Error removing the product with id '${id}'`
+      };
+      throw new BadRequestException(badRequestError);
+    });
+    const response: IRecourseDeleted<Product> = {
+      status: true,
+      message: "The product was deleted succesfully",
+      recourse: removed
+    };
+    return response;
+  }
+
+  async validateOperation(items: ItemDto[]): Promise<IRecourseFound<any>> {
+    for(const item of items) {
+      const product: Product = (await this.findOne(item.id)).recourse;
+      if(product.stock < item.quantity) {
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: `There is not enough stock of the product with id '${item.id}' to carry out the operation`
+        }
+        throw new BadRequestException(badRequestError);
+      }
+    }
+    const response: IRecourseFound<any> = {
+      status: true,
+      message: "The operation vas validated succesfully. Valid order",
+      recourse: null
+    };
+    return response;
   }
 }

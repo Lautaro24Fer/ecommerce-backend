@@ -373,3 +373,72 @@ IMP: El codigo temporal tiene las siguientes características:
 - Su tiempo de vida está delimitado por la columna de tiempo de vida, una vez vencido quedará ahí pero será inútil
 
 Las contraseñas siempre deberán tener como mínimo 8 caracteres
+
+## OPENPAY 
+
+Una vez concluido con la elección de los productos por parte del usuario se llevará a cabo el servicio de pagos. El backend ofrecerá dos endpoints, uno para conseguir el access token requerido para llevar a cabo el pago en sí y el otro para conseguir el link del formulario embebido de openpay que se usará para llevar a cabo la transacción. 
+
+El flujo de información constara de primero recuperar el access token en el primer endpoint
+```bash
+GET
+{base}/payment/token
+```
+Cabe destacar que el token está encriptado con jwt, se guarda en las cookies y tiene un tiempo de vida de 10 minutos. Una vez conseguida esta credencial se llevará a cabo una solicitud POST al segundo endpoint que espera los elementos seleccionados en el carro de compras. La operación se llevaría a cabo de la siguiente manera
+```bash
+POST
+{base}/payment/preference
+```
+En donde hay que tener en cuenta el siguiente formato en el body
+```typescript
+{
+	data: {
+		attributes: {
+			currency: "032",
+			items: [
+				{
+					id: 1,
+					name: "Chicken roll",
+					unitPrice: {
+						currency: "032",
+						amount: 100 // El amount representa la cantidad en CENTAVOS (100 === 1 peso)
+					},
+					quantity: 1
+				},
+				{
+					id: 3,
+					name: "Porto cheese burger",
+					unitPrice: {
+						currency: "032",
+						amount: 100
+					},
+					quantity: 2
+				}
+			]
+		}
+	}
+}
+```
+Como respuesta se dará una url al formulario embebido, al que se debe redirigir desde el cliente. 
+
+## ORDERS (simplificado)
+
+La order requiere de estos parametros
+
+```typescript
+export class CreateOrderDto {
+  userId: number; // Id del usuario
+  addressId: number; // Id de la direccion relacionada al producto (debe de estar relacionada al usuario)
+  paymentId: number; // Id del pago de MP, que viene como parametro en la query de respueta una vez pagado
+  products: ProductQuantity[];
+  installments?: number; // Cuotas (1 por defecto)
+  paymentMethod: MethodPaymentType; // Metodo de pago ("MP_TRANSFER" por defecto)
+}
+
+//Estructura para los productos
+export class ProductQuantity {
+  productId: number; // Id del producto
+  quantity: number; // Cantidad solicitada
+}
+```
+
+Esta llamada debe de hacerse una vez hecho el pago
