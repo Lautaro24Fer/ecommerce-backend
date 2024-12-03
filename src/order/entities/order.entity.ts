@@ -20,11 +20,11 @@ export class Order {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date_created: Date;
 
-  @Column()
-  dev_date_estimated: Date;
+  // @Column()
+  // dev_date_estimated: Date;
 
-  @Column()
-  dev_date: Date;
+  // @Column()
+  // dev_date: Date;
 
   @ManyToOne(() => User, (user) => user.id, { cascade: true })
   user: User;
@@ -32,4 +32,10 @@ export class Order {
   @ManyToMany(() => Product, (product) => product.id, { cascade: true })
   @JoinTable()
   products: Product[];
+
+  @Column({ type: 'varchar', default: "MP_TRANSFER" })
+  paymentMethod: string;
+
+  // @Column({ type: 'number', default: 21 })
+  // IVA: number;
 }
