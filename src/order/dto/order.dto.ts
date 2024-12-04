@@ -14,6 +14,14 @@ export class OrderDto{
   paymentId: string;
 
   items: ProductOrderDto[];
+
+  netPrice: number;
+
+  IVA: number;
+
+  total: number;
+
+  profit: number;
 }
 
 export class OrderQueryParams {

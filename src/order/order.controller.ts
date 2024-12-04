@@ -32,7 +32,7 @@ export class OrderController {
     summary: "Create a new order"
   })
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.CREATED,
     description: "The order was created succesfully"
   })
   @ApiResponse({

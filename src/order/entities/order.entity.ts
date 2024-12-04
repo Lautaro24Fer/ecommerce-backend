@@ -37,7 +37,7 @@ export class Order {
   @Column('decimal', { precision: 10, scale: 2 })
   netPrice: number; // Precio sin IVA
 
-  @Column('decimal', { precision: 10, scale: 2, default: 21 })
+  @Column('decimal', { precision: 10, scale: 2, default: 0.21 })
   IVA: number; // IVA aplicado
 
   @Column('decimal', { precision: 10, scale: 2 })

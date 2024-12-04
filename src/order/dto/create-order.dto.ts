@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsNumber, IsOptional, IsPositive, ValidateNested } from "class-validator";
+import { IsArray, IsEnum, IsNumber, IsOptional, IsPositive, Max, ValidateNested } from "class-validator";
 import { MethodPaymentType } from "src/global/enum";
 
 export class CreateOrderDto {
@@ -31,6 +31,7 @@ export class CreateOrderDto {
   @ApiProperty()
   @IsOptional()
   @IsPositive()
+  @Max(1.0)
   IVA?: number; // Porcentaje del iva aplicado (21% por defecto)
 }
 

@@ -95,6 +95,9 @@ export class OrderService {
       productOrder: [],
     });
 
+    let netPrice: number = 0;
+    let cost: number = 0;
+
     await Promise.all(createOrderDto.products.map(async (productInstance) => {
       const product: Product = (await this.productService.findOne(productInstance.productId))?.recourse;
       if(product?.stock < productInstance.quantity){
@@ -104,7 +107,36 @@ export class OrderService {
         };
         throw new BadRequestException(badRequestError);
       }
+      console.log("__MAPPEO")
+      console.log("valor previo del net price")
+      console.log(netPrice);
+      console.log("price del producto de la iteracion actual")
+      console.log(Number(product.price))
+      netPrice = netPrice + Number(product.price);
+      console.log("valor nuevo del netPrice")
+      console.log(netPrice);
+      console.log("Valor previo del cost")
+      console.log(cost)
+      console.log("cost del producto de la iteracion actual")
+      console.log(Number(product.cost))
+      console.log("Valor nuevo del cost")
+      cost =  cost + Number(product.cost);
+      console.log(cost)
+      console.log("\n\n")
     }));
+
+    // Pricing data
+    if(!createOrderDto.IVA){
+      orderInstance.IVA = 0.21;
+    }
+
+    orderInstance.netPrice = netPrice;
+    orderInstance.profit = netPrice - cost; // Del precio neto total de la orden se resta el costo total de todos los productos
+    let IVARealValue: number = netPrice * orderInstance.IVA;
+    orderInstance.total = netPrice + IVARealValue;
+
+    console.log("__ORDER PRICING DATA__")
+    console.log(orderInstance)
 
     const orderCreated: Order = await this.orderRepository.save(orderInstance).catch((error) => {
       console.error(error);
@@ -120,6 +152,7 @@ export class OrderService {
 
       // TODO: ESTO DEBE HACERSE AL FINAL UNA VEZ NO HAYA EXCEPCIONES AL CREAR LA ORDEN
       productFound.stock = productFound.stock - productInstance.quantity;
+      
 
       const productUpdated: Product = (await this.productService.update(productFound.id, { stock: productFound.stock }))?.recourse;
 
@@ -136,11 +169,12 @@ export class OrderService {
         };
         throw new BadRequestException(badRequestError);
       })
+
       return productOrderCreated;
     }));
 
     orderCreated.productOrder = [...products]; 
-
+    
 
     const orderUpdated: Order = await this.orderRepository.save(orderCreated).catch((error) => {
       console.error(error);
@@ -330,7 +364,11 @@ export class OrderService {
       user: userDto,
       address: order.address,
       paymentId: order.paymentId,
-      items: productOrdersDto
+      items: productOrdersDto,
+      netPrice: order.netPrice,
+      IVA: order.IVA,
+      total: order.total,
+      profit: order.profit
     };
 
     return orderDto;

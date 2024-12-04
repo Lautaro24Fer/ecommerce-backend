@@ -47,6 +47,14 @@ export class ProductService {
 
     const type: ProductType = (await this.typeService.findOne(createProductDto.typeId)).recourse;
 
+    if(createProductDto.cost >= createProductDto.price){
+      const badRequestError: IBadRequestex = {
+        status: false,
+        message: "The cost value can not be equal or higher than the price value"
+      };
+      throw new BadRequestException(badRequestError);
+    }
+
     let imageUrl: string = await this.ftpService.saveImageOnFTPServer(file);
 
     const newProduct: Product = this.productRepository.create({  
