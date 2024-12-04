@@ -93,6 +93,12 @@ export class ProductController {
     type: String,
     description: 'type of the product',
   })
+  @ApiQuery({
+    name: 'minStock',
+    required: false,
+    type: Number,
+    description: 'minium stock of the product',
+  })
   @Get()
   async findAll(@Query() queryParams: QueryParamsDto): Promise<IRecourseFound<Product[]>> {
     return await this.productService.findAll(queryParams);

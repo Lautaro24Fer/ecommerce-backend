@@ -19,10 +19,6 @@ export class CreateProductDto {
   @Length(1, 200)
   name: string;
 
-  // @ApiProperty({ type: [MulterFile] })
-  // @IsNotEmpty()
-  // image: MulterFile;
-
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
@@ -35,12 +31,12 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsPositive()
   @Type(() => Number) // Convierte string a número
-  shippingCost: number;
+  price: number;
 
   @IsNotEmpty()
   @IsPositive()
-  @Type(() => Number) // Convierte string a número
-  price: number;
+  @Type(() => Number)
+  cost: number;  
 
   @IsNotEmpty()
   @IsPositive()

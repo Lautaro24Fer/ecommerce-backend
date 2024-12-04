@@ -70,4 +70,15 @@ export class QueryParamsDto {
   @IsOptional()
   @IsString()
   type?: string | null | undefined;
+
+  @ApiPropertyOptional({
+    description: 'Minimum stock of the product',
+    type: Number,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value ? Number(value) : null), {
+    toClassOnly: true,
+  })
+  @IsPositive()
+  minStock?: number | null | undefined;
 }

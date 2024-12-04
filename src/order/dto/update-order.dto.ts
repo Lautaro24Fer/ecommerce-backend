@@ -3,15 +3,17 @@ import { IsDateString } from "class-validator";
 
 export class UpdateOrderDto {
 
-  @ApiProperty()
-  @IsDateString()
-  devDateEstimated: Date;
+  // @ApiProperty()
+  // @IsDateString()
+  // devDateEstimated: Date;
 
-  @ApiProperty()
-  @IsDateString()
-  devDate: Date;
+  // @ApiProperty()
+  // @IsDateString()
+  // devDate: Date;
 
-  @ApiProperty()
-  datePayed: Date; // Si entra, automaticamente se actualiza el isPayed en true
+  // @ApiProperty()
+  // datePayed: Date; // Si entra, automaticamente se actualiza el isPayed en true
+
+  
 
 }

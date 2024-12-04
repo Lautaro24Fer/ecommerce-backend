@@ -4,9 +4,8 @@ import { User } from '../../user/entities/user.entity';
 import {
   Column,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -24,16 +23,47 @@ export class Order {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   dateCreated: Date;
 
-  // @Column()
-  // dev_date_estimated: Date;
-
-  // @Column()
-  // dev_date: Date;
-
   @ManyToOne(() => User, (user) => user.id)
   user: User;
 
-  @ManyToMany(() => Product, (product) => product.id, { cascade: true })
-  @JoinTable()
-  products: Product[];
+  @OneToMany(() => ProductOrder, (po) => po.order, { onDelete: 'CASCADE' })
+  productOrder: ProductOrder[];
+
+  @Column({ type: 'varchar', default: "MP_TRANSFER" })
+  paymentMethod: string;
+
+  // Pricing data
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  netPrice: number; // Precio sin IVA
+
+  @Column('decimal', { precision: 10, scale: 2, default: 21 })
+  IVA: number; // IVA aplicado
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  total: number; // Precio total con IVA
+
+  // En caso que halla que tener en cuenta la comision por transaccion de MP
+  // @Column('decimal', { precision: 10, scale: 2 })
+  // marketplaceFee: number; // Porcentaje retenido por Mercado Pago
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  profit: number; // Ganancia final después de impuestos y retenciones
+
+}
+
+@Entity('product-order')
+export class ProductOrder {
+
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @ManyToOne(() => Order, (order) => order.productOrder, { onDelete: 'CASCADE' })
+  order: Order;
+
+  @ManyToOne(() => Product, (product) => product.id)
+  product: Product;
+
+  @Column({ type: 'int', default: 1 })
+  quantity: number;
 }

@@ -8,11 +8,6 @@ export class UpdateProductDto {
   @Length(1, 200)
   name?: string; 
 
-  // @ApiProperty()
-  // @IsOptional()
-  // @IsString()
-  // image?: string;
-
   @IsOptional()
   image?: string;
 
@@ -26,6 +21,11 @@ export class UpdateProductDto {
   @IsOptional()
   @IsPositive()
   price?: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsPositive()
+  cost?: number;
 
   @ApiProperty()
   @IsOptional()

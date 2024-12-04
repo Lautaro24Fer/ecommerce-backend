@@ -22,14 +22,16 @@ export class CreateOrderDto {
   @Type(() => ProductQuantity)
   products: ProductQuantity[];
 
-  @ApiProperty({ default: 1 })
-  @IsOptional()
-  @IsPositive()
-  installments?: number;
-
   @ApiProperty({ enum: MethodPaymentType, default: MethodPaymentType.MP_TRANSFER })
   @IsEnum(MethodPaymentType)
   paymentMethod: MethodPaymentType;
+
+  // Pricing data
+
+  @ApiProperty()
+  @IsOptional()
+  @IsPositive()
+  IVA?: number; // Porcentaje del iva aplicado (21% por defecto)
 }
 
 export class ProductQuantity {

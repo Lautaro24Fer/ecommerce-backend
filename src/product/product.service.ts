@@ -130,6 +130,12 @@ export class ProductService {
       })
     }
 
+    if (queryParams.minStock) {
+      queryBuilder.andWhere('product.stock >= :minStock', {
+        minStock: queryParams.minStock,
+      });
+    }
+
     if (queryParams.limit) {
       queryBuilder.take(queryParams.limit);
     }
