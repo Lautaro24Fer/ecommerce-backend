@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PartialUpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -91,7 +91,7 @@ export class UserService {
       address: [...addressCreated]
     });
     const role: Role = (await this.roleService.findOneByName('user')).recourse;
-    createUser.roles.push(role);
+    createUser?.roles?.push(role);
 
     const userSaved: User = await this.userRepository.save(createUser).catch((error) => {
       console.error(error);
@@ -350,19 +350,19 @@ export class UserService {
     }
 
     const body: User = {
-      id: userToUpdate.id,
+      id: userToUpdate?.id,
       isActive: true,
-      name: updateUserDto?.name ?? userToUpdate.name,
-      surname: updateUserDto?.surname ?? userToUpdate.surname,
-      username: updateUserDto?.username ?? userToUpdate.username,
-      idType: userToUpdate.idType,
-      idNumber: updateUserDto?.idNumber?.toString() ?? userToUpdate.idNumber,
-      email: userToUpdate.email,
-      method: userToUpdate.method,
-      address: [...userToUpdate.address],
-      roles: [...userToUpdate.roles],
+      name: updateUserDto?.name ?? userToUpdate?.name,
+      surname: updateUserDto?.surname ?? userToUpdate?.surname,
+      username: updateUserDto?.username ?? userToUpdate?.username,
+      idType: userToUpdate?.idType,
+      idNumber: updateUserDto?.idNumber?.toString() ?? userToUpdate?.idNumber,
+      email: userToUpdate?.email,
+      method: userToUpdate?.method,
+      address: [...(userToUpdate?.address || [])],
+      roles: [...(userToUpdate?.roles || [])],
       phone: updateUserDto?.phone
-    }
+    };
 
     if(updateUserDto?.idType) {
       const idTypeArrived: IdType = (await this.idTypeService.findOne(updateUserDto?.idType)).recourse;
