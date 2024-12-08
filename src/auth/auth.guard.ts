@@ -20,6 +20,10 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
 
+    // if (!context || typeof context.getHandler !== 'function') {
+    //   throw new Error('Invalid execution context');
+    // }
+
     const ctxHttp = context.switchToHttp();
     const request = ctxHttp.getRequest();
 
@@ -44,7 +48,7 @@ export class AuthGuard implements CanActivate {
 
     // AUTHORIZARTION
 
-    const roles = this.reflector.get(Roles, context.getHandler());
+    const roles = this.reflector.get(Roles, context?.getHandler());
 
     if(!roles){
 
@@ -55,7 +59,7 @@ export class AuthGuard implements CanActivate {
 
     const userRoles = (await this.jwtService.decode(token));
 
-    const isAdmin: boolean = userRoles.role.findIndex((r: { name: string; }) => r.name === 'admin') >= 0
+    const isAdmin: boolean = userRoles?.role?.findIndex((r: { name: string; }) => r?.name === 'admin') >= 0
 
     if(isAdmin){
 
@@ -64,13 +68,13 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    if(roles.includes('admin') && !isAdmin){
+    if(roles?.includes('admin') && !isAdmin){
         
       return false;
     }
 
 
-    if(roles.includes('user') && (userRoles.role.findIndex((r: { name: string; }) => r.name === 'user') < 0)){
+    if(roles?.includes('user') && (userRoles?.role?.findIndex((r: { name: string; }) => r?.name === 'user') < 0)){
       
       return false;
     }

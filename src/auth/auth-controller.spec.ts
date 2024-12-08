@@ -21,6 +21,7 @@ describe('AuthController', () => {
             verifyJwtIsExpired: jest.fn(),
             getTokenRefreshed: jest.fn(),
             getSessionStatue: jest.fn(),
+            getCookieByPassportStrategy: jest.fn()
           },
         },
       ],
@@ -106,5 +107,51 @@ describe('AuthController', () => {
       message: 'Logout successfully',
       recourse: null,
     });
+  });
+
+  it('should initiate Google login', async () => {
+    const result = await authController.googleLogin();
+    expect(result).toEqual({ msg: 'google authentication' });
+  });
+
+  it('should handle Google login callback and set cookies', async () => {
+    const req = {
+      query: {},
+      user: { id: 'userId', method: 'GOOGLE', roles: ['user'] },
+    } as unknown as Request;
+    const res: Partial<Response> = {
+      cookie: jest.fn(),
+      redirect: jest.fn(),
+    };
+  
+    jest.spyOn(authService, 'getCookieByPassportStrategy').mockResolvedValue({
+      token: 'googleToken',
+      refreshToken: 'googleRefreshToken',
+    });
+  
+    await authController.googleLoginCallback(req, res as Response);
+  
+    expect(res.cookie).toHaveBeenCalledWith('user', 'googleToken', expect.any(Object));
+    expect(res.cookie).toHaveBeenCalledWith('refresh', 'googleRefreshToken', expect.any(Object));
+    expect(res.redirect).toHaveBeenCalledWith('http://localhost:8080');
+  });
+
+  it('should return session status', async () => {
+    const req = {
+      cookies: { user: 'accessToken', refresh: 'refreshToken' },
+    } as unknown as Request;
+  
+    const sessionState = {
+      isLogged: true,
+      refreshTokenExists: true,
+      message: 'The session is currently active now',
+      payload: { id: 'userId', method: 'LOCAL', roles: ['user'] },
+    };
+  
+    jest.spyOn(authService, 'getSessionStatue').mockResolvedValue(sessionState);
+  
+    const result = await authController.isLogged(req);
+  
+    expect(result).toEqual(sessionState);
   });
 });

@@ -18,17 +18,16 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { FullUpdateUserDto, PartialUpdateUserDto  } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { UserDto } from './dto/user.dto';
 import { ResetUserPasswordGuard } from './user.guard';
 import { AuthUserResponseDto } from './dto/oauth-data';
 import { RequestUpdatePasswordCodeDto, ResponsetUpdatePasswordCodeDto, UpdateUserPasswordDto, ValidateUpdateUserPasswordCodeDto } from './dto/password-change';
-import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from 'src/global/responseInterfaces';
-import { UpdateType } from 'src/global/enum';
-import { Address } from 'src/address/entities/address.entity';
-import { OrderDto } from 'src/order/dto/order.dto';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from '../global/responseInterfaces';
+import { UpdateType } from '../global/enum';
+import { Address } from '../address/entities/address.entity';
 
 @ApiTags('Users')
 @Controller('user')

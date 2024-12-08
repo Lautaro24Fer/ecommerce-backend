@@ -23,6 +23,7 @@ describe('AuthService', () => {
           useValue: {
             findOneByUsernameOrEmail: jest.fn(),
             comparePasswords: jest.fn(),
+            findOneById: jest.fn()
           },
         },
         {
@@ -85,5 +86,67 @@ describe('AuthService', () => {
     expect(sessionState.isLogged).toBe(false);
     expect(sessionState.refreshTokenExists).toBe(false);
     expect(sessionState.message).toBe('Session expired. Please login again');
+  });
+
+  // ___
+
+  it('test_get_cookie_by_passport_strategy', async () => {
+    const user = new User();
+    user.id = 1;
+    user.method = LoginMethodType.LOCAL;
+    user.roles = [];
+    jest.spyOn(userService, 'findOneById').mockResolvedValue({
+      status: true,
+      message: "",
+      recourse: user
+    });
+    jest.spyOn(jwtService, 'signAsync').mockResolvedValue('token');
+  
+    const tokens = await authService.getCookieByPassportStrategy(user);
+  
+    expect(tokens).toHaveProperty('token', 'token');
+    expect(tokens).toHaveProperty('refreshToken', 'token');
+  });
+  
+  it('test_get_jwt_token_or_bad_request_success', async () => {
+    jest.spyOn(jwtService, 'signAsync').mockResolvedValue('token');
+  
+    const token = await authService.getJwtTokenOrBadRequest({ id: 1 }, '1m');
+  
+    expect(token).toBe('token');
+  });
+  
+  it('test_get_jwt_token_or_bad_request_failure', async () => {
+    jest.spyOn(jwtService, 'signAsync').mockRejectedValue(new Error('JWT Error'));
+  
+    await expect(authService.getJwtTokenOrBadRequest({ id: 1 }, '1m'))
+      .rejects
+      .toThrow(BadRequestException);
+  });
+  
+  it('test_verify_jwt_is_expired_valid', async () => {
+    jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue({} as any);
+  
+    const isValid = await authService.verifyJwtIsExpired('validToken');
+  
+    expect(isValid).toBe(true);
+  });
+  
+  it('test_verify_jwt_is_expired_invalid', async () => {
+    jest.spyOn(jwtService, 'verifyAsync').mockRejectedValue(new Error('TokenExpiredError'));
+  
+    const isValid = await authService.verifyJwtIsExpired('expiredToken');
+  
+    expect(isValid).toBe(false);
+  });
+  
+  it('test_get_token_refreshed', async () => {
+    const payload = { id: 1, method: LoginMethodType.LOCAL };
+    jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue(payload);
+    jest.spyOn(authService, 'getJwtTokenOrBadRequest').mockResolvedValue('newAccessToken');
+  
+    const newAccessToken = await authService.getTokenRefreshed('refreshToken');
+  
+    expect(newAccessToken).toBe('newAccessToken');
   });
 });

@@ -41,11 +41,11 @@ export class ProductService {
 
     // Verificar que el id de supplier y brand existen. Para eso primero haremos sus respectivos repositorios primero
 
-    const brand: Brand = (await this.brandService.findOne(createProductDto.brandId)).recourse;
+    const brand: Brand = (await this.brandService.findOne(createProductDto.brandId))?.recourse;
 
-    const supplier: Supplier = (await this.supplierService.findOne(createProductDto.supplierId)).recourse;
+    const supplier: Supplier = (await this.supplierService.findOne(createProductDto.supplierId))?.recourse;
 
-    const type: ProductType = (await this.typeService.findOne(createProductDto.typeId)).recourse;
+    const type: ProductType = (await this.typeService.findOne(createProductDto.typeId))?.recourse;
 
     if(createProductDto.cost >= createProductDto.price){
       const badRequestError: IBadRequestex = {
@@ -251,14 +251,16 @@ export class ProductService {
   }
 
   async remove(id: number): Promise<IRecourseDeleted<Product>> {
-    const product: Product = (await this.findOne(id)).recourse;
+    const product: Product = (await this.findOne(id))?.recourse;
     const urlPath: string = product.image;
-    if(urlPath.includes('padel-point')){
+    if(urlPath?.includes('padel-point')){
       await this.ftpService.deleteFile(urlPath);
     }
-    await Promise.all(product.secondariesImages.map(async (image) => {
-      await this.productImageService.remove(image.id);
-    }));
+    if (Array.isArray(product?.secondariesImages)) {
+      await Promise.all(product.secondariesImages.map(async (image) => {
+          await this.productImageService?.remove(image.id);
+      }));
+  }
     const removed: Product = await this.productRepository.remove(product).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {

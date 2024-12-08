@@ -17,12 +17,11 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Product } from './entities/product.entity';
 import { QueryParamsDto } from './dto/query-params.dto';
-import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
-import { UpdateType } from 'src/global/enum';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { multerOptions } from 'src/global/multer.config';
-import { MulterFile } from 'src/images/dto/multer-file';
+import { multerOptions } from '../global/multer.config';
+import { MulterFile } from '../images/dto/multer-file';
 
 @ApiTags('Products')
 @Controller('product')

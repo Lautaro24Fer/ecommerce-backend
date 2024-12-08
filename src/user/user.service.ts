@@ -104,6 +104,11 @@ export class UserService {
 
     const userCreated: User = (await this.findOneById(userSaved.id)).recourse;
 
+    if(!userCreated){
+      const response: INotFoundEx = { status: false, message: `The created user with id '${userSaved.id}' was not found` };
+      throw new NotFoundException(response);
+    }
+
     const response: IRecourseCreated<User> = {
       status: true,
       message: 'The user was created succesfully',
@@ -425,6 +430,13 @@ export class UserService {
       };
       throw new BadRequestException(badRequestError);
     });
+    if(!userRemoved){
+      const badRequestError: INotFoundEx = {
+        status: false,
+        message: `Error finding the removed user with id '${id}'`
+      };
+      throw new NotFoundException(badRequestError);
+    };
     const response: IRecourseDeleted<User> = { 
       status: true, 
       message: 'The recourse was unactivated succesfully', 

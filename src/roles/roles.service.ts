@@ -108,7 +108,7 @@ export class RolesService {
     });
     const response: IRecourseUpdated<Role> = {
       status: true,
-      message: "Role uptaded succesfully",
+      message: "Role updated succesfully",
       recourse: updated
     };
     return response;
