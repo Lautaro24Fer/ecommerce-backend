@@ -70,12 +70,11 @@ describe('AuthGuard', () => {
   });
 
   it('should allow access if user has admin role', async () => {
-
-    // jest.spyOn(authGuard['jwtService'], 'decode').mockReturnValue({ role: [{ name: 'admin' }] });
-    // jest.spyOn(authGuard, 'verifyTokenOrError').mockResolvedValueOnce({ payload: {} }); // Simula token de refresh válido
-    // jest.spyOn(reflector, 'get').mockReturnValue(['admin']); // El handler requiere el rol 'admin'
-    // const canActivate = await authGuard.canActivate(mockContext as ExecutionContext);
-    // expect(canActivate).toBe(true);
+    jest.spyOn(authGuard['jwtService'], 'decode').mockReturnValue({ role: [{ name: 'admin' }] });
+    jest.spyOn(authGuard, 'verifyTokenOrError').mockResolvedValueOnce({ payload: {} }); // Simula token de refresh válido
+    jest.spyOn(reflector, 'get').mockReturnValue(['admin']); // El handler requiere el rol 'admin'
+    const canActivate = await authGuard.canActivate(mockContext as ExecutionContext);
+    expect(canActivate).toBe(true);
   });
 
   it('should deny access if user does not have admin role', async () => {

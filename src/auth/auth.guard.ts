@@ -9,6 +9,12 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Roles } from './auth.decorator';
+import { IUnauthorizedEx } from 'src/global/responseInterfaces';
+
+interface ITokenPayloadOrError {
+  error?: string;
+  payload?: object;
+}
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -36,14 +42,22 @@ export class AuthGuard implements CanActivate {
 
     const refreshTokenPayload: any = await this.verifyTokenOrError(refreshToken)
 
-    if(refreshTokenPayload.error){
-      throw new UnauthorizedException({ error: 'session expired' })
+    if(refreshTokenPayload?.error){
+      const unauthErr: IUnauthorizedEx = {
+        status: false,
+        message: 'The session expired.'
+      }
+      throw new UnauthorizedException(unauthErr)
     }
 
     let tokenPayload: any = await this.verifyTokenOrError(token)
 
-    if(tokenPayload.error){     
-      throw new UnauthorizedException({ error: 'token expired, refresh the token again' })
+    if(tokenPayload?.error){  
+      const unauthErr: IUnauthorizedEx = {
+        status: false,
+        message: 'The access token is expired. Please refresh the token again'
+      };   
+      throw new UnauthorizedException(unauthErr)
     }
 
     // AUTHORIZARTION
@@ -85,18 +99,27 @@ export class AuthGuard implements CanActivate {
     return true;
   }
 
-  async verifyTokenOrError(token: string): Promise<object>{
-    try{
+  async verifyTokenOrError(token: string): Promise<ITokenPayloadOrError>{
+    try {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
-      return {payload}
+      const response: ITokenPayloadOrError = {
+        payload
+      }
+      return response;
     }
     catch(error){
       if(error.name === 'TokenExpiredError'){
-        return { error: 'Token expired' }
+        const response: ITokenPayloadOrError = {
+          error: 'Token expired'
+        }
+        return response;
       }
-      return { error: 'Invalid token' }
+      const response: ITokenPayloadOrError = {
+        error: 'Invalid token'
+      }
+      return response;
     }
   }
 
