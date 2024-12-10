@@ -13,11 +13,11 @@ import {
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound } from 'src/global/responseInterfaces';
+import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound } from '../global/responseInterfaces';
 import { Order } from './entities/order.entity';
 import { OrderDto } from './dto/order.dto';
-import { UserService } from 'src/user/user.service';
-import { EmailService } from 'src/email/email.service';
+import { UserService } from '../user/user.service';
+import { EmailService } from '../email/email.service';
 import { QueryParamsDto } from './dto/query-params.dto';
 
 @ApiTags('Orders')

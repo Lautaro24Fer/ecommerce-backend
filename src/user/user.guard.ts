@@ -1,51 +1,39 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
-import { Observable } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ResetUserPasswordGuard implements CanActivate {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  constructor(private readonly jwtService: JwtService, private readonly configService: ConfigService) {} 
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const jwtSecret = this.configService.get<string>('JWT_SECRET');
 
-  async canActivate( context: ExecutionContext ): Promise<boolean>  {
-
-    const request: Request = context.switchToHttp().getRequest();
-
-    const jwt = request.cookies['password-reset'];
-
-    if(!jwt){
-      throw new UnauthorizedException({ error: 'No jwt in request' });
+    if (!request) {
+      return false; // O lanza una excepción si prefieres
     }
 
-    const status = await this.verifyTokenOrError(jwt);
-
-    if(status.error && status.error === 'expired'){
-      throw new UnauthorizedException({ error: 'The jwt is expired' });
-    }
-
-    if(status.error && status.error === 'invalid'){
+    if (!jwtSecret) {
       throw new UnauthorizedException({ error: 'The jwt is invalid' });
     }
 
-    request.cookies['password-reset'] = jwt;
-
-    return true;
-  }
-
-  async verifyTokenOrError(token: string): Promise<any>{
-    try{
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-      });
-      return payload;
+    const token = request?.cookies['password-reset'];
+    if (!token) {
+      throw new UnauthorizedException({ error: 'No jwt in request' });
     }
-    catch(error){
-      if(error.name === 'TokenExpiredError'){
-        return { error: 'expired' }
+
+    try {
+      await this.jwtService.verifyAsync(token, { secret: jwtSecret });
+      return true;
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException({ error: 'The jwt is expired' });
       }
-      return { error: 'invalid' }
+      throw new UnauthorizedException({ error: 'The jwt is invalid' });
     }
   }
 }

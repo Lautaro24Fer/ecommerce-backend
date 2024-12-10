@@ -11,6 +11,9 @@ import { EmailService } from '../email/email.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { MethodPaymentType } from '../global/enum';
+import { QueryParamsDto } from './dto/query-params.dto';
+import { User } from '../user/entities/user.entity';
+import { Address } from '../address/entities/address.entity';
 
 describe('OrderService', () => {
   let service: OrderService;
@@ -97,23 +100,44 @@ describe('OrderService', () => {
 
   describe('create', () => {
     it('should create an order successfully', async () => {
-      // Mock dependencies and repository methods
-      jest.spyOn(orderRepository, 'save').mockResolvedValue({} as Order);
-      jest.spyOn(orderRepository, 'existsBy').mockResolvedValue(false);
-      // Add more mocks as needed
-
-      const createOrderDto: CreateOrderDto = {
+      const orderData: CreateOrderDto = {
         userId: 1,
         addressId: 1,
-        paymentId: 123,
-        products: [{ productId: 1, quantity: 1 }],
-        paymentMethod: MethodPaymentType.MP_TRANSFER,
-      };
+        paymentId: 1,
+        products: [],
+        paymentMethod: MethodPaymentType.MP_TRANSFER
+      } ;
+      const savedOrder = { /* datos del pedido guardado */ } as unknown as Order;
+    
+      jest.spyOn(orderRepository, 'create').mockReturnValue(savedOrder as any);
+      jest.spyOn(orderRepository, 'save').mockResolvedValue(savedOrder as any);
+      jest.spyOn(orderRepository, 'existsBy').mockResolvedValue(false); // Mock del método existsBy
+    
+      const result = await service.create(orderData);
 
-      const result = await service.create(createOrderDto);
-      expect(result.status).toBe(true);
-      expect(result.message).toBe('The order was created succesfully');
+      const orderCreated: Order = {
+        id: 0,
+        paymentId: '',
+        address: {
+          id: 1,
+        } as unknown as Address,
+        dateCreated: undefined,
+        user: {
+          id: 1,
+        } as unknown as User,
+        productOrder: [],
+        paymentMethod: MethodPaymentType.MP_TRANSFER,
+        netPrice: 0,
+        IVA: 0,
+        total: 0,
+        profit: 0
+      }
+    
+      expect(orderRepository.create).toHaveBeenCalledWith(orderCreated);
+      expect(orderRepository.save).toHaveBeenCalledWith(savedOrder);
+      expect(result).toEqual(savedOrder);
     });
+    
 
     it('should throw BadRequestException if paymentId already exists', async () => {
       jest.spyOn(orderRepository, 'existsBy').mockResolvedValue(true);
@@ -133,10 +157,16 @@ describe('OrderService', () => {
   });
 
   describe('findAll', () => {
+
+    const queryParams: QueryParamsDto = {
+      minDate: undefined,
+      maxDate: undefined,
+      // Add other properties if needed
+    };
     it('should return all orders', async () => {
       jest.spyOn(orderRepository, 'find').mockResolvedValue([{} as Order]);
 
-      const result = await service.findAll();
+      const result = await service.findAll(queryParams);
       expect(result.status).toBe(true);
       expect(result.message).toBe('The orders was found succesfully');
       expect(result.recourse).toHaveLength(1);
@@ -145,7 +175,7 @@ describe('OrderService', () => {
     it('should throw BadRequestException on error', async () => {
       jest.spyOn(orderRepository, 'find').mockRejectedValue(new Error('DB error'));
 
-      await expect(service.findAll()).rejects.toThrow(BadRequestException);
+      await expect(service.findAll(queryParams)).rejects.toThrow(BadRequestException);
     });
   });
 

@@ -3,14 +3,13 @@ import { IPaymentPreference, IPaymentPreferenceReq } from './dto/preference-paym
 import { ConfigService } from '@nestjs/config';
 import MercadoPagoConfig, { Preference } from 'mercadopago';
 import { Response } from 'express';
-import { UserService } from 'src/user/user.service';
-import { UserDto } from 'src/user/dto/user.dto';
-import { User } from 'src/user/entities/user.entity';
-import { Address } from 'src/address/entities/address.entity';
-import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseFound } from 'src/global/responseInterfaces';
-import { ProductService } from 'src/product/product.service';
-import { OrderService } from 'src/order/order.service';
-import { EmailService } from 'src/email/email.service';
+import { UserService } from '../user/user.service';
+import { UserDto } from '../user/dto/user.dto';
+import { Address } from '../address/entities/address.entity';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseFound } from '../global/responseInterfaces';
+import { ProductService } from '../product/product.service';
+import { OrderService } from '../order/order.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class PaymentService {
@@ -37,8 +36,6 @@ export class PaymentService {
 			await this.createPaymentPreference(preferenceData, res);
 		}
 	}
-
-
 	async createPaymentPreference(preferenceData: IPaymentPreferenceReq, res: Response) {
 
 		const preference = new Preference(this.client)
@@ -117,85 +114,85 @@ export class PaymentService {
 
 	}
 
-	async updateOrderStatusByPaymentId(paymentId: string) {
-		const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
-    const response = await fetch(url, {
-			method: 'GET',
-      headers: {
-        Authorization: `Bearer ${this.ACCESS_TOKEN}`,
-      },
-    })
-		.then(data => data.json())
-		.catch((error) => {
-			console.error(error);
-			const badRequestError: IBadRequestex = {
-				status: false,
-				message: "Error fetching the payment status by payment id"
-			};
-			throw new BadRequestException(badRequestError);
-		});
+	// async updateOrderStatusByPaymentId(paymentId: string) {
+	// 	const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
+  //   const response = await fetch(url, {
+	// 		method: 'GET',
+  //     headers: {
+  //       Authorization: `Bearer ${this.ACCESS_TOKEN}`,
+  //     },
+  //   })
+	// 	.then(data => data.json())
+	// 	.catch((error) => {
+	// 		console.error(error);
+	// 		const badRequestError: IBadRequestex = {
+	// 			status: false,
+	// 			message: "Error fetching the payment status by payment id"
+	// 		};
+	// 		throw new BadRequestException(badRequestError);
+	// 	});
 
-    const paymentStatus = response.data.status; 
+  //   const paymentStatus = response.data.status; 
 
-    if (paymentStatus === 'approved') {
-			console.log(" == Status: APPROVED == ");
+  //   if (paymentStatus === 'approved') {
+	// 		console.log(" == Status: APPROVED == ");
 
-			// const order: Order = await this.orderService.
-    }
-		if (paymentStatus === 'pending') {
-			console.log(" == Status: PENDING == ");
-
-
-    }
-		if (paymentStatus === 'in_process') {
-			console.log(" == Status: IN_PROCESS == ");
+	// 		// const order: Order = await this.orderService.
+  //   }
+	// 	if (paymentStatus === 'pending') {
+	// 		console.log(" == Status: PENDING == ");
 
 
-    }
-		if (paymentStatus === 'rejected') {
-			console.log(" == Status: REJECTED == ");
+  //   }
+	// 	if (paymentStatus === 'in_process') {
+	// 		console.log(" == Status: IN_PROCESS == ");
 
 
-    }
-		if (paymentStatus === 'cancelled') {
-			console.log(" == Status: CANCELLED == ");
+  //   }
+	// 	if (paymentStatus === 'rejected') {
+	// 		console.log(" == Status: REJECTED == ");
 
 
-    }
-		if (paymentStatus === 'refunded') {
-			console.log(" == Status: REFUNDED == ");
+  //   }
+	// 	if (paymentStatus === 'cancelled') {
+	// 		console.log(" == Status: CANCELLED == ");
 
 
-    }
-		if (paymentStatus === 'charged_back') {
-			console.log(" == Status: CHARGED_BACK == ");
+  //   }
+	// 	if (paymentStatus === 'refunded') {
+	// 		console.log(" == Status: REFUNDED == ");
 
 
-    }
-  }
+  //   }
+	// 	if (paymentStatus === 'charged_back') {
+	// 		console.log(" == Status: CHARGED_BACK == ");
+
+
+  //   }
+  // }
 
 	// Este metodo era unicamente para testear 
 	// el estado de la orden por id. Se debe 
 	// eliminar al igual que su endpoint
-	async knowStatus(paymentId: number){
-		const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
-    const response = await fetch(url, {
-			method: 'GET',
-      headers: {
-        Authorization: `Bearer ${this.ACCESS_TOKEN}`,
-      },
-    })
-		.then(data => data.json())
-		.catch((error) => {
-			console.error(error);
-			const badRequestError: IBadRequestex = {
-				status: false,
-				message: "Error fetching the payment status by payment id"
-			};
-			throw new BadRequestException(badRequestError);
-		});
+	// async knowStatus(paymentId: number){
+	// 	const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
+  //   const response = await fetch(url, {
+	// 		method: 'GET',
+  //     headers: {
+  //       Authorization: `Bearer ${this.ACCESS_TOKEN}`,
+  //     },
+  //   })
+	// 	.then(data => data.json())
+	// 	.catch((error) => {
+	// 		console.error(error);
+	// 		const badRequestError: IBadRequestex = {
+	// 			status: false,
+	// 			message: "Error fetching the payment status by payment id"
+	// 		};
+	// 		throw new BadRequestException(badRequestError);
+	// 	});
 
-		console.log("PAYMENT STATUS");
-		console.log(response.status);
-	}
+	// 	console.log("PAYMENT STATUS");
+	// 	console.log(response.status);
+	// }
 }

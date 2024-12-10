@@ -63,18 +63,18 @@ export class OrderService {
   async create(createOrderDto: CreateOrderDto): Promise<IRecourseCreated<Order>> {
 
     // Verificar si el paymentId existe en el servidor de mercado pago
-    // const mpApiResponse = await this.verifyStatus(createOrderDto.paymentId);
+    // const mpApiResponse = await this.verifyStatus(createOrderDto?.paymentId);
 
-    const user: User = (await this.userService.findOneById(createOrderDto.userId))?.recourse;
+    const user: User = (await this.userService.findOneById(createOrderDto?.userId))?.recourse;
 
     const address: Address = user?.address.find((add) => add.id === createOrderDto.addressId);
 
-    const paymentIdExists: boolean = await this.orderRepository.existsBy({ paymentId:createOrderDto.paymentId.toString() });
+    const paymentIdExists: boolean = await this.orderRepository.existsBy({ paymentId:createOrderDto?.paymentId?.toString() });
 
     if(paymentIdExists) {
       const badRequestError: IBadRequestex = {
         status: false,
-        message: `The payment id '${createOrderDto.paymentId}' already exists`
+        message: `The payment id '${createOrderDto?.paymentId}' already exists`
       };
       throw new BadRequestException(badRequestError);
     }
@@ -82,7 +82,7 @@ export class OrderService {
     if(!address) {
       const badRequestError: INotFoundEx = {
         status: false,
-        message: `The address with id '${createOrderDto.addressId}' was not register with the user or not exists`
+        message: `The address with id '${createOrderDto?.addressId}' was not register with the user or not exists`
       };
       throw new NotFoundException(badRequestError);
     };
@@ -91,14 +91,14 @@ export class OrderService {
       ...createOrderDto,
       address,
       user,
-      paymentId: createOrderDto.paymentId.toString(),
+      paymentId: createOrderDto?.paymentId.toString(),
       productOrder: [],
     });
 
     let netPrice: number = 0;
     let cost: number = 0;
 
-    await Promise.all(createOrderDto.products.map(async (productInstance) => {
+    await Promise.all(createOrderDto?.products.map(async (productInstance) => {
       const product: Product = (await this.productService.findOne(productInstance.productId))?.recourse;
       if(product?.stock < productInstance.quantity){
         const badRequestError: IBadRequestex = {
@@ -107,26 +107,12 @@ export class OrderService {
         };
         throw new BadRequestException(badRequestError);
       }
-      console.log("__MAPPEO")
-      console.log("valor previo del net price")
-      console.log(netPrice);
-      console.log("price del producto de la iteracion actual")
-      console.log(Number(product.price))
       netPrice = netPrice + Number(product.price);
-      console.log("valor nuevo del netPrice")
-      console.log(netPrice);
-      console.log("Valor previo del cost")
-      console.log(cost)
-      console.log("cost del producto de la iteracion actual")
-      console.log(Number(product.cost))
-      console.log("Valor nuevo del cost")
       cost =  cost + Number(product.cost);
-      console.log(cost)
-      console.log("\n\n")
     }));
 
     // Pricing data
-    if(!createOrderDto.IVA){
+    if(!createOrderDto?.IVA){
       orderInstance.IVA = 0.21;
     }
 
@@ -135,8 +121,6 @@ export class OrderService {
     let IVARealValue: number = netPrice * orderInstance.IVA;
     orderInstance.total = netPrice + IVARealValue;
 
-    console.log("__ORDER PRICING DATA__")
-    console.log(orderInstance)
 
     const orderCreated: Order = await this.orderRepository.save(orderInstance).catch((error) => {
       console.error(error);
@@ -147,7 +131,7 @@ export class OrderService {
       throw new BadRequestException(badRequestError);
     });
 
-    const products: ProductOrder[] = await Promise.all(createOrderDto.products.map(async (productInstance) => {
+    const products: ProductOrder[] = await Promise.all(createOrderDto?.products.map(async (productInstance) => {
       const productFound: Product = (await this.productService.findOne(productInstance.productId))?.recourse;
 
       // TODO: ESTO DEBE HACERSE AL FINAL UNA VEZ NO HAYA EXCEPCIONES AL CREAR LA ORDEN
