@@ -11,6 +11,7 @@ import { LoginMethodType } from 'src/global/enum';
 import { IdType } from 'src/id-type/entities/id-type.entity';
 import { IRecourseFound } from 'src/global/responseInterfaces';
 import { User } from 'src/user/entities/user.entity';
+import { IPaymentPreference } from './dto/preference-payment';
 
 describe('PaymentService', () => {
   let service: PaymentService;
@@ -99,7 +100,7 @@ describe('PaymentService', () => {
   /*
 
   it('should create payment preference successfully', async () => {
-    const preferenceData = {
+    const preferenceData: IPaymentPreference = {
       items: [{
         id: 1,
         quantity: 1,
@@ -111,7 +112,7 @@ describe('PaymentService', () => {
       }],
       userId: 1,
       addressId: 1,
-    };
+    } as unknown;
     const mockInitPoint = 'http://mock-init-point.com';
   
     // Mock the Preference instance and its create method
