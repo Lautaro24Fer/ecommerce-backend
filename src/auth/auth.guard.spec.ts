@@ -118,7 +118,7 @@ describe('AuthGuard', () => {
     });
   });
 
-  describe.only('roles', () => {
+  describe('roles', () => {
     it('should allow access when no roles are required', async () => {
     
       jest.spyOn(authGuard, 'verifyTokenOrError').mockImplementation(async (token) => {
@@ -134,7 +134,7 @@ describe('AuthGuard', () => {
         method: 'google',
         roles: [{
           id: 0,
-          name: 'admin'
+          name: 'user'
         }]
       };
 
@@ -146,7 +146,6 @@ describe('AuthGuard', () => {
       const canActivate = await authGuard.canActivate(context);
       expect(canActivate).toBe(true);
     });
-    
     it('should allow access when admin role is required and present', async () => {
       jest.spyOn(authGuard, 'verifyTokenOrError').mockImplementation(async (token) => {
         const decoded = jwtService.decode(token);
@@ -174,7 +173,7 @@ describe('AuthGuard', () => {
       const canActivate = await authGuard.canActivate(context);
       expect(canActivate).toBe(true); // Se espera acceso permitido
     });
-    it.only('should deny access when admin role is required and absent', async () => {
+    it('should deny access when admin role is required and absent', async () => {
       jest.spyOn(authGuard, 'verifyTokenOrError').mockImplementation(async (token) => {
         const decoded = jwtService.decode(token);
         if (!decoded) throw new Error('Token inválido');
@@ -207,7 +206,7 @@ describe('AuthGuard', () => {
     
       const validUserTokenBody: ITokenBody = {
         id: 0,
-        method: '',
+        method: 'google',
         roles: [{ id: 0, name: 'user' }]
       };
     
@@ -229,7 +228,7 @@ describe('AuthGuard', () => {
     
       const validUserTokenBody: ITokenBody = {
         id: 0,
-        method: '',
+        method: 'local',
         roles: []
       };
     
@@ -237,36 +236,9 @@ describe('AuthGuard', () => {
       const refresh: string = await getJwtToken(validUserTokenBody, '7m');  
     
       const context = createMockExecutionContext({ user, refresh });
-      const canActivate = await authGuard.canActivate(context);
-      expect(canActivate).toBe(false);
-    });
-    it('should allow access when both admin and user roles are required and present', async () => {
-      jest.spyOn(authGuard, 'verifyTokenOrError').mockImplementation(async (token) => {
-        const decoded = jwtService.decode(token);
-        if (!decoded) throw new Error('Token inválido');
-        return { payload: decoded };
-      });
-      
-      jest.spyOn(reflector, 'get').mockReturnValue(['user']); // User role required
-    
-      const validUserTokenBody: ITokenBody = {
-        id: 0,
-        method: '',
-        roles: [{ id: 0, name: 'user' }]
-      };
-  
-      const validAdminTokenBody: ITokenBody = {
-        id: 0,
-        method: '',
-        roles: [{ id: 0, name: 'admin' }]
-      };
-    
-      const user: string = await getJwtToken(validUserTokenBody, '1m');
-      const refresh: string = await getJwtToken(validAdminTokenBody, '7m');  
-    
-      const context = createMockExecutionContext({ user, refresh });
-      const canActivate = await authGuard.canActivate(context);
-      expect(canActivate).toBe(true);
+      await expect(authGuard.canActivate(context)).rejects.toThrow(
+        new UnauthorizedException({ status: false, message: 'Invalid refresh token payload.' })
+      );
     });
   });
 
@@ -395,6 +367,64 @@ describe('AuthGuard', () => {
       const context = createMockExecutionContext({ user, refresh});
       const canActivate = await authGuard.canActivate(context);
       expect(canActivate).toBe(true); // Should handle the error gracefully
+    });
+  });
+
+  describe('integration', () => {
+    it('should throw UnauthorizedException for valid refresh token and invalid access token', async () => {
+      const context = createMockExecutionContext({
+        user: '',
+        refresh: ''
+      });
+  
+      jest.spyOn(jwtService, 'verifyAsync').mockImplementation((token) => {
+        if (token === 'validRefreshToken') {
+          return Promise.resolve({ id: 1, method: 'local', roles: [{ name: 'user' }], iat: 123, exp: 456 });
+        }
+        throw new Error('Invalid token');
+      });
+  
+      await expect(authGuard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+    });
+  
+    it('should throw UnauthorizedException when no cookies or headers are present', async () => {
+      const context = createMockExecutionContext({ user: '', refresh: '' });
+  
+      await expect(authGuard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+    });
+  
+    it('should allow access for valid tokens and correct roles', async () => {
+
+      const validUserTokenBody: ITokenBody = {
+        id: 1,
+        method: 'google',
+        roles: [{
+          id: 0,
+          name: 'user'
+        }]
+      };
+
+  
+      const user: string = await getJwtToken(validUserTokenBody, '1m');
+      const refresh: string = await getJwtToken(validUserTokenBody, '7m'); 
+
+      const context = createMockExecutionContext({ user, refresh  });
+  
+      jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue({
+        id: 1,
+        method: 'local',
+        roles: [{ name: 'user' }],
+        iat: 123,
+        exp: 456,
+      });
+  
+      jest.spyOn(jwtService, 'decode').mockReturnValue({
+        roles: [{ name: 'user' }],
+      });
+  
+      jest.spyOn(reflector, 'get').mockReturnValue(['user']);
+  
+      expect(await authGuard.canActivate(context)).toBe(true);
     });
   });
 });

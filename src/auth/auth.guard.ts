@@ -16,6 +16,19 @@ interface ITokenPayloadOrError {
   payload?: object;
 }
 
+interface IRole {
+  id: number;
+  name: string;
+}
+
+interface ITokenPayload {
+  id: number;
+  method: 'local' | 'google'; // Asumiendo que solo hay estos dos métodos
+  roles: IRole[];
+  iat: number;
+  exp: number;
+}
+
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
@@ -31,72 +44,62 @@ export class AuthGuard implements CanActivate {
     const token: string = this.extractTokenFromCookie(request, 'user');
     const refreshToken: string = this.extractTokenFromCookie(request, 'refresh');
 
-    console.log("==== GUARD ====")
-    console.log("Estos son los tokens");
-    console.log("accessToken:")
-    console.log(JSON.stringify(token, null, 2))
-    console.log("refreshToken:")
-    console.log(JSON.stringify(refreshToken, null, 2))
+    // console.log("==== GUARD ====")
+    // console.log("Estos son los tokens");
+    // console.log("accessToken:")
+    // console.log(JSON.stringify(token, null, 2))
+    // console.log("refreshToken:")
+    // console.log(JSON.stringify(refreshToken, null, 2))
   
     if (!token && !refreshToken) {
-      console.log('No hay tokens, se retornara 401');
+      // console.log('No hay tokens, se retornara 401');
       throw new UnauthorizedException('any token in header request');
     }
   
-    console.log("BIEN, HAY TOKENS");
-    console.log("Se revisará el payload del refresh token")
+    // console.log("BIEN, HAY TOKENS");
+    // console.log("Se revisará el payload del refresh token")
     const refreshTokenPayload: any = await this.verifyTokenOrError(refreshToken);
 
-    let isLoggedByGoogleMethod: boolean = refreshTokenPayload.payload.method === 'google';
-    let isLoggedByLocalMethod: boolean = refreshTokenPayload.payload.method === 'local';
-
-    console.log("Este es el payload del refresh token")
-    console.log(JSON.stringify(refreshTokenPayload))
+    // console.log("Este es el payload del refresh token")
+    // console.log(JSON.stringify(refreshTokenPayload))
     if (refreshTokenPayload?.error) {
-     console.log("Hubo un error al revisar el payload del refresh token")
-      console.log('Refresh token error:', refreshTokenPayload.error);
+    //  console.log("Hubo un error al revisar el payload del refresh token")
+      // console.log('Refresh token error:', refreshTokenPayload.error);
       throw new UnauthorizedException({
         status: false,
         message: 'The session expired.',
       });
     }
     if (this.isPayloadInvalid(refreshTokenPayload.payload)) {
-      console.log("El payload del refresh token es inválido");
-
-      console.log("_____is logged by google method: " + isLoggedByGoogleMethod)
-      console.log("_____is logged by local method: " + isLoggedByLocalMethod)
+      // console.log("El payload del refresh token es inválido");
+      // console.log(refreshTokenPayload.payload)
+      // console.log("_____is logged by google method: " + isLoggedByGoogleMethod)
+      // console.log("_____is logged by local method: " + isLoggedByLocalMethod)
       let refreshRolesArray = Array.isArray(refreshTokenPayload.payload.roles);
-      console.log("El array de roles es efectivamente un array?: " + refreshRolesArray);
+      // console.log("El array de roles es efectivamente un array?: " + refreshRolesArray);
       let rolesLenght = refreshTokenPayload.payload.roles.length
-      console.log("Cantidad de roles del array: " + rolesLenght)
-      
-      // if ((Array.isArray(refreshTokenPayload.payload.roles)) && (refreshTokenPayload.payload.roles.length === 0)) {
-      //   throw new UnauthorizedException({
-      //     status: false,
-      //     message: 'No roles in the token',
-      //   });
-      // }
+      // console.log("Cantidad de roles del array: " + rolesLenght)
       throw new UnauthorizedException({
         status: false,
         message: 'Invalid refresh token payload.',
       });
     }
-    console.log("Se revisará el payload del access token")
+    // console.log("Se revisará el payload del access token")
   
     let tokenPayload: any = await this.verifyTokenOrError(token);
-    console.log("Este es el payload del access token")
-    console.log(JSON.stringify(tokenPayload))
+    // console.log("Este es el payload del access token")
+    // console.log(JSON.stringify(tokenPayload))
   
     if (tokenPayload?.error) {
-     console.log("Hubo un error al revisar el payload del access token")
-      console.log('Access token error:', tokenPayload.error);
+    //  console.log("Hubo un error al revisar el payload del access token")
+      // console.log('Access token error:', tokenPayload.error);
       throw new UnauthorizedException({
         status: false,
         message: 'The access token is expired. Please refresh the token again',
       });
     }
     if (this.isPayloadInvalid(tokenPayload.payload)) {
-      console.log("El payload del refresh token es inválido");
+      // console.log("El payload del refresh token es inválido");
       if (Array.isArray(refreshTokenPayload.payload.roles) && refreshTokenPayload.payload.roles.length === 0) {
         throw new UnauthorizedException({
           status: false,
@@ -109,28 +112,28 @@ export class AuthGuard implements CanActivate {
       });
     }
 
-    console.log("BIEN, SE PUDIERON ACCEDER A LOS PAYLOADS DE LOS TOKENS")
-    console.log("Ahora se revisará los roles que requiere el controlador para consumir el recurso")
+    // console.log("BIEN, SE PUDIERON ACCEDER A LOS PAYLOADS DE LOS TOKENS")
+    // console.log("Ahora se revisará los roles que requiere el controlador para consumir el recurso")
 
     const roles = this.reflector.get(Roles, context?.getHandler());
-    console.log("Estos son los roles que pide el recurso")
-    console.log(roles)
+    // console.log("Estos son los roles que pide el recurso")
+    // console.log(roles)
   
     if (!roles) {
-      console.log("Ok, en este caso no pide un rol en especifico")
-      console.log("se permite consnumo")
+      // console.log("Ok, en este caso no pide un rol en especifico")
+      // console.log("se permite consnumo")
       request['user'] = token;
       request['refresh'] = refreshToken;
       return true;
     }
 
-    console.log("Bien, ya conocemos que role requiere el recurso")
-    console.log("Analizaremos los roles en el access token dado")
+    // console.log("Bien, ya conocemos que role requiere el recurso")
+    // console.log("Analizaremos los roles en el access token dado")
     
     const userRoles = (await this.jwtService.decode(token));
-    console.log('Este es el token decodeado:', userRoles);
+    // console.log('Este es el token decodeado:', userRoles);
 
-    console.log("Ahora nos fijaremos si es administrador (en ese caso siempre podrá tener acceso al recurso)")
+    // console.log("Ahora nos fijaremos si es administrador (en ese caso siempre podrá tener acceso al recurso)")
   
     const rolesArray = userRoles?.roles; // Asegúrate de que esto sea un arreglo
 
@@ -148,7 +151,7 @@ export class AuthGuard implements CanActivate {
       isAdmin = rolesArray.findIndex((r: { name: string; }) => r?.name === 'admin') >= 0;
 
     if (isAdmin) {
-      console.log("Efectivamente, es administrador. Se retorna true");
+      // console.log("Efectivamente, es administrador. Se retorna true");
       request['user'] = token;
       request['refresh'] = refreshToken;
       return true;
@@ -159,53 +162,57 @@ export class AuthGuard implements CanActivate {
     } 
 
 
-    console.log("EL USUARIO ACTUALMENTE NO ES ADMINISTRADOR")
-    console.log("Buscaremos saber si el recurso requiere permisos de adminisrtador")
+    // console.log("EL USUARIO ACTUALMENTE NO ES ADMINISTRADOR")
+    // console.log("Buscaremos saber si el recurso requiere permisos de adminisrtador")
 
-    console.log("Es admin?: ", isAdmin)
+    // console.log("Es admin?: ", isAdmin)
 
     if ((roles?.includes('admin')) && (!isAdmin)) {
-      console.log("No es administrador y requerimos ese permiso, se retorna false")
+      // console.log("No es administrador y requerimos ese permiso, se retorna false")
       return false;
     }
 
-    console.log("NO REQUIERE ADMIN")
-    console.log("Buscaremos si requiere role de user")
+    // console.log("NO REQUIERE ADMIN")
+    // console.log("Buscaremos si requiere role de user")
 
     const requireUserRole: boolean = (roles.findIndex(r => r === 'user') >= 0);
 
-    console.log("requiere rol de user?: " + requireUserRole);
+    // console.log("requiere rol de user?: " + requireUserRole);
 
     const isUser: boolean = rolesArray.findIndex((r: { name: string; }) => r?.name === 'user') >= 0;
-    console.log("El cliente tiene rol de usuario?: " + isUser);
+    // console.log("El cliente tiene rol de usuario?: " + isUser);
   
     if ((!isUser) && (requireUserRole)) {
-      console.log('User role required but not present');
+      // console.log('User role required but not present');
       return false;
     }
 
-    console.log("PERFECTO, NO REQUIERE ROLES ADICIONALES")
-    console.log("Se retorna true finalmente")
+    // console.log("PERFECTO, NO REQUIERE ROLES ADICIONALES")
+    // console.log("Se retorna true finalmente")
   
     request['user'] = token;
     request['refresh'] = refreshToken;
     return true;
   }
 
-  isPayloadInvalid(payload: any): boolean {
+  isPayloadInvalid(payload: ITokenPayload): boolean {
     if (!payload) {
       return true; // El payload es null o undefined
     }
   
     // Verifica que el payload tenga los campos esperados y que sean válidos
-    if (typeof payload.id !== 'number' || payload.id < 1) {
-      return true; // 'id' debe ser un número positivo
+    if (typeof payload.id !== 'number' || payload.id < 0) { // Cambiado de < 1 a < 0
+      return true; // 'id' debe ser un número no negativo
     }
-
-    let isLoggedByGoogleMethod: boolean = payload.payload.method === 'google';
-    let isLoggedByLocalMethod: boolean = payload.payload.method === 'local';
-
-    if (typeof payload.method !== 'string' || (!isLoggedByGoogleMethod && !isLoggedByLocalMethod)) {
+  
+    let isLoggedByGoogleMethod: boolean = payload.method === 'google';
+    let isLoggedByLocalMethod: boolean = payload.method === 'local';
+  
+    if (typeof payload.method !== 'string') {
+      return true; 
+    }
+  
+    if ((!isLoggedByGoogleMethod) && (!isLoggedByLocalMethod)) {
       return true; // 'method' debe ser 'google' o 'local'
     }
   
