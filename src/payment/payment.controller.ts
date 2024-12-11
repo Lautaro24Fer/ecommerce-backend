@@ -42,28 +42,28 @@ export class PaymentController {
 
   // TODO: Hay que decirle a nacho que debe configurar la ruta para webhooks
   // desde la integración
-  @Post("mp/preference/webhook")
-  async notificationWehbook(@Body() payload: any) {
-      const paymentId = payload?.data?.id;
-      if (!paymentId) {
-        const badRequestError: IBadRequestex = {
-          status: false,
-          message: "Payment ID not found"
-        }
-        throw new BadRequestException(badRequestError);
-      }
-      // Procesar el pago y actualizar el estado de la orden
-      await this.paymentService.updateOrderStatusByPaymentId(paymentId);
+  // @Post("mp/preference/webhook")
+  // async notificationWehbook(@Body() payload: any) {
+  //     const paymentId = payload?.data?.id;
+  //     if (!paymentId) {
+  //       const badRequestError: IBadRequestex = {
+  //         status: false,
+  //         message: "Payment ID not found"
+  //       }
+  //       throw new BadRequestException(badRequestError);
+  //     }
+  //     // Procesar el pago y actualizar el estado de la orden
+  //     await this.paymentService.updateOrderStatusByPaymentId(paymentId);
       
-      return { status: 'success' };
-  }
+  //     return { status: 'success' };
+  // }
 
-  // Testeo para conocer el estado del payment
-  @Post("mp/preference/status")
-  async knowStatus(@Body() paymentStatusDto: PaymentStatusDto){
+  // // Testeo para conocer el estado del payment
+  // @Post("mp/preference/status")
+  // async knowStatus(@Body() paymentStatusDto: PaymentStatusDto){
 
-    await this.paymentService.knowStatus(paymentStatusDto.paymentId);
-  }
+  //   await this.paymentService.knowStatus(paymentStatusDto.paymentId);
+  // }
 }
 
 

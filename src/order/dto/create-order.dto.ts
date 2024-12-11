@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsArray, IsEnum, IsNumber, IsOptional, IsPositive, Max, ValidateNested } from "class-validator";
-import { MethodPaymentType } from "src/global/enum";
+import { MethodPaymentType } from "../../global/enum";
 
 export class CreateOrderDto {
   @ApiProperty()

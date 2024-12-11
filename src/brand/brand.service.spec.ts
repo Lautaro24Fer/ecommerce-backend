@@ -6,6 +6,7 @@ import { Brand } from './entities/brand.entity';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { QueryParamsBrandDto } from './dto/query-params.dto';
 
 describe('BrandService', () => {
   let service: BrandService;
@@ -76,19 +77,32 @@ describe('BrandService', () => {
     it('should return all brands', async () => {
       const brands: Brand[] = [{ id: 1, name: 'Brand 1' }, { id: 2, name: 'Brand 2' }];
 
-      jest.spyOn(repository, 'find').mockResolvedValue(brands);
+      const queryBuilder: any = {
+        andWhere: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(brands),
+      };
 
-      const result = await service.findAll();
+      jest.spyOn(repository, 'createQueryBuilder').mockReturnValue(queryBuilder);
+
+      const queryParams: QueryParamsBrandDto = { name: 'Brand', limit: 10 };
+
+      const result = await service.findAll(queryParams);
 
       expect(result.status).toBe(true);
-      expect(result.message).toBe('The brands was loaded succesfully');
+      expect(result.message).toBe('The brands were loaded successfully');
       expect(result.recourse).toEqual(brands);
+      expect(queryBuilder.andWhere).toHaveBeenCalled();
+      expect(queryBuilder.take).toHaveBeenCalled();
+      expect(queryBuilder.getMany).toHaveBeenCalled();
     });
+
 
     it('should throw BadRequestException on find error', async () => {
       jest.spyOn(repository, 'find').mockRejectedValue(new Error('Find error'));
+      const queryParams: QueryParamsBrandDto = {} as unknown as QueryParamsBrandDto;
 
-      await expect(service.findAll()).rejects.toThrow(BadRequestException);
+      await expect(service.findAll(queryParams)).rejects.toThrow(BadRequestException);
     });
   });
 

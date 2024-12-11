@@ -56,14 +56,14 @@ describe('ImagesService', () => {
       id: 1,
       name: '',
       price: 0,
-      shippingCost: 0,
       stock: 0,
       description: '',
       image: '',
       secondariesImages: [],
       type: new ProductType,
       brand: new Brand,
-      supplier: new Supplier
+      supplier: new Supplier,
+      cost: 0
     };
     const mockFile: MulterFile = { path: 'path/to/file', filename: 'file.jpg' } as MulterFile;
     const mockImageUrl = 'ftp://server/path/to/file.jpg';
@@ -90,14 +90,14 @@ describe('ImagesService', () => {
       id: 1,
       name: '',
       price: 0,
-      shippingCost: 0,
       stock: 0,
       description: '',
       image: '',
       secondariesImages: [],
       type: new ProductType,
       brand: new Brand,
-      supplier: new Supplier
+      supplier: new Supplier,
+      cost: 0
     };
     const mockFile: MulterFile = { path: 'path/to/file', filename: 'file.jpg' } as MulterFile;
     const mockImageUrl = 'ftp://server/path/to/file.jpg';
@@ -138,14 +138,14 @@ describe('ImagesService', () => {
       id: 1,
       name: '',
       price: 0,
-      shippingCost: 0,
       stock: 0,
       description: '',
       image: '',
       secondariesImages: [],
       type: new ProductType,
       brand: new Brand,
-      supplier: new Supplier
+      supplier: new Supplier,
+      cost: 0
     } };
 
     jest.spyOn(imageRepository, 'findOne').mockResolvedValue(mockImage);
@@ -168,7 +168,6 @@ describe('ImagesService', () => {
   //     id: 1,
   //     name: '',
   //     price: 0,
-  //     shippingCost: 0,
   //     stock: 0,
   //     description: '',
   //     image: '',
@@ -199,14 +198,14 @@ describe('ImagesService', () => {
       id: 1,
       name: '',
       price: 0,
-      shippingCost: 0,
       stock: 0,
       description: '',
       image: '',
       secondariesImages: [],
       type: new ProductType,
       brand: new Brand,
-      supplier: new Supplier
+      supplier: new Supplier,
+      cost: 0
     };
     const mockImage: ProductImage = { id: 1, url: '', product: mockProduct };
 
@@ -232,14 +231,14 @@ describe('ImagesService', () => {
       id: 1,
       name: '',
       price: 0,
-      shippingCost: 0,
       stock: 0,
       description: '',
       image: '',
       secondariesImages: [],
       type: new ProductType,
       brand: new Brand,
-      supplier: new Supplier
+      supplier: new Supplier,
+      cost: 0
     };
     const mockImage: ProductImage = { id: 1, url: 'url1', product: mockProduct };
 

@@ -6,6 +6,7 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 import { Brand } from './entities/brand.entity';
 import { UpdateBrandDto } from './dto/update-brand.dto';
+import { QueryParamsBrandDto } from './dto/query-params.dto';
 
 describe('BrandController', () => {
   let brandController: BrandController;
@@ -66,13 +67,18 @@ describe('BrandController', () => {
 
       jest.spyOn(brandService, 'findAll').mockResolvedValue(foundBrands);
 
-      expect(await brandController.findAll()).toEqual(foundBrands);
+      const queryParams: QueryParamsBrandDto = {} as unknown as QueryParamsBrandDto;
+
+      expect(await brandController.findAll(queryParams)).toEqual(foundBrands);
     });
 
     it('should throw BadRequestException on find error', async () => {
       jest.spyOn(brandService, 'findAll').mockRejectedValue(new BadRequestException());
 
-      await expect(brandController.findAll()).rejects.toThrow(BadRequestException);
+      const queryParams: QueryParamsBrandDto = {} as unknown as QueryParamsBrandDto;
+
+
+      await expect(brandController.findAll(queryParams)).rejects.toThrow(BadRequestException);
     });
   });
 
