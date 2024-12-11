@@ -1,19 +1,27 @@
-import { Brand } from 'src/brand/entities/brand.entity';
-import { Supplier } from 'src/supplier/entities/supplier.entity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Brand } from '../../brand/entities/brand.entity';
+import { Supplier } from '../../supplier/entities/supplier.entity';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ProductType } from '../../type/entities/type.entity';
-import { ProductImage } from 'src/images/entities/image.entity';
+import { ProductImage } from '../../images/entities/image.entity';
 
 @Entity('product')
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
 
+  // Pricing
+
+  @Column('decimal', { precision: 10, scale: 2})
+  price: number; // Precio base del producto
+
+  @Column('decimal', { precision: 10, scale: 2})
+  cost: number; // Precio de costo para calcular ganancia
+
   @Column()
   name: string;
 
-  @Column()
-  price: number;
+  @Column({ type: 'int', default: 0 })
+  stock: number;
 
   @Column({ type: 'text' })
   description: string;
@@ -24,12 +32,12 @@ export class Product {
   @OneToMany(() => ProductImage, (image) => image.product, { onDelete: 'CASCADE' })
   secondariesImages: ProductImage[]
 
-  @ManyToOne(() => ProductType, (type) => type.id, { cascade: true })
+  @ManyToOne(() => ProductType, (type) => type.id)
   type: ProductType;
 
-  @ManyToOne(() => Brand, (brand) => brand.id, { cascade: true })
+  @ManyToOne(() => Brand, (brand) => brand.id)
   brand: Brand;
 
-  @ManyToOne(() => Supplier, (supplier) => supplier.id, { cascade: true })
+  @ManyToOne(() => Supplier, (supplier) => supplier.id)
   supplier: Supplier;
 }

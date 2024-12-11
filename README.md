@@ -419,3 +419,26 @@ En donde hay que tener en cuenta el siguiente formato en el body
 }
 ```
 Como respuesta se dará una url al formulario embebido, al que se debe redirigir desde el cliente. 
+
+## ORDERS (simplificado)
+
+La order requiere de estos parametros
+
+```typescript
+export class CreateOrderDto {
+  userId: number; // Id del usuario
+  addressId: number; // Id de la direccion relacionada al producto (debe de estar relacionada al usuario)
+  paymentId: number; // Id del pago de MP, que viene como parametro en la query de respueta una vez pagado
+  products: ProductQuantity[];
+  installments?: number; // Cuotas (1 por defecto)
+  paymentMethod: MethodPaymentType; // Metodo de pago ("MP_TRANSFER" por defecto)
+}
+
+//Estructura para los productos
+export class ProductQuantity {
+  productId: number; // Id del producto
+  quantity: number; // Cantidad solicitada
+}
+```
+
+Esta llamada debe de hacerse una vez hecho el pago

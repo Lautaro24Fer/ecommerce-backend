@@ -7,6 +7,7 @@ import { BrandModule } from 'src/brand/brand.module';
 import { SupplierModule } from 'src/supplier/supplier.module';
 import { TypeModule } from 'src/type/type.module';
 import { ImagesModule } from 'src/images/images.module';
+import { FtpModule } from 'src/ftp/ftp.module';
 
 @Module({
   controllers: [ProductController],
@@ -15,7 +16,9 @@ import { ImagesModule } from 'src/images/images.module';
   forwardRef(() => ImagesModule),
   BrandModule, 
   SupplierModule, 
-  TypeModule],
+  TypeModule,
+  FtpModule
+  ],
   exports: [ProductService, TypeOrmModule],
 })
 export class ProductModule {}
