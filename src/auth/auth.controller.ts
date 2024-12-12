@@ -123,8 +123,8 @@ export class AuthController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error getting the session state"
   })
-  @UseGuards(AuthGuard)
-  @Roles(['user', 'admin'])
+  //@UseGuards(AuthGuard)
+ //  @Roles(['user', 'admin'])
   @Get('status')
   async isLogged(@Req() req: Request): Promise<SessionStateDto>{
     const refreshToken: any = req.cookies['refresh']
@@ -153,8 +153,8 @@ export class AuthController {
     status: HttpStatus.NOT_FOUND,
     description: "The user in the token was not found"
   })
-  @UseGuards(AuthGuard)
-  @Roles(['user', 'admin'])
+  //@UseGuards(AuthGuard)
+ //  @Roles(['user', 'admin'])
   @Post('refresh')
   async refreshToken(@Req() req: Request, @Res() res: Response): Promise<Response>{
     const refreshToken: string = req.cookies['refresh']
@@ -203,8 +203,8 @@ export class AuthController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error in the logout of the session"
   })
-  @UseGuards(AuthGuard)
-  @Roles(['user', 'admin'])
+  //@UseGuards(AuthGuard)
+ //  @Roles(['user', 'admin'])
   @Post('logout')
   logout(@Res() res: Response): Response{
     res.cookie('user', '', { httpOnly: true, expires: new Date(0) });

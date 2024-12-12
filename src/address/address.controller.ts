@@ -6,7 +6,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
 import { Address } from './entities/address.entity';
 import { Roles } from '../auth/auth.decorator';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Address')
 @Controller('address')

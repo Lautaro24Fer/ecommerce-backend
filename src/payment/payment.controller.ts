@@ -35,7 +35,7 @@ export class PaymentController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Unauthorized operation. Need tokens for make a payment preference'
   })
-  @UseGuards(AuthGuard)
+  //@UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   // TODO: La id no debería llegar desde el body, sino desde la cookie ya que es un recurso protegido
   @Post('mp/preference')

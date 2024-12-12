@@ -6,7 +6,7 @@ import { IRecourseCreated, IRecourseDeleted, IRecourseFound } from '../global/re
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterFile } from './dto/multer-file';
 import { multerOptions } from '../global/multer.config';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from '../auth/auth.decorator';
 
 @ApiTags('Images of products')
@@ -38,7 +38,7 @@ export class ImagesController {
     description: 'Error adding a new image to a product'
   })
   @Post(':id')
-  @UseGuards(AuthGuard)
+  //@UseGuards(AuthGuard)
   @Roles(['admin'])
   @UseInterceptors(FileInterceptor('image', multerOptions)) // 'image' en este caso sería el nombre del campo del formulario
   async create(@Param('id') id: number, @UploadedFile() file: MulterFile): Promise<IRecourseCreated<ProductImage>> {
@@ -98,7 +98,7 @@ export class ImagesController {
     description: 'Error deleting the image'
   })
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  //@UseGuards(AuthGuard)
   @Roles(['admin'])
   async remove(@Param('id') id: number): Promise<IRecourseDeleted<ProductImage>> {
     return await this.imagesService.remove(id);
