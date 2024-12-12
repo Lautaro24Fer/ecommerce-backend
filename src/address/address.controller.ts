@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, NotFoundException, BadRequestException, UseGuards } from '@nestjs/common';
 import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
 import { Address } from './entities/address.entity';
+import { Roles } from '../auth/auth.decorator';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Address')
 @Controller('address')
@@ -26,6 +28,8 @@ export class AddressController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error in the creation of the new address'
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin', 'user'])
   @Post()
   async create(@Body() createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>> {
     const { postalCode, addressNumber, addressStreet } = createAddressDto;
@@ -67,6 +71,8 @@ export class AddressController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error loading the addresses'
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin', 'user'])
   @Get()
   findAll(): Promise<IRecourseFound<Address[]>> {
     return this.addressService.findAll();
@@ -91,6 +97,8 @@ export class AddressController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error loading the address'
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin', 'user'])
   @Get(':id')
   findOne(@Param('id') id: number): Promise<IRecourseFound<Address>> {
     return this.addressService.findOne(id);
@@ -115,6 +123,8 @@ export class AddressController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error updating the address'
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateAddressDto: UpdateAddressDto): Promise<IRecourseUpdated<Address>> {
     return this.addressService.update(id, updateAddressDto);
@@ -139,6 +149,8 @@ export class AddressController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error removing the address'
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Delete(':id')
   remove(@Param('id') id: number): Promise<IRecourseDeleted<Address>> {
     return this.addressService.remove(id);

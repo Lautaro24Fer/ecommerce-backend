@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards } from '@nestjs/common';
 import { IdTypeService } from './id-type.service';
 import { CreateIdTypeDto } from './dto/create-id-type.dto';
 import { UpdateIdTypeDto } from './dto/update-id-type.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
 import { IdType } from './entities/id-type.entity';
+import { AuthGuard } from '../auth/auth.guard';
+import { Roles } from '../auth/auth.decorator';
 
 @ApiTags('Identification Types')
 @Controller('id-type')
@@ -27,6 +29,8 @@ export class IdTypeController {
     description: 'Error in the creation of the identification type'
   })
   @Post()
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   create(@Body() createIdTypeDto: CreateIdTypeDto): Promise<IRecourseCreated<IdType>> {
     return this.idTypeService.create(createIdTypeDto);
   }
@@ -98,6 +102,8 @@ export class IdTypeController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error in the updating of the identification type'
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateIdTypeDto: UpdateIdTypeDto): Promise<IRecourseUpdated<IdType>> {
     return this.idTypeService.update(id, updateIdTypeDto);
@@ -122,6 +128,8 @@ export class IdTypeController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error in the deleting of the identification type'
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Delete(':id')
   async remove(@Param('id') id: number): Promise<IRecourseDeleted<IdType>> {
     return await this.idTypeService.remove(id);
