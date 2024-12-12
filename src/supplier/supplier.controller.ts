@@ -8,13 +8,16 @@ import {
   Delete,
   HttpStatus,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { SupplierService } from './supplier.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
 import { Supplier } from './entities/supplier.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/auth.decorator';
 
 @ApiTags('Suppliers')
 @Controller('supplier')
@@ -30,6 +33,8 @@ export class SupplierController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Bad request. The supplier was not created',
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Post()
   create(@Body() createSupplierDto: CreateSupplierDto): Promise<IRecourseCreated<Supplier>> {
     return this.supplierService.create(createSupplierDto);
@@ -48,6 +53,8 @@ export class SupplierController {
     status: HttpStatus.NOT_FOUND,
     description: 'Suppliers not found',
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Get()
   findAll(): Promise<IRecourseFound<Supplier[]>> {
     return this.supplierService.findAll();
@@ -66,6 +73,8 @@ export class SupplierController {
     status: HttpStatus.NOT_FOUND,
     description: 'Supplier not found',
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Get(':id')
   findOne(@Param('id') id: number): Promise<IRecourseFound<Supplier>> {
     return this.supplierService.findOne(id);
@@ -84,6 +93,8 @@ export class SupplierController {
     status: HttpStatus.NOT_FOUND,
     description: 'Supplier not found',
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Put(':id')
   update( @Param('id') id: number, @Body() updateSupplierDto: UpdateSupplierDto ): Promise<IRecourseUpdated<Supplier>> {
     return this.supplierService.update(id, updateSupplierDto);
@@ -102,6 +113,8 @@ export class SupplierController {
     status: HttpStatus.NOT_FOUND,
     description: 'Supplier not found',
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Delete(':id')
   remove(@Param('id') id: number): Promise<IRecourseDeleted<Supplier>> {
     return this.supplierService.remove(id);

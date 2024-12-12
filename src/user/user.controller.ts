@@ -28,6 +28,7 @@ import { RequestUpdatePasswordCodeDto, ResponsetUpdatePasswordCodeDto, UpdateUse
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from '../global/responseInterfaces';
 import { UpdateType } from '../global/enum';
 import { Address } from '../address/entities/address.entity';
+import { Roles } from 'src/auth/auth.decorator';
 
 @ApiTags('Users')
 @Controller('user')
@@ -65,6 +66,8 @@ export class UserController {
     status: HttpStatus.BAD_REQUEST, 
     description: 'Error loading all users' 
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Get()
   async findAll(): Promise<IRecourseFound<UserDto[]>> {
     const response: IRecourseFound<UserDto[]> = await this.userService.findAll();
@@ -89,6 +92,7 @@ export class UserController {
     description: 'Error loading the authenticated user, unauthoraized exception'
   })
   @UseGuards(AuthGuard)
+  @Roles(['admin', 'user'])
   @Get('cookie')
   async findOneAuthenticated(@Req() req: Request): Promise<AuthUserResponseDto | undefined> {
     try {
@@ -164,6 +168,7 @@ export class UserController {
     description: 'Time expired to update password'
   })
   @UseGuards(ResetUserPasswordGuard)
+  @UseGuards(AuthGuard)
   @Put('/reset-pass')
   async resetPassword(@Req() req: Request , @Res() res: Response, @Body() updateUserPasswordDto: UpdateUserPasswordDto): Promise<Response>{
 
@@ -204,6 +209,8 @@ export class UserController {
     status: HttpStatus.NOT_FOUND,
     description: "The id user was not found in database"
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin', 'user'])
   @Get('addresses/:id')
   async getUserAddresses(@Param('id') id: number): Promise<IRecourseFound<Address[]>>{
     const recourseFound: IRecourseFound<User> = await this.userService.findOneById(id);
@@ -235,7 +242,8 @@ export class UserController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Can not load the user, unauthorized request'
   })
-  // @UseGuards(AuthGuard) -- Elimino las restricciones por testeo
+  @UseGuards(AuthGuard)
+  @Roles(['admin', 'user'])
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<IRecourseFound<UserDto>> {
     const user: IRecourseFound<User> = await this.userService.findOneById(id);
@@ -261,6 +269,8 @@ export class UserController {
     status: HttpStatus.BAD_REQUEST, 
     description: 'Bad request, error updating the user' 
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin', 'user'])
   @Patch(':id')
   async patchUpdate( @Param('id') id: number, @Body() updateUserDto: PartialUpdateUserDto ): Promise<IRecourseUpdated<UserDto>> {
     const userUpdated: IRecourseUpdated<User> = await this.userService.update(id, updateUserDto, UpdateType.PARTIAL);
@@ -285,6 +295,8 @@ export class UserController {
     status: HttpStatus.BAD_REQUEST, 
     description: 'Bad request, error updating the user' 
   })
+  @UseGuards(AuthGuard)
+  @Roles(['user', 'admin'])
   @Put(':id')
   async putUpdate( @Param('id') id: number, @Body() updateUserDto: FullUpdateUserDto ): Promise<IRecourseUpdated<UserDto>> {
     const userUpdated: IRecourseUpdated<User> = await this.userService.update(id, updateUserDto, UpdateType.FULL);
@@ -316,7 +328,8 @@ export class UserController {
   @ApiResponse({ 
     status: HttpStatus.BAD_REQUEST, 
     description: 'Bad request, error deleting the user' })
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Delete(':id')
   async remove(@Param('id') id: number): Promise<IRecourseDeleted<UserDto>> {
     const userRemoved: IRecourseDeleted<User> = await this.userService.remove(id);

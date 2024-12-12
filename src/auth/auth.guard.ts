@@ -73,8 +73,6 @@ export class AuthGuard implements CanActivate {
     if (this.isPayloadInvalid(refreshTokenPayload.payload)) {
       // console.log("El payload del refresh token es inválido");
       // console.log(refreshTokenPayload.payload)
-      // console.log("_____is logged by google method: " + isLoggedByGoogleMethod)
-      // console.log("_____is logged by local method: " + isLoggedByLocalMethod)
       let refreshRolesArray = Array.isArray(refreshTokenPayload.payload.roles);
       // console.log("El array de roles es efectivamente un array?: " + refreshRolesArray);
       let rolesLenght = refreshTokenPayload.payload.roles.length
@@ -205,8 +203,8 @@ export class AuthGuard implements CanActivate {
       return true; // 'id' debe ser un número no negativo
     }
   
-    let isLoggedByGoogleMethod: boolean = payload.method === 'google';
-    let isLoggedByLocalMethod: boolean = payload.method === 'local';
+    let isLoggedByGoogleMethod: boolean = payload.method.toLowerCase() === 'google';
+    let isLoggedByLocalMethod: boolean = payload.method.toLowerCase() === 'local';
   
     if (typeof payload.method !== 'string') {
       return true; 

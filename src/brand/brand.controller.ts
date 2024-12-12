@@ -8,6 +8,7 @@ import {
   Delete,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { BrandService } from './brand.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
@@ -16,6 +17,8 @@ import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
 import { Brand } from './entities/brand.entity';
 import { QueryParamsBrandDto } from './dto/query-params.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/auth.decorator';
 
 @ApiTags('Brands')
 @Controller('brand')
@@ -31,6 +34,8 @@ export class BrandController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Bad request. The new brand was not created',
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Post()
   create(@Body() createBrandDto: CreateBrandDto): Promise<IRecourseCreated<Brand>> {
     return this.brandService.create(createBrandDto);
@@ -60,6 +65,7 @@ export class BrandController {
     required: false,
     description: 'Limit of the orders returned',
   })
+  
   @Get()
   findAll(@Query() queryParams: QueryParamsBrandDto): Promise<IRecourseFound<Brand[]>> {
     return this.brandService.findAll(queryParams);
@@ -96,6 +102,8 @@ export class BrandController {
     status: HttpStatus.NOT_FOUND,
     description: 'Brand not found',
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateBrandDto: UpdateBrandDto): Promise<IRecourseUpdated<Brand>> {
     return this.brandService.update(id, updateBrandDto);
@@ -114,6 +122,8 @@ export class BrandController {
     status: HttpStatus.NOT_FOUND,
     description: 'Brand not found',
   })
+  @UseGuards(AuthGuard)
+  @Roles(['admin'])
   @Delete(':id')
   remove(@Param('id') id: number): Promise<IRecourseDeleted<Brand>> {
     return this.brandService.remove(id);

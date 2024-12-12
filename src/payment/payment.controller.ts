@@ -4,8 +4,10 @@ import { ApiOperation, ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger
 import { Response } from 'express';
 import { PaymentGuard } from './payment.guard';
 import { IPaymentPreferenceReq } from './dto/preference-payment';
-import { IBadRequestex } from 'src/global/responseInterfaces';
+import { IBadRequestex } from '../global/responseInterfaces';
 import { IsPositive } from 'class-validator';
+import { AuthGuard } from '../auth/auth.guard';
+import { Roles } from '../auth/auth.decorator';
 
 class PaymentStatusDto{
   @ApiProperty()
@@ -33,7 +35,8 @@ export class PaymentController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Unauthorized operation. Need tokens for make a payment preference'
   })
-  // @UseGuards(PaymentGuard)
+  @UseGuards(AuthGuard)
+  @Roles(['admin', 'user'])
   // TODO: La id no debería llegar desde el body, sino desde la cookie ya que es un recurso protegido
   @Post('mp/preference')
   async createPaymentPreference(@Body() paymentPreference: IPaymentPreferenceReq,  @Res() res: Response ): Promise<void>{
