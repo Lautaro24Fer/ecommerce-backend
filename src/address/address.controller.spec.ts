@@ -6,6 +6,9 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { IRecourseCreated, IRecourseFound, IRecourseUpdated, IRecourseDeleted } from 'src/global/responseInterfaces';
 import { Address } from './entities/address.entity';
+import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from '../auth/auth.guard';
+import { ConfigService } from '@nestjs/config';
 
 describe('AddressController', () => {
   let addressController: AddressController;
@@ -24,6 +27,22 @@ describe('AddressController', () => {
             remove: jest.fn(),
             findOneByAllData: jest.fn(),
             findAll: jest.fn(),
+          },
+        },
+        {
+          provide: AuthGuard,
+          useValue: jest.fn().mockImplementation(() => true), // Mock AuthGuard
+        },
+        {
+          provide: JwtService,
+          useValue: {
+            sign: jest.fn().mockReturnValue('mockJwtToken'), // Mock JwtService
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue('mockJwtSecret'), // Mock ConfigService
           },
         },
       ],

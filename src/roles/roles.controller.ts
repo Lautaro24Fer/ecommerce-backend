@@ -6,7 +6,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
 import { Role } from './entities/role.entity';
 import { Roles } from '../auth/auth.decorator';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Roles')
 @Controller('roles')
@@ -27,7 +27,7 @@ export class RolesController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Can not create a role, unauthorized request'
   })
-  @UseGuards(AuthGuard)
+  //@UseGuards(AuthGuard)
   @Roles(['admin'])
   @Post()
   create(@Body() createRoleDto: CreateRoleDto): Promise<IRecourseCreated<Role>> {
@@ -91,7 +91,7 @@ export class RolesController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Can not update this role, unauthorized request'
   })
-  @UseGuards(AuthGuard)
+  //@UseGuards(AuthGuard)
   @Roles(['admin'])
   @Put(':id')
   update(@Param('id') id: number, @Body() updateRoleDto: UpdateRoleDto): Promise<IRecourseUpdated<Role>> {
@@ -115,7 +115,7 @@ export class RolesController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Can not delete this role, unauthorized request'
   })
-  @UseGuards(AuthGuard)
+  //@UseGuards(AuthGuard)
   @Roles(['admin'])
   @Delete(':id')
   remove(@Param('id') id: number): Promise<IRecourseDeleted<Role>> {
