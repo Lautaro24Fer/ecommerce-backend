@@ -7,6 +7,8 @@ import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } 
 import { Brand } from './entities/brand.entity';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { QueryParamsBrandDto } from './dto/query-params.dto';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 describe('BrandController', () => {
   let brandController: BrandController;
@@ -15,6 +17,16 @@ describe('BrandController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BrandController],
+      imports: [
+        ConfigModule,
+          JwtModule.registerAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: async (configService: ConfigService) => ({
+            secretOrPrivateKey: configService.get<string>('JWT_SECRET') ?? 'secret',
+          }),
+        }),
+      ],
       providers: [
         {
           provide: BrandService,
