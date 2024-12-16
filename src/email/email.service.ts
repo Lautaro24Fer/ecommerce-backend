@@ -59,7 +59,7 @@ export class EmailService {
 			return recourseCreated;
 		})
 		.catch((error) => {
-			console.error(" ***ERROR***")
+			console.error(" *** EMAIL ERROR***")
 			console.error(error);
 			const badRequestError: IBadRequestex = {
 				status: false,

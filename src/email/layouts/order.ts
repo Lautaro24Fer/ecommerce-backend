@@ -166,10 +166,11 @@ const createOrderLayout = (order: Order) => {
 
   const headerLayout: string = header(order.id);
 
-  const totalPrice: number = order?.productOrder?.reduce((acum, curr) => acum = acum + (curr.product.price * curr.quantity), 0);
- 
+  // const totalPrice: number = order?.productOrder?.reduce((acum, curr) => acum = acum + (curr.product.price * curr.quantity), 0);
+  const totalPrice: number = order.total;
+
   const presentationLayout: string = presentation(order?.user, order?.paymentMethod,totalPrice );
-  const shippingDataLayout: string = shippingData(order?.user?.name, order?.user?.surname);
+  const shippingDataLayout: string = shippingData(order?.user?.name, order?.user?.surname, order?.address?.postalCode);
   const productLayout: string[] = order?.productOrder?.map((p) => {
     const productHtml: string = buildProductHtml(p.product, p.quantity);
     return productHtml;

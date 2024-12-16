@@ -8,6 +8,8 @@ import { SupplierModule } from 'src/supplier/supplier.module';
 import { TypeModule } from 'src/type/type.module';
 import { ImagesModule } from 'src/images/images.module';
 import { FtpModule } from 'src/ftp/ftp.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   controllers: [ProductController],
@@ -17,7 +19,15 @@ import { FtpModule } from 'src/ftp/ftp.module';
   BrandModule, 
   SupplierModule, 
   TypeModule,
-  FtpModule
+  FtpModule,
+  ConfigModule,
+  JwtModule.registerAsync({
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: async (configService: ConfigService) => ({
+    secretOrPrivateKey: configService.get<string>('JWT_SECRET'),
+    }),
+  }),
   ],
   exports: [ProductService, TypeOrmModule],
 })
