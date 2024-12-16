@@ -8,6 +8,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 describe('ProductController', () => {
   let controller: ProductController;
@@ -16,6 +18,16 @@ describe('ProductController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProductController],
+      imports: [
+        ConfigModule,
+          JwtModule.registerAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: async (configService: ConfigService) => ({
+            secretOrPrivateKey: configService.get<string>('JWT_SECRET') ?? 'secret',
+          }),
+        }),
+      ],
       providers: [
         {
           provide: ProductService,

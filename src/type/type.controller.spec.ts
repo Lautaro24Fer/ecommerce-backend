@@ -5,6 +5,8 @@ import { CreateTypeDto } from './dto/create-type.dto';
 import { ProductType } from './entities/type.entity';
 import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
 import { UpdateTypeDto } from './dto/update-type.dto';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 describe('TypeController', () => {
   let controller: TypeController;
@@ -13,6 +15,16 @@ describe('TypeController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TypeController],
+      imports: [
+        ConfigModule,
+          JwtModule.registerAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: async (configService: ConfigService) => ({
+            secretOrPrivateKey: configService.get<string>('JWT_SECRET') ?? 'secret',
+          }),
+        }),
+      ],
       providers: [
         {
           provide: TypeService,

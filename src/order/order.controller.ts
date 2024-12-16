@@ -10,11 +10,14 @@ import {
   BadRequestException,
   Query,
   UseGuards,
+  Res,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound } from '../global/responseInterfaces';
+import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound, IUnauthorizedEx } from '../global/responseInterfaces';
 import { Order } from './entities/order.entity';
 import { OrderDto } from './dto/order.dto';
 import { UserService } from '../user/user.service';
@@ -22,6 +25,9 @@ import { EmailService } from '../email/email.service';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from '../auth/auth.decorator';
+import { JwtService } from '@nestjs/jwt';
+import { Request } from 'express';
+
 
 @ApiTags('Orders')
 @Controller('order')
@@ -29,7 +35,8 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     private readonly userService: UserService,
-    private readonly emailService: EmailService) {}
+    private readonly emailService: EmailService,
+    private readonly jwtService: JwtService) {}
 
   @ApiOperation({
     summary: "Create a new order"
@@ -46,7 +53,7 @@ export class OrderController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error in the creation of the order"
   })
-  //@UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Post()
   async create(@Body() createOrderDto: CreateOrderDto): Promise<IRecourseCreated<OrderDto>> {
@@ -91,13 +98,11 @@ export class OrderController {
     type: String,
     description: 'Max date for filter the orders',
   })
-  //@UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Get()
   async findAll(@Query() queryParams: QueryParamsDto): Promise<IRecourseFound<OrderDto[]>> {
     const orders: IRecourseFound<Order[]> = await this.orderService.findAll(queryParams);
-    console.log("-- FIND ALL ORDERS --")
-    console.log(JSON.stringify(orders, null, 2));
     const ordersDto: OrderDto[] = orders.recourse.map((order) => {
       const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(order);
       return  orderDto
@@ -131,10 +136,28 @@ export class OrderController {
     status: HttpStatus.NOT_FOUND,
     description: 'The user with the specified id was not found'
   })
-  //@UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Get('user/:id')
-  async getUserOrders(@Param('id') id: number): Promise<IRecourseFound<OrderDto[]>>{
+  async getUserOrders(@Param('id') id: number, @Req() req: Request): Promise<IRecourseFound<OrderDto[]>>{
+
+    const userToken: string = req?.cookies['user'];
+    console.log("usertoken")
+    console.log(userToken)
+    const userPayload = await this.jwtService.decode(userToken);
+
+    console.log("userpayload")
+    console.log(userPayload)
+    
+
+    // Check if the role is 'user' and compare IDs
+  if ((userPayload?.roles?.includes('user')) && (userPayload?.id !== id)) {
+    const unauthError: IUnauthorizedEx = {
+      status: false,
+      message: "User ID does not match the token ID"
+    }
+    throw new UnauthorizedException(unauthError);
+  }
 
     const orders: IRecourseFound<Order[]> = await this.orderService.findOrdersByUserId(id);
     const ordersDto: OrderDto[] = orders.recourse.map((order) => {
@@ -166,7 +189,7 @@ export class OrderController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error finding the order"
   })
-  //@UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<IRecourseFound<OrderDto>> {
@@ -214,7 +237,7 @@ export class OrderController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error deleting the order"
   })
-  //@UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Delete(':id')
   async remove(@Param('id') id: number): Promise<IRecourseDeleted<OrderDto>> {

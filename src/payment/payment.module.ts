@@ -12,6 +12,16 @@ import { OrderModule } from 'src/order/order.module';
 @Module({
   controllers: [PaymentController],
   providers: [PaymentService, ConfigService],
-  imports: [ConfigModule, JwtModule, AuthModule, UserModule, ProductModule, EmailModule, OrderModule]
+  imports: [ConfigModule, JwtModule, AuthModule, UserModule, ProductModule, EmailModule, OrderModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1m' }, //TODO: TIEMPO DE VIDA DEL JWT POR DEFECTO
+        global: true,
+      }),
+    }),
+  ]
 })
 export class PaymentModule {}

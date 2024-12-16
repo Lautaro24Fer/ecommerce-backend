@@ -7,6 +7,8 @@ import { Role } from './entities/role.entity';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { IRecourseUpdated, IRecourseDeleted } from '../global/responseInterfaces';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 describe('RolesController', () => {
   let controller: RolesController;
@@ -15,6 +17,16 @@ describe('RolesController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RolesController],
+      imports: [
+        ConfigModule,
+          JwtModule.registerAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: async (configService: ConfigService) => ({
+            secretOrPrivateKey: configService.get<string>('JWT_SECRET') ?? 'secret',
+          }),
+        }),
+      ],
       providers: [
         {
           provide: RolesService,

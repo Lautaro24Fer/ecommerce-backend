@@ -11,14 +11,30 @@ import { Order } from './entities/order.entity';
 import { User } from '../user/entities/user.entity';
 import { IdType } from '../id-type/entities/id-type.entity';
 import { Address } from '../address/entities/address.entity';
+import { Request } from 'express';
+import { RequestBodyObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { UnauthorizedException } from '@nestjs/common';
 
 describe('OrderController', () => {
   let controller: OrderController;
   let orderService: OrderService;
+  let jwtService: JwtService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OrderController],
+      imports: [
+        ConfigModule,
+          JwtModule.registerAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: async (configService: ConfigService) => ({
+            secretOrPrivateKey: configService.get<string>('JWT_SECRET') ?? 'secret',
+          }),
+        }),
+      ],
       providers: [
         {
           provide: OrderService,
@@ -50,7 +66,12 @@ describe('OrderController', () => {
 
     controller = module.get<OrderController>(OrderController);
     orderService = module.get<OrderService>(OrderService);
+    jwtService = module.get<JwtService>(JwtService);
   });
+
+  function getJwtToken(payload: any, timeToExpire: string): string {
+    return jwtService.sign(payload, { expiresIn: timeToExpire });
+  }
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
@@ -126,6 +147,12 @@ describe('OrderController', () => {
 
   describe('getUserOrders', () => {
     it('should get all orders of a user by id', async () => {
+
+      const req: Request = { cookies: {} } as unknown as Request;
+
+      const cookieCrypted: string = getJwtToken({ id: 1 }, '5m');
+      req.cookies['user'] = cookieCrypted;
+
       const userId = 1;
       const expectedResponse: IRecourseFound<Order[]> = {
         status: true,
@@ -135,8 +162,18 @@ describe('OrderController', () => {
 
       jest.spyOn(orderService, 'findOrdersByUserId').mockResolvedValue(expectedResponse);
 
-      const result = await controller.getUserOrders(userId);
+      const result = await controller.getUserOrders(userId, req);
       expect(result).toEqual(expectedResponse);
+    });
+
+    it('should throw UnauthorizedException if user ID does not match token ID', async () => {
+      const req: Request = { cookies: {} } as unknown as Request;
+  
+      const userId = 2; // Different from the ID in the token
+      const cookieCrypted: string = getJwtToken({ id: 1, roles: ['user'] }, '5m');
+      req.cookies['user'] = cookieCrypted;
+  
+      await expect(controller.getUserOrders(userId, req)).rejects.toThrow(UnauthorizedException);
     });
   });
 

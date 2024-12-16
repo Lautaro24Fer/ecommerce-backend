@@ -6,6 +6,8 @@ import { UpdateIdTypeDto } from './dto/update-id-type.dto';
 import { IRecourseCreated, IRecourseFound, IRecourseUpdated, IRecourseDeleted } from 'src/global/responseInterfaces';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { IdType } from './entities/id-type.entity';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 describe('IdTypeController', () => {
   let controller: IdTypeController;
@@ -14,6 +16,16 @@ describe('IdTypeController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [IdTypeController],
+      imports: [
+        ConfigModule,
+          JwtModule.registerAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: async (configService: ConfigService) => ({
+            secretOrPrivateKey: configService.get<string>('JWT_SECRET') ?? 'secret',
+          }),
+        }),
+      ],
       providers: [
         {
           provide: IdTypeService,

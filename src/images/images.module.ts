@@ -5,9 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductImage } from './entities/image.entity';
 import { ProductModule } from 'src/product/product.module';
 import { FtpModule } from 'src/ftp/ftp.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 import * as path from "path"
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   controllers: [ImagesController],
@@ -19,7 +20,14 @@ import * as path from "path"
       dest: path.resolve('./temp'),
     }),
     FtpModule, 
-    ConfigModule
+    ConfigModule,
+    JwtModule.registerAsync({
+    imports: [ConfigModule],
+    inject: [ConfigService],
+    useFactory: async (configService: ConfigService) => ({
+      secretOrPrivateKey: configService.get<string>('JWT_SECRET'),
+      }),
+    }),
   ],
   exports: [ImagesService, TypeOrmModule],
 

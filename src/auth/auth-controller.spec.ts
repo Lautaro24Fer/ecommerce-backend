@@ -5,6 +5,8 @@ import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { InputLoginDto } from './dto/login.dto';
 import { Request, Response } from 'express';
 import { IRecourseCreated, IRecourseDeleted } from 'src/global/responseInterfaces';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -13,6 +15,16 @@ describe('AuthController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
+      imports: [
+        ConfigModule,
+          JwtModule.registerAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: async (configService: ConfigService) => ({
+            secretOrPrivateKey: configService.get<string>('JWT_SECRET') ?? 'secret',
+          }),
+        }),
+      ],
       providers: [
         {
           provide: AuthService,
