@@ -100,6 +100,13 @@ export class OrderService {
 
     await Promise.all(createOrderDto?.products.map(async (productInstance) => {
       const product: Product = (await this.productService.findOne(productInstance.productId))?.recourse;
+      if(!product.isActive){
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: `The product with id '${product.id}' is not active (deleted)`
+        };
+        throw new BadRequestException(badRequestError);
+      }
       if(product?.stock < productInstance.quantity){
         const badRequestError: IBadRequestex = {
           status: false,

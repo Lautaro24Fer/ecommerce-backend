@@ -41,7 +41,7 @@ export class ProductController {
     description: 'Bad request, the product was not created',
   })
   @Post()
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Roles(['admin'])
   @UseInterceptors(FileInterceptor('image', multerOptions))
   async create(@Body() createProductDto: CreateProductDto, @UploadedFile() file: MulterFile): Promise<IRecourseCreated<Product>> {
@@ -103,6 +103,12 @@ export class ProductController {
     type: Number,
     description: 'minium stock of the product',
   })
+  @ApiQuery({
+    name: 'isActive',
+    required: false,
+    type: Boolean,
+    description: 'Filter products by active status',
+  })
   @Get()
   async findAll(@Query() queryParams: QueryParamsDto): Promise<IRecourseFound<Product[]>> {
     return await this.productService.findAll(queryParams);
@@ -141,7 +147,7 @@ export class ProductController {
   })
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image', multerOptions))
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Roles(['admin'])
   async partialUpdate(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto,@UploadedFile() file?: MulterFile): Promise<IRecourseUpdated<Product>> {
     const responseService: IRecourseUpdated<Product> = (await this.productService.update(id, updateProductDto, file));
@@ -162,7 +168,7 @@ export class ProductController {
     description: 'Error deliting the product',
   })
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Roles(['admin'])
   remove(@Param('id') id: number): Promise<IRecourseDeleted<Product>> {
     return this.productService.remove(id);

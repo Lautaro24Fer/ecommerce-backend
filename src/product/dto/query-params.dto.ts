@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsOptional, IsPositive, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsPositive, IsString } from 'class-validator';
 
 export class QueryParamsDto {
   @ApiPropertyOptional({
@@ -10,6 +10,14 @@ export class QueryParamsDto {
   @IsOptional()
   @IsString()
   name?: string | null | undefined;
+
+  @ApiPropertyOptional({
+    description: 'Name of the product',
+    type: Boolean,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean | null | undefined;
 
   @ApiPropertyOptional({
     description: 'Minium price of the product',

@@ -9,6 +9,8 @@ export class Product {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ default: true })
+  isActive: boolean;
   // Pricing
 
   @Column('decimal', { precision: 10, scale: 2})
