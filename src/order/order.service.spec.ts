@@ -34,7 +34,10 @@ describe('OrderService', () => {
         },
         {
           provide: ProductService,
-          useValue: {}, // Mock ProductService
+          useValue: {
+            findOne: jest.fn().mockResolvedValue({ recourse: { isActive: true, stock: 10, price: 100, cost: 50 } }),
+            update: jest.fn().mockResolvedValue({ recourse: {} }),
+          },
         },
         {
           provide: UserService,
@@ -44,11 +47,11 @@ describe('OrderService', () => {
               message: "",
               recourse: {
                 id: 1,
-                address: [{ id: 1 }] 
+                address: [{ id: 1 }]
               }
             }),
             mapUserToUserDto: jest.fn()
-          }, // Mock UserService
+          },
         },
         {
           provide: ConfigService,
@@ -56,20 +59,20 @@ describe('OrderService', () => {
             get: jest.fn((key: string) => {
               switch (key) {
                 case 'MP_ACCESS_TOKEN':
-                  return 'test-access-token'; // Provide a mock value for the access token
+                  return 'test-access-token';
                 default:
                   return null;
               }
             }),
-          }, // Mock ConfigService
+          },
         },
         {
           provide: EmailService,
-          useValue: {}, // Mock EmailService
+          useValue: {},
         },
       ],
     }).compile();
-
+  
     service = module.get<OrderService>(OrderService);
     orderRepository = module.get<Repository<Order>>(getRepositoryToken(Order));
     productOrderRepository = module.get<Repository<ProductOrder>>(getRepositoryToken(ProductOrder));
@@ -100,7 +103,7 @@ describe('OrderService', () => {
 
   describe('create', () => {
     it('should create an order successfully', async () => {
-      // Datos de entrada para el método create
+      // Datos de entrada para el método create 
       const orderData: CreateOrderDto = {
         userId: 1,
         addressId: 1,

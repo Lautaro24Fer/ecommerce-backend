@@ -34,6 +34,7 @@ export class OrderService {
     if(paymentId === 12345 ){ // Codigo de prueba
       return true;
     }
+
     const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
     const response = await fetch(url, {
       method: 'GET',
@@ -53,7 +54,7 @@ export class OrderService {
     if(response?.status === 404) {
       const badRequestError: INotFoundEx = {
         status: false,
-        message: `The payment order with id '${paymentId}' was not found in marcado pago server`
+        message: `The payment order with id '${paymentId}' was not found in mercado pago server`
       }
       throw new NotFoundException(badRequestError);
     }
@@ -63,7 +64,7 @@ export class OrderService {
   async create(createOrderDto: CreateOrderDto): Promise<IRecourseCreated<Order>> {
 
     // Verificar si el paymentId existe en el servidor de mercado pago
-    // const mpApiResponse = await this.verifyStatus(createOrderDto?.paymentId);
+    const mpApiResponse = await this.verifyStatus(createOrderDto?.paymentId);
 
     const user: User = (await this.userService.findOneById(createOrderDto?.userId))?.recourse;
 
