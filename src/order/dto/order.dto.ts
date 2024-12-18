@@ -9,7 +9,7 @@ export class OrderDto{
 
   user: UserDto;
 
-  address: Address;
+  destination: Address;
 
   paymentId: string;
 

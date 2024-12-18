@@ -62,7 +62,10 @@ export class OrderController {
 
     // Envío de la orden por correo al admin
 
-    await this.emailService.sendEmailForOrder(response.recourse);
+    await this.emailService.sendEmailForOrder(response.recourse).catch((error) => {
+      console.error("Error tryng to send order email");
+      console.error(error);
+    });
 
     const recourse: IRecourseCreated<OrderDto> = {
       ...response,
@@ -194,13 +197,15 @@ export class OrderController {
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<IRecourseFound<OrderDto>> {
     const recourseFound: IRecourseFound<Order> = await this.orderService.findOneById(id);
+    console.log("this is the address on the controller")
+    console.log(recourseFound.recourse)
     try{
       const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(recourseFound.recourse);
       const response: IRecourseFound<OrderDto> = {
         ...recourseFound,
         recourse: orderDto
       }
-
+      
       return response;
     }
     catch(error){

@@ -96,6 +96,7 @@ export class OrderService {
       productOrder: [],
     });
 
+
     let netPrice: number = 0;
     let cost: number = 0;
 
@@ -200,7 +201,7 @@ export class OrderService {
       const queryBuilder = this.orderRepository.createQueryBuilder('order')
       .leftJoinAndSelect('order.user', 'user')
       .leftJoinAndSelect('user.roles', 'roles') // Join with roles
-      .leftJoinAndSelect('user.address', 'address') // Join with address
+      .leftJoinAndSelect('order.address', 'address') // Join with address
       .leftJoinAndSelect('order.productOrder', 'productOrder')
       .leftJoinAndSelect('productOrder.product', 'product');
   
@@ -257,7 +258,7 @@ export class OrderService {
       const orders: Order[] = await this.orderRepository.createQueryBuilder('order')
       .leftJoinAndSelect('order.user', 'user')
       .leftJoinAndSelect('user.roles', 'roles') // Join with roles
-      .leftJoinAndSelect('user.address', 'address') // Join with address
+      .leftJoinAndSelect('order.address', 'address') // Join with address
       .leftJoinAndSelect('order.productOrder', 'productOrder')
       .leftJoinAndSelect('productOrder.product', 'product')
       .where('user.id = :userId', { userId: id })
@@ -282,7 +283,7 @@ export class OrderService {
 
   async findOneById(id: number): Promise<IRecourseFound<Order>> {
     
-    const order: Order = await this.orderRepository.findOne({ where: { id }, relations: { productOrder: true, user: true }})
+    const order: Order = await this.orderRepository.findOne({ where: { id }, relations: { productOrder: true, user: true, address: true}})
     .catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -340,7 +341,6 @@ export class OrderService {
 
     const userDto: UserDto = this.userService.mapUserToUserDto(order.user);
 
-
     const productOrdersDto: ProductOrderDto[] = order.productOrder.map((po) => {
 
       const productOrderDto: ProductOrderDto = {
@@ -354,7 +354,7 @@ export class OrderService {
 
     const orderDto: OrderDto = {
       user: userDto,
-      address: order.address,
+      destination: order.address,
       paymentId: order.paymentId,
       items: productOrdersDto,
       netPrice: order.netPrice,
