@@ -47,7 +47,7 @@ export class EmailService {
 
 		const info: IRecourseCreated<any> = await this.transporter.sendMail({
 			from: `no reply <${this.NODEMAILER_USER}>`,
-			to: [this.NODEMAILER_ADMIN_MAIL], // TODO: Hay que cambiar este mail por el de la orden
+			to: [this.NODEMAILER_ADMIN_MAIL], // TODO: Mail de nacho
 			subject: "Padel point - Nueva orden de pago", // Asunto
 			html: layout
 		}).then((data) => {
