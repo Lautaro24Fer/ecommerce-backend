@@ -53,7 +53,7 @@ export class OrderController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error in the creation of the order"
   })
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Post()
   async create(@Body() createOrderDto: CreateOrderDto): Promise<IRecourseCreated<OrderDto>> {
@@ -101,7 +101,7 @@ export class OrderController {
     type: String,
     description: 'Max date for filter the orders',
   })
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Get()
   async findAll(@Query() queryParams: QueryParamsDto): Promise<IRecourseFound<OrderDto[]>> {
@@ -139,7 +139,7 @@ export class OrderController {
     status: HttpStatus.NOT_FOUND,
     description: 'The user with the specified id was not found'
   })
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Get('user/:id')
   async getUserOrders(@Param('id') id: number, @Req() req: Request): Promise<IRecourseFound<OrderDto[]>>{
@@ -192,7 +192,7 @@ export class OrderController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error finding the order"
   })
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<IRecourseFound<OrderDto>> {
@@ -242,7 +242,7 @@ export class OrderController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error deleting the order"
   })
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Delete(':id')
   async remove(@Param('id') id: number): Promise<IRecourseDeleted<OrderDto>> {
