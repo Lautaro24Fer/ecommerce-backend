@@ -28,7 +28,7 @@ export class AddressController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error in the creation of the new address'
   })
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Post()
   async create(@Body() createAddressDto: CreateAddressDto): Promise<IRecourseCreated<Address>> {
@@ -71,7 +71,7 @@ export class AddressController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error loading the addresses'
   })
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Get()
   findAll(): Promise<IRecourseFound<Address[]>> {
@@ -97,7 +97,7 @@ export class AddressController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error loading the address'
   })
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Get(':id')
   findOne(@Param('id') id: number): Promise<IRecourseFound<Address>> {
@@ -123,7 +123,7 @@ export class AddressController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error updating the address'
   })
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateAddressDto: UpdateAddressDto): Promise<IRecourseUpdated<Address>> {
@@ -149,7 +149,7 @@ export class AddressController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error removing the address'
   })
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Delete(':id')
   remove(@Param('id') id: number): Promise<IRecourseDeleted<Address>> {
