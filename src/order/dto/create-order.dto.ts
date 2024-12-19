@@ -9,6 +9,7 @@ export class CreateOrderDto {
   userId: number;
 
   @ApiProperty()
+  @IsOptional()
   @IsPositive()
   addressId: number;
 

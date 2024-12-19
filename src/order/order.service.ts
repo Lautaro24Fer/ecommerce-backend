@@ -64,11 +64,19 @@ export class OrderService {
   async create(createOrderDto: CreateOrderDto): Promise<IRecourseCreated<Order>> {
 
     // Verificar si el paymentId existe en el servidor de mercado pago
-    const mpApiResponse = await this.verifyStatus(createOrderDto?.paymentId);
+    // const mpApiResponse = await this.verifyStatus(createOrderDto?.paymentId);
 
     const user: User = (await this.userService.findOneById(createOrderDto?.userId))?.recourse;
 
     const address: Address = user?.address.find((add) => add.id === createOrderDto.addressId);
+
+    if((createOrderDto.addressId) && (!address)) {
+      const badRequestError: INotFoundEx = {
+        status: false,
+        message: `The address with id '${createOrderDto?.addressId}' was not register with the user or not exists`
+      };
+      throw new NotFoundException(badRequestError);
+    };
 
     const paymentIdExists: boolean = await this.orderRepository.existsBy({ paymentId:createOrderDto?.paymentId?.toString() });
 
@@ -79,14 +87,6 @@ export class OrderService {
       };
       throw new BadRequestException(badRequestError);
     }
-
-    if(!address) {
-      const badRequestError: INotFoundEx = {
-        status: false,
-        message: `The address with id '${createOrderDto?.addressId}' was not register with the user or not exists`
-      };
-      throw new NotFoundException(badRequestError);
-    };
 
     const orderInstance = this.orderRepository.create({
       ...createOrderDto,
@@ -116,7 +116,7 @@ export class OrderService {
         };
         throw new BadRequestException(badRequestError);
       }
-      netPrice = netPrice + Number(product.price);
+      netPrice = netPrice + Number(product.price) * productInstance.quantity;
       cost =  cost + Number(product.cost);
     }));
 

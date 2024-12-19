@@ -30,7 +30,7 @@ const presentation = (user: User, operationType: string, totalPrice: number) => 
     <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="padding:40px 74px;text-align:center">
       <tbody>
         <tr>
-          <td><img alt="Nike" height="22" src="https://react-email-demo-bymyam2i5-resend.vercel.app/static/nike-logo.png" style="display:block;outline:none;border:none;text-decoration:none;margin:auto" width="66" />
+          <td><img alt="Nike" src="https://padel-point.ar/products/1734560510517-708357674-padelpointlogo.jpg" style="display:block;outline:none;border:none;text-decoration:none;margin:auto;height: 60px;width: 60px;" />
             <h1 style="font-size:32px;line-height:1.3;font-weight:700;text-align:center;letter-spacing:-1px">Orden de compra</h1>
             <p style="font-size:14px;line-height:2;margin:0;color:#747474;font-weight:500">Se ha hecho un pedido a nombre de ${user?.name ?? 'Prueba'} ${user?.surname ?? 'Prueba'}</p>
             <p style="font-size:14px;line-height:2;margin:0;color:#747474;font-weight:500;margin-top:24px">
@@ -169,7 +169,7 @@ const createOrderLayout = (order: Order) => {
   // const totalPrice: number = order?.productOrder?.reduce((acum, curr) => acum = acum + (curr.product.price * curr.quantity), 0);
   const totalPrice: number = order.total;
 
-  const presentationLayout: string = presentation(order?.user, order?.paymentMethod,totalPrice );
+  const presentationLayout: string = presentation(order?.user, order?.paymentMethod, totalPrice );
   const shippingDataLayout: string = shippingData(order?.user?.name, order?.user?.surname, order?.address?.postalCode);
   const productLayout: string[] = order?.productOrder?.map((p) => {
     const productHtml: string = buildProductHtml(p.product, p.quantity);
