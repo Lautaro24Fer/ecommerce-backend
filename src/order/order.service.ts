@@ -34,6 +34,7 @@ export class OrderService {
     if(paymentId === 12345 ){ // Codigo de prueba
       return true;
     }
+
     const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
     const response = await fetch(url, {
       method: 'GET',
@@ -53,7 +54,7 @@ export class OrderService {
     if(response?.status === 404) {
       const badRequestError: INotFoundEx = {
         status: false,
-        message: `The payment order with id '${paymentId}' was not found in marcado pago server`
+        message: `The payment order with id '${paymentId}' was not found in mercado pago server`
       }
       throw new NotFoundException(badRequestError);
     }
@@ -69,6 +70,14 @@ export class OrderService {
 
     const address: Address = user?.address.find((add) => add.id === createOrderDto.addressId);
 
+    if((createOrderDto.addressId) && (!address)) {
+      const badRequestError: INotFoundEx = {
+        status: false,
+        message: `The address with id '${createOrderDto?.addressId}' was not register with the user or not exists`
+      };
+      throw new NotFoundException(badRequestError);
+    };
+
     const paymentIdExists: boolean = await this.orderRepository.existsBy({ paymentId:createOrderDto?.paymentId?.toString() });
 
     if(paymentIdExists) {
@@ -79,14 +88,6 @@ export class OrderService {
       throw new BadRequestException(badRequestError);
     }
 
-    if(!address) {
-      const badRequestError: INotFoundEx = {
-        status: false,
-        message: `The address with id '${createOrderDto?.addressId}' was not register with the user or not exists`
-      };
-      throw new NotFoundException(badRequestError);
-    };
-
     const orderInstance = this.orderRepository.create({
       ...createOrderDto,
       address,
@@ -95,11 +96,19 @@ export class OrderService {
       productOrder: [],
     });
 
+
     let netPrice: number = 0;
     let cost: number = 0;
 
     await Promise.all(createOrderDto?.products.map(async (productInstance) => {
       const product: Product = (await this.productService.findOne(productInstance.productId))?.recourse;
+      if(!product.isActive){
+        const badRequestError: IBadRequestex = {
+          status: false,
+          message: `The product with id '${product.id}' is not active (deleted)`
+        };
+        throw new BadRequestException(badRequestError);
+      }
       if(product?.stock < productInstance.quantity){
         const badRequestError: IBadRequestex = {
           status: false,
@@ -107,7 +116,7 @@ export class OrderService {
         };
         throw new BadRequestException(badRequestError);
       }
-      netPrice = netPrice + Number(product.price);
+      netPrice = netPrice + Number(product.price) * productInstance.quantity;
       cost =  cost + Number(product.cost);
     }));
 
@@ -192,7 +201,7 @@ export class OrderService {
       const queryBuilder = this.orderRepository.createQueryBuilder('order')
       .leftJoinAndSelect('order.user', 'user')
       .leftJoinAndSelect('user.roles', 'roles') // Join with roles
-      .leftJoinAndSelect('user.address', 'address') // Join with address
+      .leftJoinAndSelect('order.address', 'address') // Join with address
       .leftJoinAndSelect('order.productOrder', 'productOrder')
       .leftJoinAndSelect('productOrder.product', 'product');
   
@@ -249,7 +258,7 @@ export class OrderService {
       const orders: Order[] = await this.orderRepository.createQueryBuilder('order')
       .leftJoinAndSelect('order.user', 'user')
       .leftJoinAndSelect('user.roles', 'roles') // Join with roles
-      .leftJoinAndSelect('user.address', 'address') // Join with address
+      .leftJoinAndSelect('order.address', 'address') // Join with address
       .leftJoinAndSelect('order.productOrder', 'productOrder')
       .leftJoinAndSelect('productOrder.product', 'product')
       .where('user.id = :userId', { userId: id })
@@ -274,7 +283,7 @@ export class OrderService {
 
   async findOneById(id: number): Promise<IRecourseFound<Order>> {
     
-    const order: Order = await this.orderRepository.findOne({ where: { id }, relations: { productOrder: true, user: true }})
+    const order: Order = await this.orderRepository.findOne({ where: { id }, relations: { productOrder: true, user: true, address: true}})
     .catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -332,7 +341,6 @@ export class OrderService {
 
     const userDto: UserDto = this.userService.mapUserToUserDto(order.user);
 
-
     const productOrdersDto: ProductOrderDto[] = order.productOrder.map((po) => {
 
       const productOrderDto: ProductOrderDto = {
@@ -346,7 +354,7 @@ export class OrderService {
 
     const orderDto: OrderDto = {
       user: userDto,
-      address: order.address,
+      destination: order.address,
       paymentId: order.paymentId,
       items: productOrdersDto,
       netPrice: order.netPrice,

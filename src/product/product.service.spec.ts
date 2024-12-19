@@ -15,6 +15,8 @@ import { ItemDto } from 'src/payment/dto/preference-payment';
 describe('ProductService', () => {
   let service: ProductService;
   let productRepository: Repository<Product>;
+  let ftpService: FtpService;
+  let imagesService: ImagesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -38,7 +40,7 @@ describe('ProductService', () => {
         },
         {
           provide: FtpService,
-          useValue: { saveImageOnFTPServer: jest.fn() },
+          useValue: { saveImageOnFTPServer: jest.fn(), deleteFile: jest.fn() },
         },
         {
           provide: ImagesService,
@@ -49,6 +51,8 @@ describe('ProductService', () => {
 
     service = module.get<ProductService>(ProductService);
     productRepository = module.get<Repository<Product>>(getRepositoryToken(Product));
+    ftpService = module.get<FtpService>(FtpService);
+    imagesService = module.get<ImagesService>(ImagesService);
   });
 
   describe('create', () => {
@@ -131,21 +135,54 @@ describe('ProductService', () => {
   });
 
   describe('remove', () => {
-    it('should remove a product successfully', async () => {
-      const product = { id: 1, image: 'image-url', secondariesImages: [] } as Product;
-      jest.spyOn(service, 'findOne').mockResolvedValue({ recourse: product } as any);
-      jest.spyOn(productRepository, 'remove').mockResolvedValue(product);
+    it('should set isActive to false and return the updated product', async () => {
+      const productId = 1;
+      const product = {
+        id: productId,
+        isActive: true,
+        image: 'ftp://padel-point/image.jpg',
+        secondariesImages: [{ id: 1 }, { id: 2 }],
+      } as unknown as Product;
 
-      const result = await service.remove(1);
-      expect(result.status).toBe(true);
-      expect(result.message).toBe("The product was deleted succesfully");
+      const findOneResponseMock: IRecourseFound<Product> = {
+        recourse: product
+      } as unknown as IRecourseFound<Product>
+      
+      jest.spyOn(service, 'findOne').mockResolvedValue(findOneResponseMock);
+      jest.spyOn(productRepository, 'save').mockResolvedValue({ ...product, isActive: false });
+
+      const result = await service.remove(productId);
+
+      expect(result.recourse.isActive).toBe(false);
+      expect(ftpService.deleteFile).toHaveBeenCalledWith(product.image);
+      expect(imagesService.remove).toHaveBeenCalledTimes(product.secondariesImages.length);
+      expect(productRepository.save).toHaveBeenCalledWith({ ...product, isActive: false });
     });
 
-    it('should throw BadRequestException if remove fails', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue({ recourse: {} as Product } as any);
-      jest.spyOn(productRepository, 'remove').mockRejectedValue(new Error('Error'));
+    it('should throw NotFoundException if product does not exist', async () => {
+      const productId = 1;
+      jest.spyOn(service, 'findOne').mockRejectedValue(new NotFoundException());
 
-      await expect(service.remove(1)).rejects.toThrow(BadRequestException);
+      await expect(service.remove(productId)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException if there is an error during save', async () => {
+      const productId = 1;
+      const product = {
+        id: productId,
+        isActive: true,
+        image: 'ftp://padel-point/image.jpg',
+        secondariesImages: [{ id: 1 }, { id: 2 }],
+      } as Product;
+
+      const findOneResponseMock: IRecourseFound<Product> = {
+        recourse: product
+      } as unknown as IRecourseFound<Product>
+
+      jest.spyOn(service, 'findOne').mockResolvedValue(findOneResponseMock);
+      jest.spyOn(productRepository, 'save').mockRejectedValue(new Error('Save error'));
+
+      await expect(service.remove(productId)).rejects.toThrow(BadRequestException);
     });
   });
 

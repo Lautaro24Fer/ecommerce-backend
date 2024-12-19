@@ -64,7 +64,7 @@ describe('ImagesService', () => {
       brand: new Brand,
       supplier: new Supplier,
       cost: 0
-    };
+    } as unknown as Product;
     const mockFile: MulterFile = { path: 'path/to/file', filename: 'file.jpg' } as MulterFile;
     const mockImageUrl = 'ftp://server/path/to/file.jpg';
     const mockImage = { id: 1, url: mockImageUrl, product: mockProduct };
@@ -98,7 +98,7 @@ describe('ImagesService', () => {
       brand: new Brand,
       supplier: new Supplier,
       cost: 0
-    };
+    } as unknown as Product;
     const mockFile: MulterFile = { path: 'path/to/file', filename: 'file.jpg' } as MulterFile;
     const mockImageUrl = 'ftp://server/path/to/file.jpg';
     const mockImage = { id: 1, url: mockImageUrl, product: mockProduct };
@@ -146,7 +146,7 @@ describe('ImagesService', () => {
       brand: new Brand,
       supplier: new Supplier,
       cost: 0
-    } };
+    } as unknown as Product } ;
 
     jest.spyOn(imageRepository, 'findOne').mockResolvedValue(mockImage);
 
@@ -206,7 +206,7 @@ describe('ImagesService', () => {
       brand: new Brand,
       supplier: new Supplier,
       cost: 0
-    };
+    } as unknown as Product;
     const mockImage: ProductImage = { id: 1, url: '', product: mockProduct };
 
     jest.spyOn(imageRepository, 'findOne').mockResolvedValue(mockImage);
@@ -239,7 +239,7 @@ describe('ImagesService', () => {
       brand: new Brand,
       supplier: new Supplier,
       cost: 0
-    };
+    } as unknown as Product;
     const mockImage: ProductImage = { id: 1, url: 'url1', product: mockProduct };
 
     jest.spyOn(imageRepository, 'findOne').mockResolvedValue(mockImage);

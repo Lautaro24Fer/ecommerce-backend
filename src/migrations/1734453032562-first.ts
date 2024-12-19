@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class First1733292488330 implements MigrationInterface {
-    name = 'First1733292488330'
+export class First1734453032562 implements MigrationInterface {
+    name = 'First1734453032562'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE \`address\` (\`id\` int NOT NULL AUTO_INCREMENT, \`postalCode\` varchar(10) NOT NULL, \`addressStreet\` varchar(30) NOT NULL, \`addressNumber\` varchar(10) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
@@ -12,7 +12,7 @@ export class First1733292488330 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE \`supplier\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`product_type\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(50) NOT NULL, UNIQUE INDEX \`IDX_8978484a9cee7a0c780cd259b8\` (\`name\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`product_image\` (\`id\` int NOT NULL AUTO_INCREMENT, \`url\` text NOT NULL, \`productId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`product\` (\`id\` int NOT NULL AUTO_INCREMENT, \`price\` decimal(10,2) NOT NULL, \`cost\` decimal(10,2) NOT NULL, \`name\` varchar(255) NOT NULL, \`stock\` int NOT NULL DEFAULT '0', \`description\` text NOT NULL, \`image\` text NOT NULL, \`typeId\` int NULL, \`brandId\` int NULL, \`supplierId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`product\` (\`id\` int NOT NULL AUTO_INCREMENT, \`isActive\` tinyint NOT NULL DEFAULT 1, \`price\` decimal(10,2) NOT NULL, \`cost\` decimal(10,2) NOT NULL, \`name\` varchar(255) NOT NULL, \`stock\` int NOT NULL DEFAULT '0', \`description\` text NOT NULL, \`image\` text NOT NULL, \`typeId\` int NULL, \`brandId\` int NULL, \`supplierId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`order\` (\`id\` int NOT NULL AUTO_INCREMENT, \`paymentId\` varchar(255) NOT NULL, \`dateCreated\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, \`paymentMethod\` varchar(255) NOT NULL DEFAULT 'MP_TRANSFER', \`netPrice\` decimal(10,2) NOT NULL, \`IVA\` decimal(10,2) NOT NULL DEFAULT '0.21', \`total\` decimal(10,2) NOT NULL, \`profit\` decimal(10,2) NOT NULL, \`addressId\` int NULL, \`userId\` int NULL, UNIQUE INDEX \`IDX_9ad13532f48db4ac5a3b3dd70e\` (\`paymentId\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`product-order\` (\`id\` int NOT NULL AUTO_INCREMENT, \`quantity\` int NOT NULL DEFAULT '1', \`orderId\` int NULL, \`productId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`user_address_address\` (\`userId\` int NOT NULL, \`addressId\` int NOT NULL, INDEX \`IDX_b3641446351e94089ba80de503\` (\`userId\`), INDEX \`IDX_c3ca130325607a626583e7e9c4\` (\`addressId\`), PRIMARY KEY (\`userId\`, \`addressId\`)) ENGINE=InnoDB`);

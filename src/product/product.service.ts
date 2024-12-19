@@ -148,6 +148,13 @@ export class ProductService {
       queryBuilder.take(queryParams.limit);
     }
 
+    // filtro de activos
+    if (queryParams.isActive) {
+      queryBuilder.andWhere('product.isActive = :isActive', {
+        isActive: queryParams.isActive,
+      });
+    }
+
     const products: Product[] = await queryBuilder.getMany().catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -233,6 +240,10 @@ export class ProductService {
       body.image = newImageUrl;
     }
 
+    if(updateProductDto.isActive){
+      body.isActive = updateProductDto.isActive;
+    }
+
     const productUpdated: Product = await this.productRepository.save(body).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -253,15 +264,18 @@ export class ProductService {
   async remove(id: number): Promise<IRecourseDeleted<Product>> {
     const product: Product = (await this.findOne(id))?.recourse;
     const urlPath: string = product.image;
-    if(urlPath?.includes('padel-point')){
+    if (urlPath?.includes('padel-point')) {
       await this.ftpService.deleteFile(urlPath);
     }
     if (Array.isArray(product?.secondariesImages)) {
       await Promise.all(product.secondariesImages.map(async (image) => {
-          await this.productImageService?.remove(image.id);
+        await this.productImageService?.remove(image.id);
       }));
-  }
-    const removed: Product = await this.productRepository.remove(product).catch((error) => {
+    }
+
+    product.isActive = false;
+
+    const removed: Product = await this.productRepository.save(product).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,

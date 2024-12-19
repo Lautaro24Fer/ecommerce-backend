@@ -14,6 +14,9 @@ import { MethodPaymentType } from '../global/enum';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { User } from '../user/entities/user.entity';
 import { Address } from '../address/entities/address.entity';
+import { OrderDto } from './dto/order.dto';
+import { UserDto } from 'src/user/dto/user.dto';
+import { ProductOrderDto } from './dto/product-order.dto';
 
 describe('OrderService', () => {
   let service: OrderService;
@@ -34,7 +37,10 @@ describe('OrderService', () => {
         },
         {
           provide: ProductService,
-          useValue: {}, // Mock ProductService
+          useValue: {
+            findOne: jest.fn().mockResolvedValue({ recourse: { isActive: true, stock: 10, price: 100, cost: 50 } }),
+            update: jest.fn().mockResolvedValue({ recourse: {} }),
+          },
         },
         {
           provide: UserService,
@@ -44,11 +50,11 @@ describe('OrderService', () => {
               message: "",
               recourse: {
                 id: 1,
-                address: [{ id: 1 }] 
+                address: [{ id: 1 }]
               }
             }),
             mapUserToUserDto: jest.fn()
-          }, // Mock UserService
+          },
         },
         {
           provide: ConfigService,
@@ -56,20 +62,20 @@ describe('OrderService', () => {
             get: jest.fn((key: string) => {
               switch (key) {
                 case 'MP_ACCESS_TOKEN':
-                  return 'test-access-token'; // Provide a mock value for the access token
+                  return 'test-access-token';
                 default:
                   return null;
               }
             }),
-          }, // Mock ConfigService
+          },
         },
         {
           provide: EmailService,
-          useValue: {}, // Mock EmailService
+          useValue: {},
         },
       ],
     }).compile();
-
+  
     service = module.get<OrderService>(OrderService);
     orderRepository = module.get<Repository<Order>>(getRepositoryToken(Order));
     productOrderRepository = module.get<Repository<ProductOrder>>(getRepositoryToken(ProductOrder));
@@ -100,7 +106,7 @@ describe('OrderService', () => {
 
   describe('create', () => {
     it('should create an order successfully', async () => {
-      // Datos de entrada para el método create
+      // Datos de entrada para el método create 
       const orderData: CreateOrderDto = {
         userId: 1,
         addressId: 1,
@@ -303,26 +309,33 @@ describe('OrderService', () => {
     it('should map an order to OrderDto successfully', () => {
       const mockOrder: Order = {
         id: 1,
-        user: { id: 1, name: 'John', username: 'john_doe' },
-        address: { id: 1 },
+        user: { id: 1, name: 'John', username: 'john_doe' } as unknown as User,
+        address: { id: 1 } as unknown as Address,
         paymentId: '12345',
         productOrder: [{ id: 1, product: {}, quantity: 2 }] as ProductOrder[],
-      } as Order;
+        dateCreated: undefined,
+        paymentMethod: 'MP_PAYMENT',
+        netPrice: 0,
+        IVA: 0,
+        total: 0,
+        profit: 0
+      };
+
+      const mockOrderDto: OrderDto = {
+        user: { id: 1, name: 'John', username: 'john_doe' } as unknown as UserDto,
+        destination: { id: 1 } as unknown as Address,
+        paymentId: '12345',
+        items: [{ id: 1, orderId: 1, product: {}, quantity: 2 }] as ProductOrderDto[], // Include orderId here
+        netPrice: 0,
+        IVA: 0,
+        total: 0,
+        profit: 0
+      };
 
       jest.spyOn(service['userService'], 'mapUserToUserDto').mockReturnValue(mockOrder.user);
 
       const result = service.mapOrderToOrderDto(mockOrder);
-      expect(result).toEqual({
-        user: mockOrder.user,
-        address: mockOrder.address,
-        paymentId: mockOrder.paymentId,
-        items: mockOrder.productOrder.map(po => ({
-          id: po.id,
-          orderId: mockOrder.id,
-          product: po.product,
-          quantity: po.quantity,
-        })),
-      });
+      expect(result).toEqual(mockOrderDto);
     });
   });
 });
