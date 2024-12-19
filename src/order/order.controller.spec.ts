@@ -100,7 +100,7 @@ describe('OrderController', () => {
             method: '',
             roles: []
           }, // Asegúrate de que esto coincida con el mapeo esperado
-          address: {
+          destination: {
             id: 0,
             postalCode: '',
             addressStreet: '',
@@ -200,7 +200,7 @@ describe('OrderController', () => {
             method: '',
             roles: []
           },
-          address: {
+          destination: {
             id: 0,
             postalCode: '',
             addressStreet: '',
@@ -278,7 +278,7 @@ describe('OrderController', () => {
             method: '',
             roles: []
           },
-          address: {
+          destination: {
             id: 0,
             postalCode: '',
             addressStreet: '',
