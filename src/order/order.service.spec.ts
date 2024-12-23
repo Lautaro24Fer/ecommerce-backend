@@ -211,7 +211,6 @@ describe('OrderService', () => {
       const queryParams: QueryParamsDto = {} as unknown as QueryParamsDto; // Define los parámetros de consulta según sea necesario
       const result = await service.findAll(queryParams);
     
-      console.log('Result:', result); // Log para depuración
       expect(result.status).toBe(true);
       expect(result.message).toBe('The orders were found successfully');
       expect(result.recourse).toHaveLength(1);
