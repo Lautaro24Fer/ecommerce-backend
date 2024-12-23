@@ -30,7 +30,7 @@ const presentation = (user: User, operationType: string, totalPrice: number) => 
     <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="padding:40px 74px;text-align:center">
       <tbody>
         <tr>
-          <td><img alt="Nike" src="https://padel-point.ar/products/1734560510517-708357674-padelpointlogo.jpg" style="display:block;outline:none;border:none;text-decoration:none;margin:auto;height: 60px;width: 60px;" />
+          <td><img alt="Nike" src="https://api.padel-point.ar/products/padelpointlogo.jpg" style="display:block;outline:none;border:none;text-decoration:none;margin:auto;height: 60px;width: 60px;" />
             <h1 style="font-size:32px;line-height:1.3;font-weight:700;text-align:center;letter-spacing:-1px">Orden de compra</h1>
             <p style="font-size:14px;line-height:2;margin:0;color:#747474;font-weight:500">Se ha hecho un pedido a nombre de ${user?.name ?? 'Prueba'} ${user?.surname ?? 'Prueba'}</p>
             <p style="font-size:14px;line-height:2;margin:0;color:#747474;font-weight:500;margin-top:24px">
