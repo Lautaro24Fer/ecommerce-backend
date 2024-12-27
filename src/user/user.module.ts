@@ -24,7 +24,7 @@ import { AddressModule } from 'src/address/address.module';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '5m' }, // TIEMPO DE VIDA DEL JWT
+        signOptions: { expiresIn: '2h' }, // TIEMPO DE VIDA DEL JWT
         global: true,
       }),
     }),

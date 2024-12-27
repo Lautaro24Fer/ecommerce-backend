@@ -18,7 +18,7 @@ import { OrderModule } from 'src/order/order.module';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1m' }, //TODO: TIEMPO DE VIDA DEL JWT POR DEFECTO
+        signOptions: { expiresIn: '2h' }, //TODO: TIEMPO DE VIDA DEL JWT POR DEFECTO
         global: true,
       }),
     }),
