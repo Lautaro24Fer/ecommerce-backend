@@ -41,7 +41,7 @@ import { FtpModule } from './ftp/ftp.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        type: 'mysql',
+        type: 'postgres',
         host: configService.get<string>('TYPEORM_DATABASE_HOST'),
         port: +configService.get<string>('TYPEORM_DATABASE_PORT'),
         username: configService.get<string>('TYPEORM_DATABASE_USERNAME'),
