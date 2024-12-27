@@ -37,28 +37,18 @@ export class PaymentService {
 		}
 	}
 	async createPaymentPreference(preferenceData: IPaymentPreferenceReq, res: Response) {
-		// console.log(" -- CREATE PAYMENT PREFERENCE -- ")
-		// console.log("CLIENT")
-		// console.log(this.client)
+    
 		const preference = new Preference(this.client)
 
-		// console.log("PREFERENCE")
-		// console.log(preference)
 		const expDataFrom = new Date;
 
-		// console.log("expDataFrom: " + expDataFrom)
 		const expDataTo = new Date(Date.now() + (1000 * 60 * 15));
 
-		// console.log("expDataTo: " + expDataTo)
 
 		const payer: UserDto = (await this.userService.findOneById(preferenceData.userId)).recourse;
 
-		// console.log("payer: " + payer)
 
 		const address: Address = payer.address.find(a => a.id === preferenceData.addressId);
-
-		// console.log("address: " + address)
-
 		if(!address){
 
 			const badRequestError: INotFoundEx = { status: false, message: `The id address '${preferenceData.addressId}' not exists in the user register` };
@@ -104,15 +94,10 @@ export class PaymentService {
 				expiration_date_from: expDataFrom?.toISOString(),
 				expiration_date_to: expDataTo?.toISOString()
 		}
-
-		// console.log("THI IS THE PREFERENCE BODY")
-		// console.log(preferenceBody)
-
 		preference.create({
 			body: { ...preferenceBody, }
 		})
 			.then(async data => {
-				// console.log("Se ejcuto correctamente el preference.create()")
 				const response: IRecourseCreated<string> = {
 					status: true,
 					message: "The embeded form was created succesfully",
@@ -121,7 +106,6 @@ export class PaymentService {
 				res.json(response);
 			})
 			.catch(async error => {
-				// console.log("No! se ejcuto correctamente el preference.create()")
 				console.error(error);
 				const badRequestError: IBadRequestex = {
 					status: false,

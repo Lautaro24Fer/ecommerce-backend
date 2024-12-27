@@ -42,8 +42,8 @@ export class AuthService {
 
     const userLogin: User = await this.validateCredentials( login.usernameOrEmail, login.password);
     try {
-      const token: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: userLogin.roles }, '1m');
-      const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: userLogin.roles }, '7m');
+      const token: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: userLogin.roles }, '1h');
+      const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: userLogin.id, method: userLogin.method, roles: userLogin.roles }, '2h');
       return { token, refreshToken }
     } 
     catch(error) {
@@ -59,8 +59,8 @@ export class AuthService {
   async getCookieByPassportStrategy( user: any ): Promise<IAuthTokens> {
 
     const userFound: User = (await this.userService.findOneById(user?.id)).recourse; 
-    const token: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFound.roles }, '1m');
-    const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFound.roles }, '7m');
+    const token: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFound.roles }, '1h');
+    const refreshToken: string = await this.getJwtTokenOrBadRequest({ id: user?.id, method: user?.method, roles: userFound.roles }, '2h');
     const tokens: IAuthTokens = {
       token,
       refreshToken
@@ -129,7 +129,7 @@ export class AuthService {
       };
       throw new BadRequestException(response);
     });
-    const accessToken: string = await this.getJwtTokenOrBadRequest({ id: payload.id, method: payload.method }, '1m');
+    const accessToken: string = await this.getJwtTokenOrBadRequest({ id: payload.id, method: payload.method }, '1h');
     return accessToken;
   }
 }
