@@ -102,12 +102,21 @@ describe('ProductService', () => {
 
   describe('findOne', () => {
     it('should return a product by id', async () => {
-      jest.spyOn(productRepository, 'findOne').mockResolvedValue({} as Product);
-
+      
+      const productMocked: Product = {
+        id: 1,
+        isActive: true,
+        
+      } as unknown as Product;
+  
+      jest.spyOn(productRepository, 'findOne').mockResolvedValue(productMocked);
+  
       const result = await service.findOne(1);
       expect(result.status).toBe(true);
-      expect(result.message).toBe("The product was found succcesfully");
+      expect(result.message).toBe("The product was found successfully");
+      expect(result.recourse).toEqual(productMocked);
     });
+  
 
     it('should throw NotFoundException if product is not found', async () => {
       jest.spyOn(productRepository, 'findOne').mockResolvedValue(null);

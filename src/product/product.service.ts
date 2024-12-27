@@ -96,11 +96,12 @@ export class ProductService {
   } 
 
   async findAll(queryParams: QueryParamsDto): Promise<IRecourseFound<Product[]>> {
+
     const queryBuilder = this.productRepository
       .createQueryBuilder('product') 
       .innerJoinAndSelect('product.brand', 'brand')
       .innerJoinAndSelect('product.type', 'type')
-      .orderBy('product.id', 'ASC');
+      .orderBy('product.id', 'ASC')
 
     if (queryParams.brand) {
       queryBuilder.andWhere('brand.name LIKE :brand', {
@@ -148,10 +149,14 @@ export class ProductService {
       queryBuilder.take(queryParams.limit);
     }
 
-    // filtro de activos
-    if (queryParams.isActive) {
+    if (queryParams.isActive === 'false') {
       queryBuilder.andWhere('product.isActive = :isActive', {
-        isActive: queryParams.isActive,
+        isActive: false,
+      });
+    }
+    else{
+      queryBuilder.andWhere('product.isActive = :isActive', {
+        isActive: true,
       });
     }
 
@@ -184,7 +189,7 @@ export class ProductService {
       };
       throw new BadRequestException(badRequestError);
     })
-    if (!product) {
+    if ((!product) || (!product.isActive)) {
       const notFoundError: INotFoundEx = {
         status: false,
         message: `The product with id '${id}' was not found`
@@ -193,7 +198,7 @@ export class ProductService {
     }
     const recourseFound: IRecourseFound<Product> = {
       status: true,
-      message: "The product was found succcesfully",
+      message: "The product was found successfully",
       recourse: product
     };
     return recourseFound;

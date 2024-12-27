@@ -199,11 +199,11 @@ export class OrderService {
   
     try {
       const queryBuilder = this.orderRepository.createQueryBuilder('order')
-      .leftJoinAndSelect('order.user', 'user')
-      .leftJoinAndSelect('user.roles', 'roles') // Join with roles
+      .leftJoin('order.user', 'user') // Cambia a leftJoin
       .leftJoinAndSelect('order.address', 'address') // Join with address
       .leftJoinAndSelect('order.productOrder', 'productOrder')
-      .leftJoinAndSelect('productOrder.product', 'product');
+      .leftJoinAndSelect('productOrder.product', 'product')
+      .select(['order', 'user.id', 'address', 'productOrder', 'product']);
   
       if (queryParams.minDate) {
         queryBuilder.andWhere('order.dateCreated >= :minDate', { minDate: queryParams.minDate });
@@ -256,19 +256,22 @@ export class OrderService {
     
     try{
       const orders: Order[] = await this.orderRepository.createQueryBuilder('order')
-      .leftJoinAndSelect('order.user', 'user')
-      .leftJoinAndSelect('user.roles', 'roles') // Join with roles
-      .leftJoinAndSelect('order.address', 'address') // Join with address
+      .leftJoin('order.user', 'user') // Cambia a leftJoin
+      .leftJoinAndSelect('order.address', 'address')
       .leftJoinAndSelect('order.productOrder', 'productOrder')
       .leftJoinAndSelect('productOrder.product', 'product')
       .where('user.id = :userId', { userId: id })
-      .getMany()
+      .select(['order', 'user.id', 'address', 'productOrder', 'product']) // Selecciona explícitamente los campos
+      .getMany();
       const recourse: IRecourseFound<Order[]> = {
         status: true,
         message: "The orders was found succesfully",
         recourse: orders
       };
   
+      console.log("FIND ORDERSS BY USER ID")
+      console.log(orders)
+
       return recourse;
     }
     catch(error) {

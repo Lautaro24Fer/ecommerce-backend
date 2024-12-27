@@ -146,7 +146,6 @@ export class OrderController {
 
     const userToken: string = req?.cookies['user'];
     const userPayload = await this.jwtService.decode(userToken);
-
     // Check if the role is 'user' and compare IDs
   if ((userPayload?.roles?.includes('user')) && (userPayload?.id !== id)) {
     const unauthError: IUnauthorizedEx = {

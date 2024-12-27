@@ -168,7 +168,6 @@ export class UserController {
     description: 'Time expired to update password'
   })
   @UseGuards(ResetUserPasswordGuard)
- @UseGuards(AuthGuard)
   @Put('/reset-pass')
   async resetPassword(@Req() req: Request , @Res() res: Response, @Body() updateUserPasswordDto: UpdateUserPasswordDto): Promise<Response>{
 

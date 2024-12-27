@@ -37,6 +37,7 @@ export class PaymentService {
 		}
 	}
 	async createPaymentPreference(preferenceData: IPaymentPreferenceReq, res: Response) {
+    
 		const preference = new Preference(this.client)
 
 		const expDataFrom = new Date;
@@ -48,7 +49,6 @@ export class PaymentService {
 
 
 		const address: Address = payer.address.find(a => a.id === preferenceData.addressId);
-
 		if(!address){
 
 			const badRequestError: INotFoundEx = { status: false, message: `The id address '${preferenceData.addressId}' not exists in the user register` };
@@ -94,7 +94,6 @@ export class PaymentService {
 				expiration_date_from: expDataFrom?.toISOString(),
 				expiration_date_to: expDataTo?.toISOString()
 		}
-
 		preference.create({
 			body: { ...preferenceBody, }
 		})
@@ -138,7 +137,7 @@ export class PaymentService {
   //   const paymentStatus = response.data.status; 
 
   //   if (paymentStatus === 'approved') {
-	// 		console.log(" == Status: APPROVED == ");
+	//  	console.log(" == Status: APPROVED == ");
 
 	// 		// const order: Order = await this.orderService.
   //   }
