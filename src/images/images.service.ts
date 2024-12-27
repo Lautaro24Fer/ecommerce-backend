@@ -24,17 +24,17 @@ export class ImagesService {
   
   async create(id: number, file: MulterFile) {
 
-    console.log("-----CREATING IMAGE-----")
+    // console.log("-----CREATING IMAGE-----")
 
     const product: Product = (await this.productService.findOne(id)).recourse;
 
-    console.log("=PRODUCT=")
-    console.log(product)
+    // console.log("=PRODUCT=")
+    // console.log(product)
 
     const imageUrl = await this.ftpService.saveImageOnFTPServer(file);
 
-    console.log("\n\n=IMAGE URL=")
-    console.log(imageUrl)
+    // console.log("\n\n=IMAGE URL=")
+    // console.log(imageUrl)
 
     const imageCreated: ProductImage = this.imageRepository.create({ product, url: imageUrl });
 
@@ -55,8 +55,8 @@ export class ImagesService {
       throw new BadRequestException(badRequestError);
     });
 
-    console.log("\n\n=IMAGE SAVED=")
-    console.log(imageSaved)
+    // console.log("\n\n=IMAGE SAVED=")
+    // console.log(imageSaved)
 
 
     const response: IRecourseCreated<ProductImage> = {

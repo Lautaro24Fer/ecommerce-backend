@@ -145,12 +145,8 @@ export class OrderController {
   async getUserOrders(@Param('id') id: number, @Req() req: Request): Promise<IRecourseFound<OrderDto[]>>{
 
     const userToken: string = req?.cookies['user'];
-    console.log("usertoken")
-    console.log(userToken)
     const userPayload = await this.jwtService.decode(userToken);
 
-    console.log("userpayload")
-    console.log(userPayload)
     
 
     // Check if the role is 'user' and compare IDs
@@ -197,8 +193,6 @@ export class OrderController {
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<IRecourseFound<OrderDto>> {
     const recourseFound: IRecourseFound<Order> = await this.orderService.findOneById(id);
-    console.log("this is the address on the controller")
-    console.log(recourseFound.recourse)
     try{
       const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(recourseFound.recourse);
       const response: IRecourseFound<OrderDto> = {

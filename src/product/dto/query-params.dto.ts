@@ -13,11 +13,10 @@ export class QueryParamsDto {
 
   @ApiPropertyOptional({
     description: 'Name of the product',
-    type: Boolean,
+    type: String,
   })
   @IsOptional()
-  @IsBoolean()
-  isActive?: boolean | null | undefined;
+  isActive?: string | null | undefined;
 
   @ApiPropertyOptional({
     description: 'Minium price of the product',
