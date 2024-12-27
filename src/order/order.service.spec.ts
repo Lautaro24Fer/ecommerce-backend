@@ -195,22 +195,63 @@ describe('OrderService', () => {
         total: 121,
         profit: 20,
         address: { id: 1 } as Address,
-        user: { id: 1, address: [{ id: 1 }] } as User,
+        user: { id: 1 } as User,
         dateCreated: new Date(),
         productOrder: [],
       } as Order;
-    
+
       const mockQueryBuilder = {
+        leftJoin: jest.fn().mockReturnThis(),
         leftJoinAndSelect: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([mockOrder]),
       };
-    
+
       jest.spyOn(orderRepository, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
-    
-      const queryParams: QueryParamsDto = {} as unknown as QueryParamsDto; // Define los parámetros de consulta según sea necesario
+
       const result = await service.findAll(queryParams);
-    
+
+      expect(result.status).toBe(true);
+      expect(result.message).toBe('The orders were found successfully');
+      expect(result.recourse).toHaveLength(1);
+      expect(result.recourse[0]).toEqual(mockOrder);
+    });
+
+    it('should apply date filters correctly', async () => {
+      const mockOrder = {
+        id: 1,
+        paymentId: '1',
+        paymentMethod: 'MP_TRANSFER',
+        netPrice: 100,
+        IVA: 0.21,
+        total: 121,
+        profit: 20,
+        address: { id: 1 } as Address,
+        user: { id: 1 } as User,
+        dateCreated: new Date('2023-01-01T00:00:00Z'),
+        productOrder: [],
+      } as Order;
+
+      const mockQueryBuilder = {
+        leftJoin: jest.fn().mockReturnThis(),
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([mockOrder]),
+      };
+
+      jest.spyOn(orderRepository, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
+
+      const queryParams: QueryParamsDto = {
+        minDate: '2023-01-01T00:00:00Z',
+        maxDate: '2023-12-31T23:59:59Z',
+      };
+
+      const result = await service.findAll(queryParams);
+
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('order.dateCreated >= :minDate', { minDate: queryParams.minDate });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('order.dateCreated <= :maxDate', { maxDate: queryParams.maxDate });
       expect(result.status).toBe(true);
       expect(result.message).toBe('The orders were found successfully');
       expect(result.recourse).toHaveLength(1);
