@@ -178,14 +178,14 @@ describe('OrderService', () => {
     // Add more tests for other error cases
   });
 
-  describe('findAll', () => {
+  describe.only('findAll', () => {
 
     const queryParams: QueryParamsDto = {
       minDate: undefined,
       maxDate: undefined,
       // Add other properties if needed
     };
-    it('should return all orders', async () => {
+    it.only('should return all orders', async () => {
       const mockOrder = {
         id: 1,
         paymentId: '1',
@@ -208,7 +208,6 @@ describe('OrderService', () => {
     
       jest.spyOn(orderRepository, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
     
-      const queryParams: QueryParamsDto = {} as unknown as QueryParamsDto; // Define los parámetros de consulta según sea necesario
       const result = await service.findAll(queryParams);
     
       expect(result.status).toBe(true);
