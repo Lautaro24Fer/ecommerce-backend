@@ -33,7 +33,7 @@ export class SupplierController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Bad request. The supplier was not created',
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Post()
   create(@Body() createSupplierDto: CreateSupplierDto): Promise<IRecourseCreated<Supplier>> {
@@ -53,7 +53,7 @@ export class SupplierController {
     status: HttpStatus.NOT_FOUND,
     description: 'Suppliers not found',
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Get()
   findAll(): Promise<IRecourseFound<Supplier[]>> {
@@ -73,7 +73,7 @@ export class SupplierController {
     status: HttpStatus.NOT_FOUND,
     description: 'Supplier not found',
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Get(':id')
   findOne(@Param('id') id: number): Promise<IRecourseFound<Supplier>> {
@@ -93,7 +93,7 @@ export class SupplierController {
     status: HttpStatus.NOT_FOUND,
     description: 'Supplier not found',
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Put(':id')
   update( @Param('id') id: number, @Body() updateSupplierDto: UpdateSupplierDto ): Promise<IRecourseUpdated<Supplier>> {
@@ -113,7 +113,7 @@ export class SupplierController {
     status: HttpStatus.NOT_FOUND,
     description: 'Supplier not found',
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Delete(':id')
   remove(@Param('id') id: number): Promise<IRecourseDeleted<Supplier>> {

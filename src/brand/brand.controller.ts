@@ -34,7 +34,7 @@ export class BrandController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Bad request. The new brand was not created',
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   // @Roles(['admin'])
   @Post()
   create(@Body() createBrandDto: CreateBrandDto): Promise<IRecourseCreated<Brand>> {
@@ -102,7 +102,7 @@ export class BrandController {
     status: HttpStatus.NOT_FOUND,
     description: 'Brand not found',
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   // @Roles(['admin'])
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateBrandDto: UpdateBrandDto): Promise<IRecourseUpdated<Brand>> {
@@ -122,7 +122,7 @@ export class BrandController {
     status: HttpStatus.NOT_FOUND,
     description: 'Brand not found',
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   // @Roles(['admin'])
   @Delete(':id')
   remove(@Param('id') id: number): Promise<IRecourseDeleted<Brand>> {

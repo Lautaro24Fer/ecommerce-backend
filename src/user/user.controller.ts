@@ -66,7 +66,7 @@ export class UserController {
     status: HttpStatus.BAD_REQUEST, 
     description: 'Error loading all users' 
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Get()
   async findAll(): Promise<IRecourseFound<UserDto[]>> {
@@ -91,7 +91,7 @@ export class UserController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Error loading the authenticated user, unauthoraized exception'
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Get('cookie')
   async findOneAuthenticated(@Req() req: Request): Promise<AuthUserResponseDto | undefined> {
@@ -208,7 +208,7 @@ export class UserController {
     status: HttpStatus.NOT_FOUND,
     description: "The id user was not found in database"
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Get('addresses/:id')
   async getUserAddresses(@Param('id') id: number): Promise<IRecourseFound<Address[]>>{
@@ -241,7 +241,7 @@ export class UserController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Can not load the user, unauthorized request'
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<IRecourseFound<UserDto>> {
@@ -268,7 +268,7 @@ export class UserController {
     status: HttpStatus.BAD_REQUEST, 
     description: 'Bad request, error updating the user' 
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Patch(':id')
   async patchUpdate( @Param('id') id: number, @Body() updateUserDto: PartialUpdateUserDto ): Promise<IRecourseUpdated<UserDto>> {
@@ -294,7 +294,7 @@ export class UserController {
     status: HttpStatus.BAD_REQUEST, 
     description: 'Bad request, error updating the user' 
   })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['user', 'admin'])
   @Put(':id')
   async putUpdate( @Param('id') id: number, @Body() updateUserDto: FullUpdateUserDto ): Promise<IRecourseUpdated<UserDto>> {
@@ -327,7 +327,7 @@ export class UserController {
   @ApiResponse({ 
     status: HttpStatus.BAD_REQUEST, 
     description: 'Bad request, error deleting the user' })
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Delete(':id')
   async remove(@Param('id') id: number): Promise<IRecourseDeleted<UserDto>> {

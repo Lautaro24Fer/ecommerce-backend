@@ -64,7 +64,7 @@ export class OrderService {
   async create(createOrderDto: CreateOrderDto): Promise<IRecourseCreated<Order>> {
 
     // Verificar si el paymentId existe en el servidor de mercado pago
-    // const mpApiResponse = await this.verifyStatus(createOrderDto?.paymentId);
+    const mpApiResponse = await this.verifyStatus(createOrderDto?.paymentId);
 
     const user: User = (await this.userService.findOneById(createOrderDto?.userId))?.recourse;
 
