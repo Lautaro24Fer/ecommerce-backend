@@ -123,7 +123,7 @@ export class AuthController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error getting the session state"
   })
- @UseGuards(AuthGuard)
+ // @UseGuards(AuthGuard)
   @Roles(['user', 'admin'])
   @Get('status')
   async isLogged(@Req() req: Request): Promise<SessionStateDto>{
@@ -153,7 +153,7 @@ export class AuthController {
     status: HttpStatus.NOT_FOUND,
     description: "The user in the token was not found"
   })
- @UseGuards(AuthGuard)
+ // @UseGuards(AuthGuard)
   @Roles(['user', 'admin'])
   @Post('refresh')
   async refreshToken(@Req() req: Request, @Res() res: Response): Promise<Response>{
@@ -203,7 +203,7 @@ export class AuthController {
     status: HttpStatus.BAD_REQUEST,
     description: "Error in the logout of the session"
   })
- @UseGuards(AuthGuard)
+ // @UseGuards(AuthGuard)
   @Roles(['user', 'admin'])
   @Post('logout')
   logout(@Res() res: Response): Response{

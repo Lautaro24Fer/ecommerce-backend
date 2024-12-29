@@ -117,13 +117,16 @@ export class OrderService {
         throw new BadRequestException(badRequestError);
       }
       netPrice = netPrice + Number(product.price) * productInstance.quantity;
-      cost =  cost + Number(product.cost);
+      cost =  cost + Number(product.cost) * productInstance.quantity;
     }));
 
     // Pricing data
     if(!createOrderDto?.IVA){
       orderInstance.IVA = 0.21;
     }
+
+    console.log("el valor neto final tiene un valor de: $" + netPrice + " | costo: $" + cost);
+    console.log("La ganancia final en este caso es de: $" + (netPrice - cost));
 
     orderInstance.netPrice = netPrice;
     orderInstance.profit = netPrice - cost; // Del precio neto total de la orden se resta el costo total de todos los productos

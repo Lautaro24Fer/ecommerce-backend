@@ -22,7 +22,7 @@ export class TypeController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error creating the product type'
   })
- @UseGuards(AuthGuard)
+ // @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Post()
   create(@Body() createTypeDto: CreateTypeDto): Promise<IRecourseCreated<ProductType>> {
@@ -74,7 +74,7 @@ export class TypeController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error updating the product type'
   })
- @UseGuards(AuthGuard)
+ // @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Put(':id')
   update(@Param('id') id: number, @Body() updateTypeDto: UpdateTypeDto): Promise<IRecourseUpdated<ProductType>> {
@@ -94,7 +94,7 @@ export class TypeController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Error deleting the product type'
   })
- @UseGuards(AuthGuard)
+ // @UseGuards(AuthGuard)
   @Roles(['admin'])
   @Delete(':id')
   remove(@Param('id') id: number): Promise<IRecourseDeleted<ProductType>> {
