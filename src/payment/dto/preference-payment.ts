@@ -1,8 +1,7 @@
 // Payment preference respo
 
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsArray, IsPositive, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsPositive, IsString } from "class-validator";
 
 
 

@@ -42,17 +42,17 @@ export class PaymentController {
   @Post('mp/preference')
   async createPaymentPreference(@Body() paymentPreference: IPaymentPreferenceReq,  @Req() req: Request, @Res() res: Response ): Promise<void>{
 
-    const userToken: string = req?.cookies['user'];
-    const userPayload = this.jwtService.decode(userToken);
-    const userIdFromToken: number = userPayload?.id;
+    // const userToken: string = req?.cookies['user'];
+    // const userPayload = this.jwtService.decode(userToken);
+    // const userIdFromToken: number = userPayload?.id;
 
-    if (!userIdFromToken || userIdFromToken !== paymentPreference?.userId) {
-      const unauthError: IUnauthorizedEx = {
-        status: false,
-        message: 'User ID does not match the one in the cookie.'
-      };
-      throw new UnauthorizedException(unauthError);
-    }
+    // if (!userIdFromToken || userIdFromToken !== paymentPreference?.userId) {
+    //   const unauthError: IUnauthorizedEx = {
+    //     status: false,
+    //     message: 'User ID does not match the one in the cookie.'
+    //   };
+    //   throw new UnauthorizedException(unauthError);
+    // }
 
     await this.paymentService.generatePaymentOrException(paymentPreference, res);
   }
