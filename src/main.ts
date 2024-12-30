@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import cors from "cors"
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -66,7 +67,12 @@ async function bootstrap() {
     }),
   );
 
-  app.enableCors({ credentials: true, origin: 'https://padel-point.vercel.app' });
+  app.use(cors({
+    credentials: true,
+    origin: 'https://padel-point.vercel.app',
+  }));
+
+  // app.enableCors({ credentials: true, origin: 'https://padel-point.vercel.app' });
 
   app.use(cookieParser());
   app.use(passport.initialize());
