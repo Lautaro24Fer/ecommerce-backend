@@ -67,12 +67,7 @@ async function bootstrap() {
     }),
   );
 
-  app.use(cors({
-    credentials: true,
-    origin: 'https://padel-point.vercel.app',
-  }));
-
-  // app.enableCors({ credentials: true, origin: 'https://padel-point.vercel.app' });
+  app.enableCors({ credentials: true, origin: 'https://padel-point.vercel.app' });
 
   app.use(cookieParser());
   app.use(passport.initialize());
