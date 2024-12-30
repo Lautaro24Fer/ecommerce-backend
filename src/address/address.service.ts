@@ -4,7 +4,7 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Address } from './entities/address.entity';
 import { Repository } from 'typeorm';
-import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
 import { Cron } from '@nestjs/schedule';
 import { UserService } from '../user/user.service';
 import { UpdateType } from '../global/enum';

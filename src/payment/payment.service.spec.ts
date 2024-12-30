@@ -7,10 +7,10 @@ import { EmailService } from '../email/email.service';
 import { OrderService } from '../order/order.service';
 import { UserService } from '../user/user.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { LoginMethodType } from 'src/global/enum';
-import { IdType } from 'src/id-type/entities/id-type.entity';
-import { IRecourseFound } from 'src/global/responseInterfaces';
-import { User } from 'src/user/entities/user.entity';
+import { LoginMethodType } from '../global/enum';
+import { IdType } from '../id-type/entities/id-type.entity';
+import { IRecourseFound } from '../global/responseInterfaces';
+import { User } from '../user/entities/user.entity';
 import { IPaymentPreference } from './dto/preference-payment';
 
 describe('PaymentService', () => {

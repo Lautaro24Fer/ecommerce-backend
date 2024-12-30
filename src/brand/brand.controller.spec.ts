@@ -3,7 +3,7 @@ import { BrandController } from './brand.controller';
 import { BrandService } from './brand.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated } from '../global/responseInterfaces';
 import { Brand } from './entities/brand.entity';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { QueryParamsBrandDto } from './dto/query-params.dto';

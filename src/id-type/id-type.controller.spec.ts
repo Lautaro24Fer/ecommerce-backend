@@ -3,7 +3,7 @@ import { IdTypeController } from './id-type.controller';
 import { IdTypeService } from './id-type.service';
 import { CreateIdTypeDto } from './dto/create-id-type.dto';
 import { UpdateIdTypeDto } from './dto/update-id-type.dto';
-import { IRecourseCreated, IRecourseFound, IRecourseUpdated, IRecourseDeleted } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseFound, IRecourseUpdated, IRecourseDeleted } from '../global/responseInterfaces';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { IdType } from './entities/id-type.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';

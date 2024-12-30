@@ -5,7 +5,7 @@ import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { Supplier } from './entities/supplier.entity';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
-import { IRecourseUpdated } from 'src/global/responseInterfaces';
+import { IRecourseUpdated } from '../global/responseInterfaces';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 

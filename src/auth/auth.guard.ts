@@ -9,7 +9,7 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Roles } from './auth.decorator';
-import { IUnauthorizedEx } from 'src/global/responseInterfaces';
+import { IUnauthorizedEx } from '../global/responseInterfaces';
 
 interface ITokenPayloadOrError {
   error?: string;

@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Role } from '../roles/entities/role.entity';
-import { IBadRequestex } from 'src/global/responseInterfaces';
+import { IBadRequestex } from '../global/responseInterfaces';
 
 interface ICookiesContext {
   user?: string;

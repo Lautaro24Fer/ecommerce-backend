@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as ftp from "basic-ftp"
-import { IBadRequestex } from 'src/global/responseInterfaces';
-import { MulterFile } from 'src/images/dto/multer-file';
+import { IBadRequestex } from '../global/responseInterfaces';
+import { MulterFile } from '../images/dto/multer-file';
 import * as fs from "fs"
 
 @Injectable()

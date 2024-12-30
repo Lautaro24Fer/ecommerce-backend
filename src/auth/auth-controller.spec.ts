@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { InputLoginDto } from './dto/login.dto';
 import { Request, Response } from 'express';
-import { IRecourseCreated, IRecourseDeleted } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseDeleted } from '../global/responseInterfaces';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 

@@ -16,7 +16,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GoogleAuthGuard } from './auth-google.guard';
 import { InputLoginDto, LoginResponseDto } from './dto/login.dto';
 import { SessionStateDto } from './dto/session-state.dto';
-import { IRecourseCreated, IRecourseDeleted, IUnauthorizedEx } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseDeleted, IUnauthorizedEx } from '../global/responseInterfaces';
 import { Roles } from './auth.decorator';
 import { AuthGuard } from './auth.guard';
 

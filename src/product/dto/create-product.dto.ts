@@ -11,7 +11,7 @@ import {
   isURL,
   Length,
 } from 'class-validator';
-import { MulterFile } from 'src/images/dto/multer-file';
+import { MulterFile } from '../../images/dto/multer-file';
 
 export class CreateProductDto {
   @ApiProperty() 

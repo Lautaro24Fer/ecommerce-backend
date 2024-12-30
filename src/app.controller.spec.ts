@@ -15,7 +15,7 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
+    it('should return "Padel Point API"', () => {
       expect(appController.getHello()).toBe('Padel Point API');
     });
   });
