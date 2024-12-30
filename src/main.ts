@@ -15,6 +15,9 @@ import cors from "cors"
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({ credentials: true, origin: 'https://padel-point.vercel.app' });
+
+
   // CONFIGURATION SERVICE
 
   const configService = new ConfigService()
@@ -66,8 +69,6 @@ async function bootstrap() {
       saveUninitialized: false,
     }),
   );
-
-  app.enableCors({ credentials: true, origin: 'https://padel-point.vercel.app' });
 
   app.use(cookieParser());
   app.use(passport.initialize());
