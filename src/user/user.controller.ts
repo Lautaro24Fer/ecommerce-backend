@@ -147,6 +147,7 @@ export class UserController {
       maxAge: 1000 * 60 * 5, // El jwt durará 5 min
       httpOnly: true,
       sameSite: 'none',
+      domain: 'https://padel-point.vercel.app',
       secure: true,
     })
     const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Code verified succesfully' };
