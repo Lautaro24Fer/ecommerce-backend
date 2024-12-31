@@ -62,14 +62,14 @@ export class AuthController {
         httpOnly: true,
         sameSite: 'none',
         secure: true,
-        domain: 'https://padel-point.vercel.app'
+        domain: 'padel-point.vercel.app'
       });
     res.cookie('refresh', refreshToken, {
       maxAge: 1000 * 60 * 60  * 2, // Tiempo de vida de la cookie (2 horas)
       httpOnly: true,
       sameSite: 'none',
       secure: true,
-      domain: 'https://padel-point.vercel.app'
+      domain: 'padel-point.vercel.app'
     });
 
     const responseLogin = new LoginResponseDto(true, 'login succesfully');
@@ -102,14 +102,14 @@ export class AuthController {
         httpOnly: true,
         sameSite: 'none',
         secure: true,
-        domain: 'https://padel-point.vercel.app'
+        domain: 'padel-point.vercel.app'
       });
       res.cookie('refresh', refreshToken, {
         maxAge: 1000 * 60 * 60 * 2, // Tiempo de vida de la cookie (2 horas)
         httpOnly: true,
         sameSite: 'none',
         secure: true,
-        domain: 'https://padel-point.vercel.app'
+        domain: 'padel-point.vercel.app'
       });
     }
 
@@ -183,7 +183,7 @@ export class AuthController {
       httpOnly: true,
       sameSite: 'none',
       secure: true,
-      domain: 'https://padel-point.vercel.app'
+      domain: 'padel-point.vercel.app'
     })
     const recourse: IRecourseCreated<string> = {
       status: true,

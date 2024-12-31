@@ -15,12 +15,29 @@ import cors from "cors"
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const configService = new ConfigService()
+
+  // COOKIES
+
   app.enableCors({ credentials: true, origin: 'https://padel-point.vercel.app' });
 
+  app.use(
+    session({
+      // Hay que pasar el secreto de sesión a una variable de entorno
+      secret: configService.get<string>('COOKIE_SECRET'),
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: 'frontend-dominio.com', 
+    },
+    }),
+  );
 
   // CONFIGURATION SERVICE
 
-  const configService = new ConfigService()
 
   // SWAGGER
 
@@ -60,20 +77,6 @@ async function bootstrap() {
     }),
   );
 
-
-  app.use(
-    session({
-      // Hay que pasar el secreto de sesión a una variable de entorno
-      secret: configService.get<string>('COOKIE_SECRET'),
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true, // Evita que las cookies sean accesibles desde el frontend (importante para seguridad).
-        secure: process.env.NODE_ENV === 'production', // Solo se envía con HTTPS en producción.
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict' // 'none' si estás trabajando con frontend y backend separados.
-    },
-    }),
-  );
 
   app.use(cookieParser());
   app.use(passport.initialize());
