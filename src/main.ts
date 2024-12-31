@@ -67,6 +67,11 @@ async function bootstrap() {
       secret: configService.get<string>('COOKIE_SECRET'),
       resave: false,
       saveUninitialized: false,
+      cookie: {
+        httpOnly: true, // Evita que las cookies sean accesibles desde el frontend (importante para seguridad).
+        secure: process.env.NODE_ENV === 'production', // Solo se envía con HTTPS en producción.
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict' // 'none' si estás trabajando con frontend y backend separados.
+    },
     }),
   );
 
