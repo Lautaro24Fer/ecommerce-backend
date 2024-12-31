@@ -146,8 +146,8 @@ export class UserController {
     res.cookie('password-reset', jwt, {
       maxAge: 1000 * 60 * 5, // El jwt durará 5 min
       httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      secure: true,
     })
     const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Code verified succesfully' };
     return res.status(201).json(responseDto);

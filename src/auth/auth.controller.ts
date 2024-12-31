@@ -60,14 +60,14 @@ export class AuthController {
     res.cookie('user', token, {
         maxAge: 1000 * 60 * 60, // Tiempo de vida de la cookie (1 hora)
         httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'none',
+        secure: true,
       });
     res.cookie('refresh', refreshToken, {
       maxAge: 1000 * 60 * 60  * 2, // Tiempo de vida de la cookie (2 horas)
       httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      secure: true,
     });
 
     const responseLogin = new LoginResponseDto(true, 'login succesfully');
@@ -98,14 +98,14 @@ export class AuthController {
       res.cookie('user', token, {
         maxAge: 1000 * 60 * 60, // Tiempo de vida de la cookie (1 hora)
         httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'none',
+        secure: true,
       });
       res.cookie('refresh', refreshToken, {
         maxAge: 1000 * 60 * 60 * 2, // Tiempo de vida de la cookie (2 horas)
         httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'none',
+        secure: true,
       });
     }
 
@@ -175,10 +175,10 @@ export class AuthController {
     }
     const accessToken: string = await this.authService.getTokenRefreshed(refreshToken)
     res.cookie('user', accessToken, {
-      maxAge: 1000 * 60 * 60 * 1, // Tiempo de vida de la cookie (1 minuto)
+      maxAge: 1000 * 60 * 60 * 1, // Tiempo de vida de la cookie (1 hora)
       httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      secure: true,
     })
     const recourse: IRecourseCreated<string> = {
       status: true,

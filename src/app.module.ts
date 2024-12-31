@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -30,6 +30,7 @@ import { AddressModule } from './address/address.module';
 import { Address } from './address/entities/address.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FtpModule } from './ftp/ftp.module';
+import { CookieMiddleware } from './auth/cookie.middleware';
 
 @Module({
   imports: [
@@ -72,4 +73,10 @@ import { FtpModule } from './ftp/ftp.module';
   controllers: [AppController],
   providers: [AppService, EmailService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(CookieMiddleware)
+      .forRoutes('*'); // Apply to all routes
+  }
+}
