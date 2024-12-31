@@ -3,8 +3,8 @@ import { ImagesService } from './images.service';
 import { ImagesController } from './images.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductImage } from './entities/image.entity';
-import { ProductModule } from 'src/product/product.module';
-import { FtpModule } from 'src/ftp/ftp.module';
+import { ProductModule } from '../product/product.module';
+import { FtpModule } from '../ftp/ftp.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 import * as path from "path"

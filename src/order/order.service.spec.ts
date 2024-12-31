@@ -15,7 +15,7 @@ import { QueryParamsDto } from './dto/query-params.dto';
 import { User } from '../user/entities/user.entity';
 import { Address } from '../address/entities/address.entity';
 import { OrderDto } from './dto/order.dto';
-import { UserDto } from 'src/user/dto/user.dto';
+import { UserDto } from '../user/dto/user.dto';
 import { ProductOrderDto } from './dto/product-order.dto';
 
 describe('OrderService', () => {

@@ -7,25 +7,65 @@ import * as session from 'express-session';
 import * as passport from 'passport';
 import * as bodyParser from 'body-parser';
 import { ConfigService } from '@nestjs/config';
+import helmet from 'helmet';
+import * as compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import cors from "cors"
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const configService = new ConfigService()
+
+  // COOKIES
+
+  app.enableCors({ credentials: true, origin: 'https://padel-point.vercel.app' });
+
+  app.use(
+    session({
+      // Hay que pasar el secreto de sesión a una variable de entorno
+      secret: configService.get<string>('COOKIE_SECRET'),
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: 'frontend-dominio.com', 
+    },
+    }),
+  );
+
   // CONFIGURATION SERVICE
 
-  const configService = new ConfigService()
 
   // SWAGGER
 
-  const config = new DocumentBuilder()
-    .setTitle('Nest API - TypeORM')
-    .setDescription('Nest api for test of auth and DB')
-    .setVersion('1.0')
-    .build();
+  // const config = new DocumentBuilder()
+  //   .setTitle('Nest API - TypeORM')
+  //   .setDescription('Nest api for test of auth and DB')
+  //   .setVersion('1.0')
+  //   .build();
 
-  const document = SwaggerModule.createDocument(app, config);
+  // const document = SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup('', app, document);
+  // SwaggerModule.setup('', app, document);
+
+  // HELMET
+
+  app.use(helmet());
+
+  // COMPRESION
+
+  app.use(compression());
+
+  // RATE LIMIT
+  app.use(
+    rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutos
+      max: 100, // Límite de solicitudes por IP
+    }),
+  );
 
   // PIPES
 
@@ -38,22 +78,13 @@ async function bootstrap() {
   );
 
 
-  app.use(
-    session({
-      // Hay que pasar el secreto de sesión a una variable de entorno
-      secret: configService.get<string>('COOKIE_SECRET'),
-      resave: false,
-      saveUninitialized: false,
-    }),
-  );
-
-  app.enableCors({ credentials: true, origin: ['http://localhost:8080'] });
-
   app.use(cookieParser());
   app.use(passport.initialize());
   app.use(bodyParser.json());
   app.use(passport.session());
 
-  await app.listen(3000);
+  const PORT = process.env.PORT || 3000;
+
+  await app.listen(PORT);
 }
 bootstrap();

@@ -5,10 +5,10 @@ import { User } from './entities/user.entity';
 import { UserService } from './user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RolesModule } from 'src/roles/roles.module';
-import { EmailModule } from 'src/email/email.module';
-import { IdTypeModule } from 'src/id-type/id-type.module';
-import { AddressModule } from 'src/address/address.module';
+import { RolesModule } from '../roles/roles.module';
+import { EmailModule } from '../email/email.module';
+import { IdTypeModule } from '../id-type/id-type.module';
+import { AddressModule } from '../address/address.module';
 
 @Module({
   controllers: [UserController],

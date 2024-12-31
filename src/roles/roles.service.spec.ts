@@ -5,7 +5,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role } from './entities/role.entity';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { IRecourseFound } from 'src/global/responseInterfaces';
+import { IRecourseFound } from '../global/responseInterfaces';
 
 describe('RolesService', () => {
   let service: RolesService;

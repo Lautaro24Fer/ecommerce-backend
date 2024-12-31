@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { BadRequestException } from '@nestjs/common';
 import * as ftp from 'basic-ftp';
 import * as fs from 'fs';
-import { MulterFile } from 'src/images/dto/multer-file';
+import { MulterFile } from '../images/dto/multer-file';
 
 jest.mock('basic-ftp', () => {
   return {

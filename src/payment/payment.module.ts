@@ -3,11 +3,11 @@ import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthModule } from 'src/auth/auth.module';
-import { UserModule } from 'src/user/user.module';
-import { ProductModule } from 'src/product/product.module';
-import { EmailModule } from 'src/email/email.module';
-import { OrderModule } from 'src/order/order.module';
+import { AuthModule } from '../auth/auth.module';
+import { UserModule } from '../user/user.module';
+import { ProductModule } from '../product/product.module';
+import { EmailModule } from '../email/email.module';
+import { OrderModule } from '../order/order.module';
 
 @Module({
   controllers: [PaymentController],

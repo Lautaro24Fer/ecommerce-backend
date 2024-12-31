@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ImagesController } from './images.controller';
 import { ImagesService } from './images.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { IRecourseFound, IRecourseCreated, IRecourseDeleted } from 'src/global/responseInterfaces';
+import { IRecourseFound, IRecourseCreated, IRecourseDeleted } from '../global/responseInterfaces';
 import { ProductImage } from './entities/image.entity';
 import { MulterFile } from './dto/multer-file';
 import { JwtModule, JwtService } from '@nestjs/jwt';

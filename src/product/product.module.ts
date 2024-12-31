@@ -3,11 +3,11 @@ import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { BrandModule } from 'src/brand/brand.module';
-import { SupplierModule } from 'src/supplier/supplier.module';
-import { TypeModule } from 'src/type/type.module';
-import { ImagesModule } from 'src/images/images.module';
-import { FtpModule } from 'src/ftp/ftp.module';
+import { BrandModule } from '../brand/brand.module';
+import { SupplierModule } from '../supplier/supplier.module';
+import { TypeModule } from '../type/type.module';
+import { ImagesModule } from '../images/images.module';
+import { FtpModule } from '../ftp/ftp.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 

@@ -18,7 +18,7 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { FullUpdateUserDto, PartialUpdateUserDto  } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard, ITokenPayload } from '../auth/auth.guard';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { UserDto } from './dto/user.dto';
@@ -29,11 +29,12 @@ import { IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, I
 import { UpdateType } from '../global/enum';
 import { Address } from '../address/entities/address.entity';
 import { Roles } from '../auth/auth.decorator';
+import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Users')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService, private readonly jwtService: JwtService) {}
 
   @ApiOperation({ summary: 'Register user' })
   @ApiResponse({
@@ -143,10 +144,11 @@ export class UserController {
 
     const jwt: string = await this.userService.validatePasswordResetCode(updateUserPasswordValidate.code, updateUserPasswordValidate.email);
     res.cookie('password-reset', jwt, {
-      maxAge: 1000 * 60 * 1, // El jwt durará un minuto
+      maxAge: 1000 * 60 * 5, // El jwt durará 5 min
       httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      domain: 'padel-point.vercel.app',
+      secure: true,
     })
     const responseDto: ResponsetUpdatePasswordCodeDto = { status: true, description: 'Code verified succesfully' };
     return res.status(201).json(responseDto);
@@ -211,7 +213,20 @@ export class UserController {
  @UseGuards(AuthGuard)
   @Roles(['admin', 'user'])
   @Get('addresses/:id')
-  async getUserAddresses(@Param('id') id: number): Promise<IRecourseFound<Address[]>>{
+  async getUserAddresses(@Param('id') id: number, @Req() req: Request): Promise<IRecourseFound<Address[]>>{
+
+    const userToken: string = req?.cookies['user'];
+    // Esta interfaz deberia estar en global
+    const userPayload: ITokenPayload = await this.jwtService.decode(userToken);
+    const isUser = userPayload.roles.findIndex((m) => m.name === 'user') >= 0;
+    if ((isUser) && (userPayload?.id != id)) {
+      const unauthError: IUnauthorizedEx = {
+        status: false,
+        message: `User ID '${id}' does not match the token ID`
+      }
+      throw new UnauthorizedException(unauthError);
+    }
+
     const recourseFound: IRecourseFound<User> = await this.userService.findOneById(id);
     const addresses: Address[] = [...recourseFound.recourse.address];
     const response: IRecourseFound<Address[]> = {

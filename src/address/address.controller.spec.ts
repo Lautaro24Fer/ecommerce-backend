@@ -4,7 +4,7 @@ import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { IRecourseCreated, IRecourseFound, IRecourseUpdated, IRecourseDeleted } from 'src/global/responseInterfaces';
+import { IRecourseCreated, IRecourseFound, IRecourseUpdated, IRecourseDeleted } from '../global/responseInterfaces';
 import { Address } from './entities/address.entity';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '../auth/auth.guard';

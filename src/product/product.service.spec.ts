@@ -9,8 +9,8 @@ import { TypeService } from '../type/type.service';
 import { FtpService } from '../ftp/ftp.service';
 import { ImagesService } from '../images/images.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { IRecourseFound } from 'src/global/responseInterfaces';
-import { ItemDto } from 'src/payment/dto/preference-payment';
+import { IRecourseFound } from '../global/responseInterfaces';
+import { ItemDto } from '../payment/dto/preference-payment';
 
 describe('ProductService', () => {
   let service: ProductService;

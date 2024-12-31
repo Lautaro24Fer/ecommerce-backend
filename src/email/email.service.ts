@@ -4,10 +4,10 @@ import { ResendService } from 'nestjs-resend';
 import { Resend } from 'resend';
 import { resetPasswordLayout } from './layouts/change-password-code';
 import * as nodemailer from 'nodemailer';
-import { IBadRequestex, IRecourseCreated } from 'src/global/responseInterfaces';
-import { Order } from 'src/order/entities/order.entity';
+import { IBadRequestex, IRecourseCreated } from '../global/responseInterfaces';
+import { Order } from '../order/entities/order.entity';
 import createOrderLayout from './layouts/order';
-import { OrderDto } from 'src/order/dto/order.dto';
+import { OrderDto } from '../order/dto/order.dto';
 
 @Injectable()
 export class EmailService {

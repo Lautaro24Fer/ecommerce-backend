@@ -6,7 +6,7 @@ import { PaymentGuard } from './payment.guard';
 import { IPaymentPreferenceReq } from './dto/preference-payment';
 import { IBadRequestex, IUnauthorizedEx } from '../global/responseInterfaces';
 import { IsPositive } from 'class-validator';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard, ITokenPayload } from '../auth/auth.guard';
 import { Roles } from '../auth/auth.decorator';
 import { JwtService } from '@nestjs/jwt';
 
@@ -43,7 +43,7 @@ export class PaymentController {
   async createPaymentPreference(@Body() paymentPreference: IPaymentPreferenceReq,  @Req() req: Request, @Res() res: Response ): Promise<void>{
 
     const userToken: string = req?.cookies['user'];
-    const userPayload = this.jwtService.decode(userToken);
+    const userPayload: ITokenPayload = this.jwtService.decode(userToken);
     const userIdFromToken: number = userPayload?.id;
 
     if (!userIdFromToken || userIdFromToken !== paymentPreference?.userId) {
