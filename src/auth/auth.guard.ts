@@ -16,12 +16,12 @@ interface ITokenPayloadOrError {
   payload?: object;
 }
 
-interface IRole {
+export interface IRole {
   id: number;
   name: string;
 }
 
-interface ITokenPayload {
+export interface ITokenPayload {
   id: number;
   method: 'local' | 'google'; // Asumiendo que solo hay estos dos métodos
   roles: IRole[];
@@ -165,7 +165,7 @@ export class AuthGuard implements CanActivate {
 
     // console.log("Es admin?: ", isAdmin)
 
-    if ((roles?.includes('admin')) && (!isAdmin)) {
+    if ((roles?.includes('admin') && (!(roles?.includes('user')))) && (!isAdmin)) {
       // console.log("No es administrador y requerimos ese permiso, se retorna false")
       return false;
     }

@@ -58,13 +58,13 @@ export class AuthController {
     const { token, refreshToken } = await this.authService.getCookieByLocalAuth(login);
 
     res.cookie('user', token, {
-        maxAge: 1000 * 60 * 5, // Tiempo de vida de la cookie (5 minutos)
+        maxAge: 1000 * 60 * 60, // Tiempo de vida de la cookie (1 hora)
         httpOnly: true,
         sameSite: 'strict',
         secure: process.env.NODE_ENV === 'production',
       });
     res.cookie('refresh', refreshToken, {
-      maxAge: 1000 * 60 * 7, // Tiempo de vida de la cookie (7 minutos)
+      maxAge: 1000 * 60 * 60  * 2, // Tiempo de vida de la cookie (2 horas)
       httpOnly: true,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',
@@ -96,13 +96,13 @@ export class AuthController {
       const { token, refreshToken } = await this.authService.getCookieByPassportStrategy( user );
 
       res.cookie('user', token, {
-        maxAge: 1000 * 60 * 1, // Tiempo de vida de la cookie (1 minuto)
+        maxAge: 1000 * 60 * 60, // Tiempo de vida de la cookie (1 hora)
         httpOnly: true,
         sameSite: 'strict',
         secure: process.env.NODE_ENV === 'production',
       });
       res.cookie('refresh', refreshToken, {
-        maxAge: 1000 * 60 * 7, // Tiempo de vida de la cookie (7 minutos)
+        maxAge: 1000 * 60 * 60 * 2, // Tiempo de vida de la cookie (2 horas)
         httpOnly: true,
         sameSite: 'strict',
         secure: process.env.NODE_ENV === 'production',
@@ -175,7 +175,7 @@ export class AuthController {
     }
     const accessToken: string = await this.authService.getTokenRefreshed(refreshToken)
     res.cookie('user', accessToken, {
-      maxAge: 1000 * 60 * 1, // Tiempo de vida de la cookie (1 minuto)
+      maxAge: 1000 * 60 * 60 * 1, // Tiempo de vida de la cookie (1 minuto)
       httpOnly: true,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',

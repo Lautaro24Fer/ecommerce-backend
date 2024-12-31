@@ -23,7 +23,7 @@ import { OrderDto } from './dto/order.dto';
 import { UserService } from '../user/user.service';
 import { EmailService } from '../email/email.service';
 import { QueryParamsDto } from './dto/query-params.dto';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard, ITokenPayload } from '../auth/auth.guard';
 import { Roles } from '../auth/auth.decorator';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
@@ -145,15 +145,16 @@ export class OrderController {
   async getUserOrders(@Param('id') id: number, @Req() req: Request): Promise<IRecourseFound<OrderDto[]>>{
 
     const userToken: string = req?.cookies['user'];
-    const userPayload = await this.jwtService.decode(userToken);
-    // Check if the role is 'user' and compare IDs
-  if ((userPayload?.roles?.includes('user')) && (userPayload?.id !== id)) {
-    const unauthError: IUnauthorizedEx = {
-      status: false,
-      message: "User ID does not match the token ID"
+    // Esta interfaz deberia estar en global
+    const userPayload: ITokenPayload = await this.jwtService.decode(userToken);
+    const isUser = userPayload.roles.findIndex((m) => m.name === 'user') >= 0;
+    if ((isUser) && (userPayload?.id != id)) {
+      const unauthError: IUnauthorizedEx = {
+        status: false,
+        message: `User ID '${id}' does not match the token ID`
+      }
+      throw new UnauthorizedException(unauthError);
     }
-    throw new UnauthorizedException(unauthError);
-  }
 
     const orders: IRecourseFound<Order[]> = await this.orderService.findOrdersByUserId(id);
     const ordersDto: OrderDto[] = orders.recourse.map((order) => {
