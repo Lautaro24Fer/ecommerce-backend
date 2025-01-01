@@ -15,7 +15,7 @@ import cors from "cors"
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({ credentials: true, origin: 'https://padel-point.vercel.app' });
+  // app.enableCors({ credentials: true, origin: 'https://padel-point.vercel.app' });
 
 
   // CONFIGURATION SERVICE
@@ -24,15 +24,15 @@ async function bootstrap() {
 
   // SWAGGER
 
-  // const config = new DocumentBuilder()
-  //   .setTitle('Nest API - TypeORM')
-  //   .setDescription('Nest api for test of auth and DB')
-  //   .setVersion('1.0')
-  //   .build();
+  const config = new DocumentBuilder()
+    .setTitle('Nest API - TypeORM')
+    .setDescription('Nest api for test of auth and DB')
+    .setVersion('1.0')
+    .build();
 
-  // const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config);
 
-  // SwaggerModule.setup('', app, document);
+  SwaggerModule.setup('', app, document);
 
   // HELMET
 
