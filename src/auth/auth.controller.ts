@@ -63,6 +63,7 @@ export class AuthController {
         sameSite: 'none',
         secure: true,
       });
+      
     res.cookie('refresh', refreshToken, {
       maxAge: 1000 * 60 * 60  * 2, // Tiempo de vida de la cookie (2 horas)
       httpOnly: true,
