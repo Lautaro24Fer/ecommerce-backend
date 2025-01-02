@@ -24,13 +24,9 @@ export class FtpService {
   async checkFileExists(remotePath: string): Promise<boolean> {
     try {
       await this.connectToFTPServer()
-      // Lista los archivos en el directorio que contiene el archivo
       const fileList = await this.client.list(remotePath);
-
-      // Si el archivo está en el listado, retorna true
       return fileList.length > 0;
     } catch (error) {
-      // Si ocurre un error, probablemente el archivo no exista
       return false;
     }
     finally{
@@ -51,7 +47,6 @@ export class FtpService {
 
     const localPath: string = file.path;
 
-    // Asegúrate de que el archivo temporal existe
     if (!fs.existsSync(localPath)) {
       throw new BadRequestException('Temporary file not found');
     }
@@ -125,9 +120,7 @@ export class FtpService {
 
   async deleteFile(remotePath: string): Promise<void> {
     try {
-      // Conectar al servidor FTP
       await this.connectToFTPServer();
-      // Verificar si el archivo existe antes de intentar eliminarlo
       const fileExists = await this.client.size(remotePath).catch(() => false);
       if (fileExists) {
         await this.client.remove(remotePath);
@@ -140,7 +133,7 @@ export class FtpService {
       }
       throw new BadRequestException(badRequestError);
     } finally {
-      await this.closeFTPServerConnection() // Asegurarse de cerrar la conexión
+      await this.closeFTPServerConnection()
     }
   }
 

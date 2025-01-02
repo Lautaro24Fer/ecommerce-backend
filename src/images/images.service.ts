@@ -11,10 +11,6 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ImagesService {
-  update(arg0: number, arg1: { url: string; }) {
-    throw new Error('Method not implemented.');
-  }
-
 
   constructor(
     @InjectRepository(ProductImage) private readonly imageRepository: Repository<ProductImage>,

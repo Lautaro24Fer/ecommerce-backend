@@ -1,5 +1,6 @@
 import { BadRequestException } from "@nestjs/common";
 import * as path from "path";
+import * as fs from 'fs';
 import { diskStorage } from 'multer';
 
 const imageFileFilter = (req, file, callback) => {
@@ -19,7 +20,14 @@ const imageFileFilter = (req, file, callback) => {
 // Configuración de almacenamiento
 const storageConfig = diskStorage({
   destination: (req, file, cb) => {
-    const tempPath = path.join(process.cwd(), 'temp');
+    
+    const tempPath = '/tmp'; // Carpeta estándar temporal
+
+    // Asegúrate de que el directorio exista
+    if (!fs.existsSync(tempPath)) {
+      fs.mkdirSync(tempPath, { recursive: true });
+    }
+
     cb(null, tempPath); // Define carpeta temporal
   },
   filename: (req, file, cb) => {
