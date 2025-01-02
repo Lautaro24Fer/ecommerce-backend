@@ -22,6 +22,10 @@ async function bootstrap() {
 
   const configService = new ConfigService()
 
+  // PROXIES
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', true);
+
   // SWAGGER
 
   const config = new DocumentBuilder()

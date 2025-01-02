@@ -19,11 +19,17 @@ import { SessionStateDto } from './dto/session-state.dto';
 import { IRecourseCreated, IRecourseDeleted, IUnauthorizedEx } from '../global/responseInterfaces';
 import { Roles } from './auth.decorator';
 import { AuthGuard } from './auth.guard';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+
+  clientUrl: string;
+
+  constructor(private readonly authService: AuthService, private readonly configService: ConfigService) {
+    this.clientUrl = configService.get<string>('DEV_CLIENT_DOMAIN');
+  }
 
   @ApiOperation({
     summary: "User login by local way. With username or email and password"
@@ -109,7 +115,7 @@ export class AuthController {
       });
     }
 
-    return res.redirect('http://localhost:8080'); // Esta es la pagina a donde va a redirigir una vez logeado o no
+    return res.redirect(this.clientUrl); // Esta es la pagina a donde va a redirigir una vez logeado o no
   }
 
   @ApiOperation({
