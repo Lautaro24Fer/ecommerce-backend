@@ -73,10 +73,10 @@ import { CookieMiddleware } from './auth/cookie.middleware';
   controllers: [AppController],
   providers: [AppService, EmailService],
 })
-export class AppModule /*implements NestModule*/ {
-  /*configure(consumer: MiddlewareConsumer) {
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(CookieMiddleware)
       .forRoutes('*'); // Apply to all routes
-  }*/
+  }
 }
