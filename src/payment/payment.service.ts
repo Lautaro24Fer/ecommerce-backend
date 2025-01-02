@@ -22,7 +22,7 @@ export class PaymentService {
 		private readonly orderService: OrderService
 	) { }
 
-	CLIENT_DOMAIN = this.configService.get<string>('PROD_API_DOMAIN');
+	CLIENT_DOMAIN = this.configService.get<string>('PROD_CLIENT_DOMAIN');
 	ACCESS_TOKEN = this.configService.get<string>('MP_ACCESS_TOKEN');
 	PUBLIC_KEY = this.configService.get<string>('MP_PUBLIC_KEY');
 	CLIENT_ID = this.configService.get<string>('MP_CLIENT_ID');
