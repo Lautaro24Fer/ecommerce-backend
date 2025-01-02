@@ -28,7 +28,7 @@ export class AuthController {
   clientUrl: string;
 
   constructor(private readonly authService: AuthService, private readonly configService: ConfigService) {
-    this.clientUrl = configService.get<string>('DEV_CLIENT_DOMAIN');
+    this.clientUrl = configService.get<string>('PROD_CLIENT_DOMAIN');
   }
 
   @ApiOperation({
