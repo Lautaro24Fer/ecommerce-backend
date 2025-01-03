@@ -21,7 +21,7 @@ describe('AuthController', () => {
           imports: [ConfigModule],
           inject: [ConfigService],
           useFactory: async (configService: ConfigService) => ({
-            secretOrPrivateKey: configService.get<string>('JWT_SECRET') ?? 'secret',
+            secret: configService.get<string>('JWT_SECRET') ?? 'secret',
           }),
         }),
       ],
