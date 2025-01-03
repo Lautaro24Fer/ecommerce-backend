@@ -61,9 +61,9 @@ export class PaymentService {
 					id: item.id.toString()
 				})), 
 				back_urls: {
-					success: `${this.CLIENT_DOMAIN}/success`,
-					failure: `${this.CLIENT_DOMAIN}/failure`,
-					pending: `${this.CLIENT_DOMAIN}/pending`
+					success: `${this.CLIENT_DOMAIN}/result`,
+					failure: `${this.CLIENT_DOMAIN}/result`,
+					pending: `${this.CLIENT_DOMAIN}/result`
 				},
 				payer: {
 					name: payer?.name,
