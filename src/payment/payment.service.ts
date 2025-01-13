@@ -9,7 +9,6 @@ import { Address } from '../address/entities/address.entity';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseFound } from '../global/responseInterfaces';
 import { ProductService } from '../product/product.service';
 import { OrderService } from '../order/order.service';
-import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class PaymentService {
@@ -18,7 +17,6 @@ export class PaymentService {
 		private readonly configService: ConfigService, 
 		private readonly userService: UserService,
 		private readonly productService: ProductService,
-		private readonly emailService: EmailService,
 		private readonly orderService: OrderService
 	) { }
 
@@ -70,7 +68,7 @@ export class PaymentService {
 					surname: payer?.surname,
 					email: payer?.email,
 					identification: {
-						type: payer?.idType?.name,
+						type: '',
 						number: payer?.idNumber
 					},
 					address: {

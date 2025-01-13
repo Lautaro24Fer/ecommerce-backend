@@ -20,7 +20,7 @@ export class Order {
   @ManyToOne(() => Address, (address) => address.id)
   address: Address;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'date', default: () => 'CURRENT_TIMESTAMP' })
   dateCreated: Date;
 
   @ManyToOne(() => User, (user) => user.id)
@@ -29,7 +29,7 @@ export class Order {
   @OneToMany(() => ProductOrder, (po) => po.order, { onDelete: 'CASCADE' })
   productOrder: ProductOrder[];
 
-  @Column({ type: 'varchar', default: "MP_TRANSFER" })
+  @Column({ type: 'varchar', default: "Mercado Pago Transference" })
   paymentMethod: string;
 
   // Pricing data

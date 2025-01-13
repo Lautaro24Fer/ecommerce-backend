@@ -9,9 +9,6 @@ import { JwtService } from '@nestjs/jwt';
 import { RolesService } from '../roles/roles.service';
 import { Role } from '../roles/entities/role.entity';
 import { UserDto } from './dto/user.dto';
-import { EmailService } from '../email/email.service';
-import { IdTypeService } from '../id-type/id-type.service';
-import { IdType } from '../id-type/entities/id-type.entity';
 import { AuthUserResponseDto, CreateUserStrategyDto } from './dto/oauth-data';
 import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecourseFound, IRecourseUpdated, IUnauthorizedEx } from '../global/responseInterfaces';
 import { AddressService } from '../address/address.service';
@@ -26,8 +23,6 @@ export class UserService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly roleService: RolesService,
-    private readonly emailService: EmailService,
-    private readonly idTypeService: IdTypeService,
     private readonly addressService: AddressService
   ) {}
 
@@ -71,7 +66,6 @@ export class UserService {
     createUserDto.password = await this.hashPassword(createUserDto.password);
     createUserDto.username = createUserDto.username.toLocaleLowerCase();
 
-    const idTypeOfUser: IdType = (await this.idTypeService.findOne(createUserDto.idType)).recourse; 
 
     let addressCreated: Address[] = [];
 
@@ -86,7 +80,6 @@ export class UserService {
       ...createUserDto, 
       email: createUserDto.email.toLowerCase(),
       roles: [], 
-      idType: idTypeOfUser, 
       idNumber: createUserDto.idNumber.toString(), 
       address: [...addressCreated]
     });
@@ -120,7 +113,7 @@ export class UserService {
 
   async findAll(): Promise<IRecourseFound<UserDto[]>> {
 
-    const users: User[] = await this.userRepository.find({ where: { isActive: true }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
+    const users: User[] = await this.userRepository.find({ where: { isActive: true }, relations: ['roles',  'address'] }).catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
         status: false,
@@ -140,7 +133,7 @@ export class UserService {
   }
 
   async findOneById(id: number): Promise<IRecourseFound<User>> {
-    const user: User = await this.userRepository.findOne({ where: { id, isActive: true }, relations: ['roles', 'idType', 'address']}).catch((error) => {
+    const user: User = await this.userRepository.findOne({ where: { id, isActive: true }, relations: ['roles', 'address']}).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with id '${id}'` };
       console.error(error);
       throw new BadRequestException(response);
@@ -162,7 +155,7 @@ export class UserService {
   async findOneByUserName(username: string): Promise<IRecourseFound<User>> {
 
 
-    const user: User = await this.userRepository.findOne({ where: { username: username.toLowerCase(), isActive: true }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
+    const user: User = await this.userRepository.findOne({ where: { username: username.toLowerCase(), isActive: true }, relations: ['roles', 'address'] }).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with username '${username}'` };
       console.error(error);
       throw new BadRequestException(response)
@@ -188,7 +181,7 @@ export class UserService {
       };
       throw new BadRequestException(badRequestError);
     }
-    const user: User = await this.userRepository.findOne({ where: { email, isActive: true }, relations: ['roles', 'idType', 'address'] }).catch((error) => {
+    const user: User = await this.userRepository.findOne({ where: { email, isActive: true }, relations: ['roles','address'] }).catch((error) => {
       const response: IBadRequestex = { status: false, message: `Error finding the user with email '${email}'` };
       console.error(error);
       throw new BadRequestException(response)
@@ -245,7 +238,6 @@ export class UserService {
     .catch(async (error) => {
       if (error instanceof NotFoundException) {
         const role: Role = (await this.roleService.findOneByName('user')).recourse;
-        const idType: IdType = (await this.idTypeService.findOne(payload.idType)).recourse;
         
         const createUser = {
           name: payload.name,
@@ -256,7 +248,6 @@ export class UserService {
           email: payload.email,
           method: payload.method,
           roles: [],
-          idType: { ...idType },
         };
         createUser.roles.push(role);
         const userCreated: User = await this.userRepository.save(createUser).catch((error) => {
@@ -360,7 +351,6 @@ export class UserService {
       name: updateUserDto?.name ?? userToUpdate?.name,
       surname: updateUserDto?.surname ?? userToUpdate?.surname,
       username: updateUserDto?.username ?? userToUpdate?.username,
-      idType: userToUpdate?.idType,
       idNumber: updateUserDto?.idNumber?.toString() ?? userToUpdate?.idNumber,
       email: userToUpdate?.email,
       method: userToUpdate?.method,
@@ -368,11 +358,6 @@ export class UserService {
       roles: [...(userToUpdate?.roles || [])],
       phone: updateUserDto?.phone
     };
-
-    if(updateUserDto?.idType) {
-      const idTypeArrived: IdType = (await this.idTypeService.findOne(updateUserDto?.idType)).recourse;
-      body.idType = idTypeArrived;
-    }
 
     if((updateUserDto?.address)){
       if(updateType === UpdateType.FULL){
@@ -471,8 +456,6 @@ export class UserService {
     });
 
 
-    await this.emailService.sendEmailForResetPassword(token, user.email); // Envío del correo al usuario con el codigo de cambio de contraseña
-
     const response: IRecourseCreated<User> = {
       status: true,
       message: "The tokens was created and the email was sended succesfully",
@@ -547,7 +530,6 @@ export class UserService {
       method: user.method,
       roles: user.roles ?? [],
       surname: user.surname,
-      idType: user.idType,
       idNumber: user.idNumber,
       address: user.address ?? [],
       phone: user.phone

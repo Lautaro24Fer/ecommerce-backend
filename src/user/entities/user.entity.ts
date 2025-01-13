@@ -1,6 +1,5 @@
 import { Address } from '../../address/entities/address.entity';
 import { LoginMethodType } from '../../global/enum';
-import { IdType } from '../../id-type/entities/id-type.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -24,17 +23,14 @@ export class User {
   @Column({ length: 20 })
   phone: string;
 
-  @ManyToOne(() => IdType, (m) => m.id)
-  idType: IdType;
-
   @Column()
   idNumber: string;
 
   @Column()
   email: string;
 
-  @Column({ type: 'enum', enum: LoginMethodType, default: LoginMethodType.LOCAL })
-  method: LoginMethodType;
+  @Column({ type: 'varchar', default: 'local' })
+  method: string;
 
   @ManyToMany(() => Address, (m) => m.user)
   @JoinTable()
@@ -50,6 +46,6 @@ export class User {
   @Column({ nullable: true })
   passwordResetToken?: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'date', nullable: true })
   passwordResetTokenExpiresIn?: Date;
 }

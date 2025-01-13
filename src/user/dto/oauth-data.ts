@@ -13,7 +13,6 @@ export interface CreateUserStrategyDto {
   method: LoginMethodType;
   surname: string;
   postalCode?: string;
-  idType?: number;
   idNumber?: string;
   addressStreet?: string;
   addressNumber?: string;

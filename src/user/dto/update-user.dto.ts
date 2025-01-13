@@ -38,10 +38,6 @@ export class FullUpdateUserDto {
 
   @ApiProperty()
   @IsPositive()
-  idType: number;
-
-  @ApiProperty()
-  @IsPositive()
   idNumber: number;
 
   @ApiProperty({ type: () => [AddressDto] })
@@ -81,11 +77,6 @@ export class PartialUpdateUserDto {
   @IsOptional()
   @IsEmail()
   email?: string;  
-
-  @ApiProperty()
-  @IsOptional()
-  @IsPositive()
-  idType?: number;
 
   @ApiProperty()
   @IsOptional()

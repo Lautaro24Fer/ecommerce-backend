@@ -6,8 +6,6 @@ import { UserService } from './user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolesModule } from '../roles/roles.module';
-import { EmailModule } from '../email/email.module';
-import { IdTypeModule } from '../id-type/id-type.module';
 import { AddressModule } from '../address/address.module';
 
 @Module({
@@ -15,8 +13,6 @@ import { AddressModule } from '../address/address.module';
   providers: [UserService],
   imports: [
     RolesModule,
-    EmailModule,
-    IdTypeModule,
     forwardRef(() => AddressModule),
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({

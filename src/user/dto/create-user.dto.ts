@@ -40,10 +40,6 @@ export class CreateUserDto {
 
   @ApiProperty()
   @IsPositive()
-  idType: number;
-
-  @ApiProperty()
-  @IsPositive()
   idNumber: number;
 
   @ApiProperty({ type: () => [AddressDto] })

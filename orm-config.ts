@@ -9,22 +9,20 @@ import { ProductImage } from './src/images/entities/image.entity';
 import { Role } from './src/roles/entities/role.entity';
 import { ConfigService } from '@nestjs/config';
 import * as dotenv from 'dotenv';
-import { IdType } from './src/id-type/entities/id-type.entity';
 import { Address } from './src/address/entities/address.entity';
 dotenv.config();
 
 const configService = new ConfigService();
 
 export const AppDataSource = new DataSource({
-  type: 'postgres',
-  host: configService.get<string>('TYPEORM_DATABASE_HOST'),
-  port: configService.get<number>('TYPEORM_DATABASE_PORT'),
-  username: configService.get<string>('TYPEORM_DATABASE_USERNAME'),
-  password: configService.get<string>('TYPEORM_DATABASE_PASSWORD'),
-  database: configService.get<string>('TYPEORM_DATABASE_NAME'),
+  type: 'sqlite',
+  // port: configService.get<number>('TYPEORM_DATABASE_PORT'),
+  // username: configService.get<string>('TYPEORM_DATABASE_USERNAME'),
+  // password: configService.get<string>('TYPEORM_DATABASE_PASSWORD'),
+  database: 'C:\\Users\\lauta\\Desktop\\DATABASES\\ONE.sql',
   synchronize: false,
   logging: false,
-  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role, IdType, Address, ProductOrder], // Ajusta según tus entidades
+  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role, Address, ProductOrder], // Ajusta según tus entidades
   migrations: ['src/migrations/*.ts'],
   subscribers: [],
 });
