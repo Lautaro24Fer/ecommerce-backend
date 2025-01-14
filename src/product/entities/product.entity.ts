@@ -1,5 +1,4 @@
 import { Brand } from '../../brand/entities/brand.entity';
-import { Supplier } from '../../supplier/entities/supplier.entity';
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ProductType } from '../../type/entities/type.entity';
 import { ProductImage } from '../../images/entities/image.entity';
@@ -40,6 +39,4 @@ export class Product {
   @ManyToOne(() => Brand, (brand) => brand.id)
   brand: Brand;
 
-  @ManyToOne(() => Supplier, (supplier) => supplier.id)
-  supplier: Supplier;
 }

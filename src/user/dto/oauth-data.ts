@@ -16,6 +16,7 @@ export interface CreateUserStrategyDto {
   idNumber?: string;
   addressStreet?: string;
   addressNumber?: string;
+  phone?: string;
 }
 
 // AL MOMENTO DE CREAR UN NUEVO USUARIO MEDIANTE OAUTH VERIFICA SI ESTE USUARIO EXISTÍA PREVIAMENTE

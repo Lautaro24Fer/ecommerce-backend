@@ -3,12 +3,10 @@ import { PaymentService } from './payment.service';
 import { ProductService } from '../product/product.service';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { EmailService } from '../email/email.service';
 import { OrderService } from '../order/order.service';
 import { UserService } from '../user/user.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { LoginMethodType } from '../global/enum';
-import { IdType } from '../id-type/entities/id-type.entity';
 import { IRecourseFound } from '../global/responseInterfaces';
 import { User } from '../user/entities/user.entity';
 import { IPaymentPreference } from './dto/preference-payment';
@@ -54,10 +52,6 @@ describe('PaymentService', () => {
           useValue: {
             findOneById: jest.fn().mockResolvedValue({ recourse: { address: [] } }),
           },
-        },
-        {
-          provide: EmailService,
-          useValue: {},
         },
         {
           provide: OrderService,

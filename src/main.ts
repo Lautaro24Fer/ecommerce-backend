@@ -83,7 +83,7 @@ async function bootstrap() {
   app.use(bodyParser.json());
   app.use(passport.session());
 
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 3010;
 
   await app.listen(PORT);
 }

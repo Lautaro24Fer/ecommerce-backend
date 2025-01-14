@@ -40,11 +40,6 @@ export class UpdateProductDto {
   @ApiProperty()
   @IsOptional()
   @IsPositive()
-  supplierId?: number;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsPositive()
   typeId?: number;
 
   @ApiProperty()

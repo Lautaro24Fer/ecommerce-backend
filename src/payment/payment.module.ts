@@ -6,13 +6,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
 import { ProductModule } from '../product/product.module';
-import { EmailModule } from '../email/email.module';
 import { OrderModule } from '../order/order.module';
 
 @Module({
   controllers: [PaymentController],
   providers: [PaymentService, ConfigService],
-  imports: [ConfigModule, JwtModule, AuthModule, UserModule, ProductModule, EmailModule, OrderModule,
+  imports: [ConfigModule, JwtModule, AuthModule, UserModule, ProductModule, OrderModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -37,6 +37,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       surname: profile.name.familyName,
       postalCode: '',
       idNumber: '',
+      phone: ''
     });
     return user || null;
   }

@@ -3,7 +3,6 @@ import { User } from './src/user/entities/user.entity';
 import { Brand } from './src/brand/entities/brand.entity';
 import { Order, ProductOrder } from './src/order/entities/order.entity';
 import { Product } from './src/product/entities/product.entity';
-import { Supplier } from './src/supplier/entities/supplier.entity';
 import { ProductType } from './src/type/entities/type.entity';
 import { ProductImage } from './src/images/entities/image.entity';
 import { Role } from './src/roles/entities/role.entity';
@@ -22,7 +21,7 @@ export const AppDataSource = new DataSource({
   database: 'C:\\Users\\lauta\\Desktop\\DATABASES\\ONE.sql',
   synchronize: false,
   logging: false,
-  entities: [User, Brand, Order, Product, Supplier, ProductType, ProductImage, Role, Address, ProductOrder], // Ajusta según tus entidades
+  entities: [User, Brand, Order, Product, ProductType, ProductImage, Role, Address, ProductOrder], // Ajusta según tus entidades
   migrations: ['src/migrations/*.ts'],
   subscribers: [],
 });

@@ -4,9 +4,7 @@ import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { BrandService } from '../brand/brand.service';
-import { SupplierService } from '../supplier/supplier.service';
 import { TypeService } from '../type/type.service';
-import { FtpService } from '../ftp/ftp.service';
 import { ImagesService } from '../images/images.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { IRecourseFound } from '../global/responseInterfaces';
@@ -15,7 +13,6 @@ import { ItemDto } from '../payment/dto/preference-payment';
 describe('ProductService', () => {
   let service: ProductService;
   let productRepository: Repository<Product>;
-  let ftpService: FtpService;
   let imagesService: ImagesService;
 
   beforeEach(async () => {
@@ -31,16 +28,8 @@ describe('ProductService', () => {
           useValue: { findOne: jest.fn() },
         },
         {
-          provide: SupplierService,
-          useValue: { findOne: jest.fn() },
-        },
-        {
           provide: TypeService,
           useValue: { findOne: jest.fn() },
-        },
-        {
-          provide: FtpService,
-          useValue: { saveImageOnFTPServer: jest.fn(), deleteFile: jest.fn() },
         },
         {
           provide: ImagesService,
@@ -51,7 +40,6 @@ describe('ProductService', () => {
 
     service = module.get<ProductService>(ProductService);
     productRepository = module.get<Repository<Product>>(getRepositoryToken(Product));
-    ftpService = module.get<FtpService>(FtpService);
     imagesService = module.get<ImagesService>(ImagesService);
   });
 
@@ -62,7 +50,7 @@ describe('ProductService', () => {
       jest.spyOn(productRepository, 'save').mockResolvedValue({ id: 1 } as Product);
       jest.spyOn(service, 'findOne').mockResolvedValue({ recourse: {} as Product } as any);
 
-      const result = await service.create({ brandId: 1, supplierId: 1, typeId: 1, cost: 50, price: 100 } as any, {} as any);
+      const result = await service.create({ brandId: 1, typeId: 1, cost: 50, price: 100 } as any, {} as any);
       expect(result.status).toBe(true);
       expect(result.message).toBe("The product was created succesfully");
     });
@@ -163,8 +151,6 @@ describe('ProductService', () => {
       const result = await service.remove(productId);
 
       expect(result.recourse.isActive).toBe(false);
-      expect(ftpService.deleteFile).toHaveBeenCalledWith(product.image);
-      expect(imagesService.remove).toHaveBeenCalledTimes(product.secondariesImages.length);
       expect(productRepository.save).toHaveBeenCalledWith({ ...product, isActive: false });
     });
 

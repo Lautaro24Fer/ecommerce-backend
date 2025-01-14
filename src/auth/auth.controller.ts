@@ -103,14 +103,14 @@ export class AuthController {
         httpOnly: true,
         sameSite: 'none',
         secure: true,
-        domain: 'padel-point.vercel.app'
+        // domain: 'padel-point.vercel.app'
       });
       res.cookie('refresh', refreshToken, {
         maxAge: 1000 * 60 * 60 * 2, // Tiempo de vida de la cookie (2 horas)
         httpOnly: true,
         sameSite: 'none',
         secure: true,
-        domain: 'padel-point.vercel.app'
+        // domain: 'padel-point.vercel.app'
       });
     }
 

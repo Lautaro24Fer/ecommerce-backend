@@ -5,7 +5,6 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserService } from '../user/user.service';
 import { ProductService } from '../product/product.service';
-import { EmailService } from '../email/email.service';
 import { OrderService } from '../order/order.service';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { Response, Request } from 'express';
@@ -48,12 +47,6 @@ describe('PaymentController', () => {
           provide: ProductService,
           useValue: {
             validateOperation: jest.fn().mockResolvedValue({ status: true }),
-          },
-        },
-        {
-          provide: EmailService,
-          useValue: {
-            sendEmail: jest.fn().mockResolvedValue(true),
           },
         },
         {

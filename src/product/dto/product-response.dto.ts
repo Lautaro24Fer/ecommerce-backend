@@ -7,6 +7,5 @@ export class ProductResponseDto{
   secondariesImages?: ProductImageResponseDto[] | [];
   price: number;
   brandId: number;
-  supplierId: number;
   typeId: number;
 }

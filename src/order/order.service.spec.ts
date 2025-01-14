@@ -7,7 +7,6 @@ import { ProductOrder } from './entities/order.entity';
 import { ProductService } from '../product/product.service';
 import { UserService } from '../user/user.service';
 import { ConfigService } from '@nestjs/config';
-import { EmailService } from '../email/email.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { MethodPaymentType } from '../global/enum';
@@ -68,10 +67,6 @@ describe('OrderService', () => {
               }
             }),
           },
-        },
-        {
-          provide: EmailService,
-          useValue: {},
         },
       ],
     }).compile();

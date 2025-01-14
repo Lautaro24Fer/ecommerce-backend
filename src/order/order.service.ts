@@ -14,7 +14,6 @@ import { UserDto } from '../user/dto/user.dto';
 import { OrderDto } from './dto/order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ProductOrderDto } from './dto/product-order.dto';
-import { EmailService } from '../email/email.service';
 import { QueryParamsDto } from './dto/query-params.dto';
 
 @Injectable()
@@ -26,7 +25,7 @@ export class OrderService {
     private readonly productService: ProductService,
     private readonly userService: UserService,
     private readonly configService: ConfigService,
-    private readonly emailService: EmailService) {}
+    ) {}
 
     ACCESS_TOKEN = this.configService.get<string>('MP_ACCESS_TOKEN');
 

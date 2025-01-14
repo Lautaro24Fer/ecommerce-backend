@@ -248,6 +248,7 @@ export class UserService {
           email: payload.email,
           method: payload.method,
           roles: [],
+          phone: payload.phone
         };
         createUser.roles.push(role);
         const userCreated: User = await this.userRepository.save(createUser).catch((error) => {

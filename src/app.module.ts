@@ -6,11 +6,9 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductModule } from './product/product.module';
 import { BrandModule } from './brand/brand.module';
-import { SupplierModule } from './supplier/supplier.module';
 import { OrderModule } from './order/order.module';
 import { Brand } from './brand/entities/brand.entity';
 import { Product } from './product/entities/product.entity';
-import { Supplier } from './supplier/entities/supplier.entity';
 import { User } from './user/entities/user.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProductImage } from './images/entities/image.entity';
@@ -41,7 +39,7 @@ import { CookieMiddleware } from './auth/cookie.middleware';
         // username: configService.get<string>('TYPEORM_DATABASE_USERNAME'),
         // password: configService.get<string>('TYPEORM_DATABASE_PASSWORD'),
         database: 'C:\\Users\\lauta\\Desktop\\DATABASES\\ONE.sql',
-        entities: [Brand, Product, Supplier, User, ProductImage, ProductType, Role, Address],
+        entities: [Brand, Product, User, ProductImage, ProductType, Role, Address],
         synchronize: false,
       }),
       dataSourceFactory: async (options) => {
@@ -51,7 +49,6 @@ import { CookieMiddleware } from './auth/cookie.middleware';
     }),
     ProductModule,
     BrandModule,
-    SupplierModule,
     OrderModule,
     TypeModule,
     ImagesModule,

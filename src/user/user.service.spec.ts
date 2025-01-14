@@ -3,14 +3,11 @@ import { UserService } from './user.service';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { RolesService } from '../roles/roles.service';
-import { EmailService } from '../email/email.service';
-import { IdTypeService } from '../id-type/id-type.service';
 import { AddressService } from '../address/address.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
 import { Address } from '../address/entities/address.entity';
-import { IdType } from '../id-type/entities/id-type.entity';
 import { BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UpdateType } from '../global/enum';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -20,8 +17,6 @@ describe('UserService', () => {
   let userRepository: Repository<User>;
   let jwtService: JwtService;
   let roleService: RolesService;
-  let emailService: EmailService;
-  let idTypeService: IdTypeService;
   let addressService: AddressService;
 
   beforeEach(async () => {
@@ -46,18 +41,6 @@ describe('UserService', () => {
           },
         },
         {
-          provide: EmailService,
-          useValue: {
-            sendEmailForResetPassword: jest.fn(),
-          },
-        },
-        {
-          provide: IdTypeService,
-          useValue: {
-            findOne: jest.fn(),
-          },
-        },
-        {
           provide: AddressService,
           useValue: {
             findOrCreate: jest.fn(),
@@ -70,8 +53,6 @@ describe('UserService', () => {
     userRepository = module.get<Repository<User>>(getRepositoryToken(User));
     jwtService = module.get<JwtService>(JwtService);
     roleService = module.get<RolesService>(RolesService);
-    emailService = module.get<EmailService>(EmailService);
-    idTypeService = module.get<IdTypeService>(IdTypeService);
     addressService = module.get<AddressService>(AddressService);
   });
 
@@ -107,7 +88,6 @@ describe('UserService', () => {
         username: 'testuser',
         password: 'password123',
         idNumber: 1,
-        idType: 1,
         address: [],
         name: '',
         surname: '',
@@ -119,7 +99,6 @@ describe('UserService', () => {
       jest.spyOn(userRepository, 'create').mockReturnValue(savedUser as any);
       jest.spyOn(userRepository, 'save').mockResolvedValue(savedUser as any);
       jest.spyOn(service, 'recourseInUse').mockResolvedValue(false);
-      jest.spyOn(idTypeService, 'findOne').mockResolvedValue({ recourse: {} } as any);
       jest.spyOn(roleService, 'findOneByName').mockResolvedValue({ recourse: {} } as any);
       jest.spyOn(service, 'findOneById').mockResolvedValue({ status: true, recourse: savedUser } as any);
   

@@ -6,7 +6,6 @@ import { Order, ProductOrder } from './entities/order.entity';
 import { ProductModule } from '../product/product.module';
 import { UserModule } from '../user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EmailModule } from '../email/email.module';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
@@ -17,7 +16,6 @@ import { JwtModule } from '@nestjs/jwt';
     ProductModule, 
     UserModule, 
     ConfigModule, 
-    EmailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

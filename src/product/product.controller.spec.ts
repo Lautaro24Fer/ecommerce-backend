@@ -54,7 +54,6 @@ describe('ProductController', () => {
         price: 0,
         cost: 0,
         brandId: 0,
-        supplierId: 0,
         typeId: 0,
         stock: 0
       };
@@ -82,7 +81,6 @@ describe('ProductController', () => {
         price: 0,
         cost: 0,
         brandId: 0,
-        supplierId: 0,
         typeId: 0,
         stock: 0
       };

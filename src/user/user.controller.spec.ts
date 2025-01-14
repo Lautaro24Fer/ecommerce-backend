@@ -12,7 +12,6 @@ import { UserDto } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { IdType } from '../id-type/entities/id-type.entity';
 import { Request } from 'express';
 import { LoginMethodType } from '../global/enum';
 
@@ -72,7 +71,6 @@ describe('UserController', () => {
         password: 'securePassword123',
         phone: '+541234567890',
         email: 'john.doe@example.com',
-        idType: 1,
         idNumber: 12345678,
         address: []
       };
@@ -84,7 +82,6 @@ describe('UserController', () => {
       userEntity.username = 'johndoe';
       userEntity.email = 'john.doe@example.com';
       userEntity.phone = '+541234567890';
-      userEntity.idType = { id: 1 } as unknown as IdType;
       userEntity.idNumber = '12345678';
       userEntity.address = [];
       userEntity.roles = [];
@@ -103,7 +100,6 @@ describe('UserController', () => {
         username: userEntity.username,
         email: userEntity.email,
         phone: userEntity.phone,
-        idType: userEntity.idType,
         idNumber: userEntity.idNumber,
         address: userEntity.address,
         roles: userEntity.roles,
@@ -120,7 +116,6 @@ describe('UserController', () => {
           username: userEntity.username,
           email: userEntity.email,
           phone: userEntity.phone,
-          idType: userEntity.idType,
           idNumber: userEntity.idNumber,
           address: userEntity.address,
           roles: userEntity.roles,
@@ -139,7 +134,6 @@ describe('UserController', () => {
         password: 'securePassword123',
         phone: '+541234567890',
         email: 'john.doe@example.com',
-        idType: 1,
         idNumber: 12345678,
         address: []
       };
@@ -196,7 +190,6 @@ describe('UserController', () => {
       userEntity.username = 'testuser';
       userEntity.email = 'test@example.com';
       userEntity.phone = '+541234567890';
-      userEntity.idType = { id: 1 } as unknown as IdType;
       userEntity.idNumber = '12345678';
       userEntity.address = [];
       userEntity.roles = [];
@@ -214,7 +207,6 @@ describe('UserController', () => {
         username: userEntity.username,
         email: userEntity.email,
         phone: userEntity.phone,
-        idType: userEntity.idType,
         idNumber: userEntity.idNumber,
         address: userEntity.address,
         roles: userEntity.roles,
@@ -266,7 +258,6 @@ describe('UserController', () => {
         username: 'testuser',
         email: 'test@example.com',
         phone: '+541234567890',
-        idType: { id: 1 } as unknown as IdType,
         idNumber: '12345678',
         address: [],
         roles: [],
@@ -296,7 +287,6 @@ describe('UserController', () => {
         username: userEntityUpdated.username,
         email: userEntityUpdated.email,
         phone: userEntityUpdated.phone,
-        idType: userEntityUpdated.idType,
         idNumber: userEntityUpdated.idNumber,
         address: userEntityUpdated.address,
         roles: userEntityUpdated.roles,
@@ -329,7 +319,6 @@ describe('UserController', () => {
         username: '',
         isActive: true,
         phone: '',
-        idType: new IdType,
         idNumber: '',
         email: '',
         method: LoginMethodType.LOCAL,
@@ -351,7 +340,9 @@ describe('UserController', () => {
       };
       jest.spyOn(service, 'findOneById').mockResolvedValue(resultService);
 
-      expect(await controller.getUserAddresses(id)).toEqual(result);
+      const req: Request = {} as unknown as Request;
+
+      expect(await controller.getUserAddresses(id, req)).toEqual(result);
     });
   });
 
@@ -366,7 +357,6 @@ describe('UserController', () => {
         username: '',
         isActive: true,
         phone: '',
-        idType: new IdType,
         idNumber: '',
         email: '',
         method: LoginMethodType.LOCAL,
@@ -405,7 +395,6 @@ describe('UserController', () => {
         username: 'updatedusername',
         phone: '+541234567890',
         email: 'updated.email@example.com',
-        idType: 1,
         idNumber: 12345678,
         address: []
       };
@@ -417,7 +406,6 @@ describe('UserController', () => {
         username: 'updatedusername',
         phone: '+541234567890',
         email: 'updated.email@example.com',
-        idType: { id: 1 } as unknown as IdType,
         idNumber: '12345678',
         address: [],
         roles: [],
@@ -438,7 +426,6 @@ describe('UserController', () => {
         username: userEntity.username,
         email: userEntity.email,
         phone: userEntity.phone,
-        idType: userEntity.idType,
         idNumber: userEntity.idNumber,
         address: userEntity.address,
         roles: userEntity.roles,
@@ -468,7 +455,6 @@ describe('UserController', () => {
         phone: '+541234567890',
         password: 'newSecurePassword123',
         email: 'updated.email@example.com',
-        idType: 1,
         idNumber: 12345678,
         address: []
       };
@@ -480,7 +466,6 @@ describe('UserController', () => {
         username: 'updatedusername',
         phone: '+541234567890',
         email: 'updated.email@example.com',
-        idType: { id: 1 } as unknown as IdType,
         idNumber: '12345678',
         address: [],
         roles: [],
@@ -501,7 +486,6 @@ describe('UserController', () => {
         username: userEntity.username,
         email: userEntity.email,
         phone: userEntity.phone,
-        idType: userEntity.idType,
         idNumber: userEntity.idNumber,
         address: userEntity.address,
         roles: userEntity.roles,
@@ -531,7 +515,6 @@ describe('UserController', () => {
         username: 'testuser',
         email: 'test@example.com',
         phone: '+541234567890',
-        idType: { id: 1 } as unknown as IdType,
         idNumber: '12345678',
         address: [],
         roles: [],

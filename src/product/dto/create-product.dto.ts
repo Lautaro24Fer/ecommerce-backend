@@ -47,11 +47,6 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsPositive()
   @Type(() => Number) // Convierte string a número
-  supplierId: number;
-
-  @IsNotEmpty()
-  @IsPositive()
-  @Type(() => Number) // Convierte string a número
   typeId: number;
 
   @IsNotEmpty()

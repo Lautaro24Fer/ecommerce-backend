@@ -21,7 +21,6 @@ import { IBadRequestex, IRecourseCreated, IRecourseDeleted, IRecourseFound, IUna
 import { Order } from './entities/order.entity';
 import { OrderDto } from './dto/order.dto';
 import { UserService } from '../user/user.service';
-import { EmailService } from '../email/email.service';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { AuthGuard, ITokenPayload } from '../auth/auth.guard';
 import { Roles } from '../auth/auth.decorator';
@@ -35,7 +34,6 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     private readonly userService: UserService,
-    private readonly emailService: EmailService,
     private readonly jwtService: JwtService) {}
 
   @ApiOperation({
@@ -61,11 +59,6 @@ export class OrderController {
     const orderDto: OrderDto = this.orderService.mapOrderToOrderDto(response.recourse);
 
     // Envío de la orden por correo al admin
-
-    await this.emailService.sendEmailForOrder(response.recourse).catch((error) => {
-      console.error("Error tryng to send order email");
-      console.error(error);
-    });
 
     const recourse: IRecourseCreated<OrderDto> = {
       ...response,

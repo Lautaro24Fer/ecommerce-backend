@@ -11,9 +11,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Supplier } from '../supplier/entities/supplier.entity';
 import { BrandService } from '../brand/brand.service';
-import { SupplierService } from '../supplier/supplier.service';
 import { Brand } from '../brand/entities/brand.entity';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { ProductType } from '../type/entities/type.entity';
@@ -23,7 +21,6 @@ import { IBadRequestex, INotFoundEx, IRecourseCreated, IRecourseDeleted, IRecour
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ItemDto } from '../payment/dto/preference-payment';
 import { MulterFile } from '../images/dto/multer-file';
-import { FtpService } from '../ftp/ftp.service';
 
 @Injectable()
 export class ProductService {
@@ -32,9 +29,7 @@ export class ProductService {
     private readonly productRepository: Repository<Product>,
     @Inject(forwardRef(() => ImagesService)) private readonly productImageService: ImagesService,
     private readonly brandService: BrandService,
-    private readonly supplierService: SupplierService,
     private readonly typeService: TypeService,
-    private readonly ftpService: FtpService,
   ) {}
 
   async create(createProductDto: CreateProductDto, file: MulterFile): Promise<IRecourseCreated<Product>> {
@@ -42,8 +37,6 @@ export class ProductService {
     // Verificar que el id de supplier y brand existen. Para eso primero haremos sus respectivos repositorios primero
 
     const brand: Brand = (await this.brandService.findOne(createProductDto.brandId))?.recourse;
-
-    const supplier: Supplier = (await this.supplierService.findOne(createProductDto.supplierId))?.recourse;
 
     const type: ProductType = (await this.typeService.findOne(createProductDto.typeId))?.recourse;
 
@@ -55,7 +48,6 @@ export class ProductService {
       throw new BadRequestException(badRequestError);
     }
 
-    let imageUrl: string = await this.ftpService.saveImageOnFTPServer(file);
 
     const newProduct: Product = this.productRepository.create({  
       ...createProductDto,
@@ -63,9 +55,8 @@ export class ProductService {
       description: createProductDto.description,
       price: createProductDto.price,
       type,
-      supplier,
       brand,
-      image: imageUrl
+      image: ''
     });
 
     const { id }: Product = await this.productRepository.save(newProduct).catch((error) => {
@@ -180,7 +171,7 @@ export class ProductService {
 
   async findOne(id: number): Promise<IRecourseFound<Product>> {
     const product: Product = await this.productRepository.findOne({
-      where: { id }, relations: ['brand', 'supplier', 'type', 'secondariesImages']})
+      where: { id }, relations: ['brand', 'type', 'secondariesImages']})
       .catch((error) => {
       console.error(error);
       const badRequestError: IBadRequestex = {
@@ -217,33 +208,29 @@ export class ProductService {
      body.brand = brand;
     }
 
-    if (updateProductDto.supplierId) {
-      const supplier: Supplier = (await this.supplierService.findOne(updateProductDto?.supplierId)).recourse;
-     body.supplier = supplier;
-    }
 
     if(updateProductDto.typeId){
       const type: ProductType = (await this.typeService.findOne(updateProductDto?.typeId)).recourse;
      body.type = type;
     }
 
-    if(file){
-      const newImageUrl: string = await this.ftpService.saveImageOnFTPServer(file);
-      if(productFound.image.includes('padel-point')){
-        const imageExists: boolean = await this.ftpService.checkFileExists(productFound.image)
-        if(imageExists){
-          await this.ftpService.deleteFile(productFound.image).catch((error) => {
-            console.error(error);
-            const ftpError: IBadRequestex = {
-              status: false,
-              message: "Error deleting the image on the server"
-            };
-            throw new InternalServerErrorException(ftpError);
-          });
-        }
-      }
-      body.image = newImageUrl;
-    }
+    // if(file){
+    //   const newImageUrl: string = await this.ftpService.saveImageOnFTPServer(file);
+    //   if(productFound.image.includes('padel-point')){
+    //     const imageExists: boolean = await this.ftpService.checkFileExists(productFound.image)
+    //     if(imageExists){
+    //       await this.ftpService.deleteFile(productFound.image).catch((error) => {
+    //         console.error(error);
+    //         const ftpError: IBadRequestex = {
+    //           status: false,
+    //           message: "Error deleting the image on the server"
+    //         };
+    //         throw new InternalServerErrorException(ftpError);
+    //       });
+    //     }
+    //   }
+    //   body.image = newImageUrl;
+    // }
 
     if(updateProductDto.isActive){
       body.isActive = updateProductDto.isActive;
@@ -269,14 +256,14 @@ export class ProductService {
   async remove(id: number): Promise<IRecourseDeleted<Product>> {
     const product: Product = (await this.findOne(id))?.recourse;
     const urlPath: string = product.image;
-    if (urlPath?.includes('padel-point')) {
-      await this.ftpService.deleteFile(urlPath);
-    }
-    if (Array.isArray(product?.secondariesImages)) {
-      await Promise.all(product.secondariesImages.map(async (image) => {
-        await this.productImageService?.remove(image.id);
-      }));
-    }
+    // if (urlPath?.includes('padel-point')) {
+    //   await this.ftpService.deleteFile(urlPath);
+    // }
+    // if (Array.isArray(product?.secondariesImages)) {
+    //   await Promise.all(product.secondariesImages.map(async (image) => {
+    //     await this.productImageService?.remove(image.id);
+    //   }));
+    // }
 
     product.isActive = false;
 

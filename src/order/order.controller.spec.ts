@@ -2,14 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 import { UserService } from '../user/user.service';
-import { EmailService } from '../email/email.service';
 import { IRecourseCreated, IRecourseFound, IRecourseDeleted } from '../global/responseInterfaces';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderDto } from './dto/order.dto';
 import { QueryParamsDto } from './dto/query-params.dto';
 import { Order } from './entities/order.entity';
 import { User } from '../user/entities/user.entity';
-import { IdType } from '../id-type/entities/id-type.entity';
 import { Address } from '../address/entities/address.entity';
 import { Request } from 'express';
 import { RequestBodyObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
@@ -51,16 +49,6 @@ describe('OrderController', () => {
           provide: UserService,
           useValue: {},
         },
-        {
-          provide: EmailService,
-          useValue: {
-            sendEmailForOrder: jest.fn().mockResolvedValue({
-              status: true,
-              message: 'The order mail was sent successfully to the admin',
-              recourse: {},
-            }),
-          },
-        },
       ],
     }).compile();
 
@@ -93,7 +81,6 @@ describe('OrderController', () => {
             surname: '',
             username: '',
             phone: '',
-            idType: new IdType,
             idNumber: '',
             address: [],
             email: '',
@@ -193,7 +180,6 @@ describe('OrderController', () => {
             surname: '',
             username: '',
             phone: '',
-            idType: new IdType,
             idNumber: '',
             address: [],
             email: '',
@@ -252,7 +238,6 @@ describe('OrderController', () => {
         surname: '',
         username: '',
         phone: '',
-        idType: new IdType(),
         idNumber: '',
         address: [],
         email: '',
@@ -271,7 +256,6 @@ describe('OrderController', () => {
             surname: '',
             username: '',
             phone: '',
-            idType: new IdType(),
             idNumber: '',
             address: [],
             email: '',
